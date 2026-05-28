@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Терапевтичні картки | Флеш-картка та картка думок</title>
+  <meta name="description" content="Онлайн терапевтичні картки: схема-картка та картка думок. Заповнюйте поля, зберігайте результат у PNG та переглядайте історію локально.">
+  <meta property="og:title" content="Терапевтичні картки | Флеш-картка та картка думок">
+  <meta property="og:description" content="Зручний інструмент для заповнення терапевтичних карток із локальним збереженням історії та експортом у PNG.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="uk_UA">
+  <meta property="og:image" content="https://dummyimage.com/1200x630/ebe7e0/2f3340.png&text=%D0%A2%D0%B5%D1%80%D0%B0%D0%BF%D0%B5%D0%B2%D1%82%D0%B8%D1%87%D0%BD%D1%96+%D0%BA%D0%B0%D1%80%D1%82%D0%BA%D0%B8">
+  <meta property="og:image:alt" content="Терапевтичні картки: флеш-картка та картка думок">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%233f4659'/%3E%3Cpath d='M18 22h28M18 32h20M18 42h16' stroke='%23ffffff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: #30323d;
+      background: #e7e3dc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(100%, 760px);
+      background: #f7f5f1;
+      border: 8px solid #ece9e2;
+      border-radius: 8px;
+      box-shadow: 0 20px 50px rgba(29, 30, 34, 0.15);
+      padding: 28px;
+    }
+
+    .header {
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .header h1 {
+      margin: 0 0 12px;
+      font-size: clamp(26px, 4vw, 38px);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .header p {
+      margin: 0;
+      color: #4c505e;
+      font-size: clamp(15px, 2vw, 24px);
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .template-picker {
+      margin: 14px auto 0;
+      width: min(100%, 340px);
+      text-align: center;
+    }
+
+    .template-picker label {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .template-picker select {
+      width: 100%;
+      border: 1px solid #c8c2b8;
+      border-radius: 8px;
+      background: #f8f6f2;
+      color: #2b2f3b;
+      padding: 10px 12px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .template-picker select:focus {
+      border-color: #6d7388;
+      box-shadow: 0 0 0 3px rgba(109, 115, 136, 0.16);
+    }
+
+    .form-shell {
+      background: #ebe7e0;
+      border-radius: 4px;
+      padding: 20px 18px;
+      border: 1px solid #d9d4cb;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .field-optional label::after {
+      content: " (необов'язково)";
+      font-size: 13px;
+      color: #6f7382;
+      font-weight: 400;
+    }
+
+    .form-page.hidden {
+      display: none;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 18px;
+      line-height: 1.3;
+    }
+
+    .field-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .field-label-row label {
+      margin-bottom: 0;
+    }
+
+    .link-button {
+      border: 0;
+      background: transparent;
+      color: #4a5575;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 0;
+      text-decoration: underline;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 72px;
+      resize: none;
+      overflow-y: hidden;
+      border: 1px solid #c8c2b8;
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #f8f6f2;
+      line-height: 1.45;
+      font-size: 17px;
+      color: #20232b;
+      outline: none;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    textarea:focus {
+      border-color: #6d7388;
+      box-shadow: 0 0 0 3px rgba(109, 115, 136, 0.16);
+    }
+
+    textarea::placeholder {
+      font-size: 13px;
+      color: #6f7382;
+      line-height: 1.35;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #ffffff;
+      background: #3f4659;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    button.secondary {
+      background: #858ba0;
+    }
+
+    .saved-state {
+      margin-top: 16px;
+      color: #4c505e;
+      font-size: 14px;
+    }
+
+    .history {
+      margin-top: 28px;
+    }
+
+    .history h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+      color: #343a4a;
+    }
+
+    .history-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .history-item {
+      background: #ebe7e0;
+      border: 1px solid #d0cbc2;
+      border-radius: 8px;
+      padding: 8px;
+    }
+
+    .history-item img {
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #c8c2b8;
+      background: #ffffff;
+      display: block;
+      cursor: zoom-in;
+    }
+
+    .history-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 8px;
+      width: 100%;
+    }
+
+    .history-date {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #5f6473;
+      text-align: center;
+    }
+
+    .history-actions button {
+      width: 100%;
+      min-width: 0;
+      padding: 8px 6px;
+      font-size: 18px;
+      line-height: 1;
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .history-actions button svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+
+    .history-empty {
+      margin: 0;
+      color: #666b7b;
+      font-size: 14px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(19, 20, 23, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 30;
+    }
+
+    .modal-overlay.hidden {
+      display: none;
+    }
+
+    .modal {
+      width: min(100%, 360px);
+      background: #f7f5f1;
+      border: 1px solid #d8d2c8;
+      border-radius: 10px;
+      box-shadow: 0 18px 38px rgba(26, 27, 32, 0.22);
+      padding: 16px;
+    }
+
+    .modal p {
+      margin: 0;
+      color: #30323d;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .modal-actions button {
+      font-size: 14px;
+      padding: 8px 12px;
+    }
+
+    .emotion-modal {
+      width: min(100%, 720px);
+      max-height: min(82vh, 760px);
+      overflow-y: auto;
+    }
+
+    .emotion-groups {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .emotion-group {
+      background: #ebe7e0;
+      border: 1px solid #d2ccc1;
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .emotion-group h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      color: #2f3340;
+    }
+
+    .emotion-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .emotion-chip {
+      border: 1px solid #c2bcaf;
+      background: #fff;
+      color: #2f3340;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .emotion-chip.is-selected {
+      background: #3f4659;
+      border-color: #3f4659;
+      color: #ffffff;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 10px;
+      }
+
+      .app {
+        border-width: 4px;
+        padding: 14px;
+      }
+
+      .header {
+        margin-bottom: 14px;
+      }
+
+      .header h1 {
+        margin-bottom: 8px;
+        font-size: 26px;
+      }
+
+      .header p {
+        font-size: 18px;
+      }
+
+      .form-shell {
+        padding: 12px;
+      }
+
+      .field {
+        margin-bottom: 10px;
+      }
+
+      label {
+        margin-bottom: 4px;
+        font-size: 15px;
+      }
+
+      textarea {
+        min-height: 58px;
+        padding: 8px 10px;
+        font-size: 15px;
+      }
+
+      .actions {
+        margin-top: 14px;
+        gap: 8px;
+      }
+
+      button {
+        padding: 9px 12px;
+        font-size: 14px;
+      }
+
+      .history {
+        margin-top: 20px;
+      }
+
+      .history h2 {
+        font-size: 17px;
+      }
+
+      .history-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .history-item img {
+        height: 130px;
+      }
+
+      .history-actions {
+        gap: 5px;
+      }
+
+      .history-date {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="header">
+      <h1 id="pageTitle">Флеш-картка</h1>
+      <p id="pageSubtitle">Новий досвід дозволить укріпити<br>Здорову дорослу частину</p>
+      <div class="template-picker">
+        <label for="templateSelect">Тип терапевтичної картки</label>
+        <select id="templateSelect">
+          <option value="schema">Флеш-картка</option>
+          <option value="thought">Картка думок</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="form-shell">
+      <form id="schemaForm" class="form-page">
+        <div class="field">
+          <div class="field-label-row">
+            <label for="feelings">Зараз я відчуваю (емоції та фізичні відчуття)</label>
+            <button type="button" class="link-button" id="openFeelingsEmotionListBtn">Список емоцій</button>
+          </div>
+          <textarea id="feelings" name="feelings" rows="2"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="trigger">Тому що (опишіть ситуацію/тригер)</label>
+          <textarea id="trigger" name="trigger" rows="2"></textarea>
+        </div>
+
+        <div class="field">
+          <div class="field-label-row">
+            <label for="schema">Активувалася моя схема</label>
+            <button type="button" class="link-button" id="openSchemaListBtn">Список схем</button>
+          </div>
+          <textarea id="schema" name="schema" rows="2"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="past">яка йде з мого минулого, коли</label>
+          <textarea id="past" name="past" rows="2"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="distortion">Тому зараз я сприймаю ситуацію перебільшено, думаючи що</label>
+          <textarea id="distortion" name="distortion" rows="2"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="healthyAdult">З погляду Здорового дорослого я знаю, що</label>
+          <textarea id="healthyAdult" name="healthyAdult" rows="2"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="hardMoment">Навіть коли схема змушує мене</label>
+          <textarea id="hardMoment" name="hardMoment" rows="2"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="choice">Я обираю</label>
+          <textarea id="choice" name="choice" rows="2"></textarea>
+        </div>
+      </form>
+
+      <form id="thoughtForm" class="form-page hidden">
+        <div class="field">
+          <label for="situation">Ситуація</label>
+          <textarea id="situation" name="situation" rows="2"></textarea>
+        </div>
+        <div class="field">
+          <label for="thought">Думка</label>
+          <textarea id="thought" name="thought" rows="2"></textarea>
+        </div>
+        <div class="field">
+          <div class="field-label-row">
+            <label for="emotion">Емоція</label>
+            <button type="button" class="link-button" id="openEmotionListBtn">Список емоцій</button>
+          </div>
+          <textarea id="emotion" name="emotion" rows="2"></textarea>
+        </div>
+        <div class="field">
+          <label for="behavior">Поведінка</label>
+          <textarea id="behavior" name="behavior" rows="2"></textarea>
+        </div>
+        <div class="field">
+          <label for="consequences">Наслідки</label>
+          <textarea id="consequences" name="consequences" rows="2"></textarea>
+        </div>
+        <div class="field field-optional">
+          <label for="unrealisticScenario">Нереалістичний сценарій</label>
+          <textarea id="unrealisticScenario" name="unrealisticScenario" rows="2"></textarea>
+        </div>
+        <div class="field field-optional">
+          <label for="realisticScenario">Реалістичний сценарій</label>
+          <textarea id="realisticScenario" name="realisticScenario" rows="2"></textarea>
+        </div>
+      </form>
+    </section>
+
+    <div class="actions">
+      <button type="button" class="secondary" id="resetBtn">Очистити</button>
+      <button type="button" id="saveBtn">Зберегти як картинку</button>
+    </div>
+
+    <p class="saved-state" id="savedState"></p>
+
+    <section class="history">
+      <h2>Історія заповнених карток</h2>
+      <div class="history-list" id="historyList"></div>
+      <p class="history-empty" id="historyEmpty">Поки що немає збережених картинок.</p>
+    </section>
+  </main>
+
+  <div class="modal-overlay hidden" id="deleteModalOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+      <p id="deleteModalTitle">Точно видалити цю картку з історії?</p>
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="cancelDeleteBtn">Скасувати</button>
+        <button type="button" id="confirmDeleteBtn">Видалити</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="emotionModalOverlay" aria-hidden="true">
+    <div class="modal emotion-modal" role="dialog" aria-modal="true" aria-labelledby="emotionModalTitle">
+      <p id="emotionModalTitle">Оберіть емоцію</p>
+      <div class="emotion-groups">
+        <section class="emotion-group">
+          <h3>Тривога/Страх</h3>
+          <div class="emotion-buttons">
+            <button type="button" class="emotion-chip" data-emotion="тривога">Тривога</button>
+            <button type="button" class="emotion-chip" data-emotion="страх">Страх</button>
+            <button type="button" class="emotion-chip" data-emotion="паніка">Паніка</button>
+            <button type="button" class="emotion-chip" data-emotion="напруження">Напруження</button>
+            <button type="button" class="emotion-chip" data-emotion="невпевненість">Невпевненість</button>
+            <button type="button" class="emotion-chip" data-emotion="занепокоєння">Занепокоєння</button>
+            <button type="button" class="emotion-chip" data-emotion="тривожність">Тривожність</button>
+            <button type="button" class="emotion-chip" data-emotion="переляк">Переляк</button>
+            <button type="button" class="emotion-chip" data-emotion="жах">Жах</button>
+            <button type="button" class="emotion-chip" data-emotion="розгубленість">Розгубленість</button>
+            <button type="button" class="emotion-chip" data-emotion="беззахисність">Беззахисність</button>
+            <button type="button" class="emotion-chip" data-emotion="настороженість">Настороженість</button>
+          </div>
+        </section>
+        <section class="emotion-group">
+          <h3>Сум/Втрата</h3>
+          <div class="emotion-buttons">
+            <button type="button" class="emotion-chip" data-emotion="смуток">Смуток</button>
+            <button type="button" class="emotion-chip" data-emotion="розчарування">Розчарування</button>
+            <button type="button" class="emotion-chip" data-emotion="самотність">Самотність</button>
+            <button type="button" class="emotion-chip" data-emotion="безпорадність">Безпорадність</button>
+            <button type="button" class="emotion-chip" data-emotion="пригніченість">Пригніченість</button>
+            <button type="button" class="emotion-chip" data-emotion="печаль">Печаль</button>
+            <button type="button" class="emotion-chip" data-emotion="туга">Туга</button>
+            <button type="button" class="emotion-chip" data-emotion="виснаження">Виснаження</button>
+            <button type="button" class="emotion-chip" data-emotion="спустошеність">Спустошеність</button>
+            <button type="button" class="emotion-chip" data-emotion="відчай">Відчай</button>
+            <button type="button" class="emotion-chip" data-emotion="безнадія">Безнадія</button>
+            <button type="button" class="emotion-chip" data-emotion="горе">Горе</button>
+          </div>
+        </section>
+        <section class="emotion-group">
+          <h3>Злість/Фрустрація</h3>
+          <div class="emotion-buttons">
+            <button type="button" class="emotion-chip" data-emotion="злість">Злість</button>
+            <button type="button" class="emotion-chip" data-emotion="роздратування">Роздратування</button>
+            <button type="button" class="emotion-chip" data-emotion="обурення">Обурення</button>
+            <button type="button" class="emotion-chip" data-emotion="фрустрація">Фрустрація</button>
+            <button type="button" class="emotion-chip" data-emotion="гнів">Гнів</button>
+            <button type="button" class="emotion-chip" data-emotion="збудження">Збудження</button>
+            <button type="button" class="emotion-chip" data-emotion="злість на себе">Злість на себе</button>
+            <button type="button" class="emotion-chip" data-emotion="нетерпіння">Нетерпіння</button>
+            <button type="button" class="emotion-chip" data-emotion="лють">Лють</button>
+            <button type="button" class="emotion-chip" data-emotion="розлюченість">Розлюченість</button>
+            <button type="button" class="emotion-chip" data-emotion="дратівливість">Дратівливість</button>
+            <button type="button" class="emotion-chip" data-emotion="образа">Образа</button>
+          </div>
+        </section>
+        <section class="emotion-group">
+          <h3>Сором/Провина</h3>
+          <div class="emotion-buttons">
+            <button type="button" class="emotion-chip" data-emotion="сором">Сором</button>
+            <button type="button" class="emotion-chip" data-emotion="провина">Провина</button>
+            <button type="button" class="emotion-chip" data-emotion="ніяковість">Ніяковість</button>
+            <button type="button" class="emotion-chip" data-emotion="самокритика">Самокритика</button>
+            <button type="button" class="emotion-chip" data-emotion="незручність">Незручність</button>
+            <button type="button" class="emotion-chip" data-emotion="самозвинувачення">Самозвинувачення</button>
+            <button type="button" class="emotion-chip" data-emotion="приниження">Приниження</button>
+            <button type="button" class="emotion-chip" data-emotion="зніяковіння">Зніяковіння</button>
+            <button type="button" class="emotion-chip" data-emotion="невартісність">Невартісність</button>
+          </div>
+        </section>
+        <section class="emotion-group">
+          <h3>Ресурсні емоції</h3>
+          <div class="emotion-buttons">
+            <button type="button" class="emotion-chip" data-emotion="спокій">Спокій</button>
+            <button type="button" class="emotion-chip" data-emotion="полегшення">Полегшення</button>
+            <button type="button" class="emotion-chip" data-emotion="надія">Надія</button>
+            <button type="button" class="emotion-chip" data-emotion="вдячність">Вдячність</button>
+            <button type="button" class="emotion-chip" data-emotion="впевненість">Впевненість</button>
+            <button type="button" class="emotion-chip" data-emotion="радість">Радість</button>
+            <button type="button" class="emotion-chip" data-emotion="інтерес">Інтерес</button>
+            <button type="button" class="emotion-chip" data-emotion="натхнення">Натхнення</button>
+            <button type="button" class="emotion-chip" data-emotion="прийняття">Прийняття</button>
+            <button type="button" class="emotion-chip" data-emotion="теплота">Теплота</button>
+            <button type="button" class="emotion-chip" data-emotion="підтримка">Підтримка</button>
+            <button type="button" class="emotion-chip" data-emotion="стійкість">Стійкість</button>
+            <button type="button" class="emotion-chip" data-emotion="зосередженість">Зосередженість</button>
+          </div>
+        </section>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="closeEmotionModalBtn">Закрити</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="schemaModalOverlay" aria-hidden="true">
+    <div class="modal emotion-modal" role="dialog" aria-modal="true" aria-labelledby="schemaModalTitle">
+      <p id="schemaModalTitle">Оберіть схему</p>
+      <div class="emotion-groups">
+        <section class="emotion-group">
+          <h3>Розрив зв'язку</h3>
+          <div class="emotion-buttons">
+            <button type="button" class="emotion-chip schema-chip" data-schema="покинутість/нестабільність">Покинутість/нестабільність</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="недовіра/зловживання">Недовіра/зловживання</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="емоційна депривація">Емоційна депривація</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="дефектність/сором">Дефектність/сором</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="соціальна ізоляція">Соціальна ізоляція</button>
+          </div>
+        </section>
+        <section class="emotion-group">
+          <h3>Порушена автономія</h3>
+          <div class="emotion-buttons">
+            <button type="button" class="emotion-chip schema-chip" data-schema="залежність/безпорадність">Залежність/безпорадність</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="вразливість до небезпеки">Вразливість до небезпеки</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="злитість/нерозвинена ідентичність">Злитість/нерозвинена ідентичність</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="невдача">Невдача</button>
+          </div>
+        </section>
+        <section class="emotion-group">
+          <h3>Порушені межі</h3>
+          <div class="emotion-buttons">
+            <button type="button" class="emotion-chip schema-chip" data-schema="привілейованість/грандіозність">Привілейованість/грандіозність</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="недостатній самоконтроль">Недостатній самоконтроль</button>
+          </div>
+        </section>
+        <section class="emotion-group">
+          <h3>Орієнтація на інших</h3>
+          <div class="emotion-buttons">
+            <button type="button" class="emotion-chip schema-chip" data-schema="підкорення">Підкорення</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="самопожертва">Самопожертва</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="пошук схвалення">Пошук схвалення</button>
+          </div>
+        </section>
+        <section class="emotion-group">
+          <h3>Надмірна пильність</h3>
+          <div class="emotion-buttons">
+            <button type="button" class="emotion-chip schema-chip" data-schema="негативізм/песимізм">Негативізм/песимізм</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="емоційна загальмованість">Емоційна загальмованість</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="жорсткі стандарти">Жорсткі стандарти</button>
+            <button type="button" class="emotion-chip schema-chip" data-schema="покарання">Покарання</button>
+          </div>
+        </section>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="closeSchemaModalBtn">Закрити</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const pageTitle = document.getElementById('pageTitle');
+    const pageSubtitle = document.getElementById('pageSubtitle');
+    const templateSelect = document.getElementById('templateSelect');
+    const schemaForm = document.getElementById('schemaForm');
+    const thoughtForm = document.getElementById('thoughtForm');
+    const allForms = { schema: schemaForm, thought: thoughtForm };
+    const saveBtn = document.getElementById('saveBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const savedState = document.getElementById('savedState');
+    const historyList = document.getElementById('historyList');
+    const historyEmpty = document.getElementById('historyEmpty');
+    const deleteModalOverlay = document.getElementById('deleteModalOverlay');
+    const emotionModalOverlay = document.getElementById('emotionModalOverlay');
+    const schemaModalOverlay = document.getElementById('schemaModalOverlay');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const openEmotionListBtn = document.getElementById('openEmotionListBtn');
+    const openFeelingsEmotionListBtn = document.getElementById('openFeelingsEmotionListBtn');
+    const closeEmotionModalBtn = document.getElementById('closeEmotionModalBtn');
+    const openSchemaListBtn = document.getElementById('openSchemaListBtn');
+    const closeSchemaModalBtn = document.getElementById('closeSchemaModalBtn');
+    const historyKey = 'flashCardHistory';
+    const maxHistoryItems = 12;
+    const pngDataUrlPrefix = 'data:image/png;base64,';
+    let pendingDeleteId = null;
+    let activeTemplateId = templateSelect.value;
+    let currentEmotionField = null;
+
+    const templates = {
+      schema: {
+        name: 'Флеш-картка',
+        subtitle: 'Новий досвід дозволить укріпити<br>Здорову дорослу частину',
+        draftKey: 'flashCardDraft_schema',
+        requiredFields: ['feelings', 'trigger', 'schema', 'past', 'distortion', 'healthyAdult', 'hardMoment', 'choice'],
+        fields: [
+          { label: 'Зараз я відчуваю (емоції та фізичні відчуття)', key: 'feelings' },
+          { label: 'Тому що (опишіть ситуацію/тригер)', key: 'trigger' },
+          { label: 'Активувалася моя схема', key: 'schema' },
+          { label: 'яка йде з мого минулого, коли', key: 'past' },
+          { label: 'Тому зараз я сприймаю ситуацію перебільшено, думаючи що', key: 'distortion' },
+          { label: 'З погляду Здорового дорослого я знаю, що', key: 'healthyAdult' },
+          { label: 'Навіть коли схема змушує мене', key: 'hardMoment' },
+          { label: 'Я обираю', key: 'choice' },
+        ],
+      },
+      thought: {
+        name: 'Картка думок',
+        subtitle: 'Аналіз ситуації, думок, емоцій та наслідків',
+        draftKey: 'flashCardDraft_thought',
+        requiredFields: ['situation', 'thought', 'emotion', 'behavior', 'consequences'],
+        fields: [
+          { label: 'Ситуація', key: 'situation' },
+          { label: 'Думка', key: 'thought' },
+          { label: 'Емоція', key: 'emotion' },
+          { label: 'Поведінка', key: 'behavior' },
+          { label: 'Наслідки', key: 'consequences' },
+          { label: 'Нереалістичний сценарій', key: 'unrealisticScenario' },
+          { label: 'Реалістичний сценарій', key: 'realisticScenario' },
+        ],
+      },
+    };
+
+    function getActiveTemplate() {
+      return templates[activeTemplateId];
+    }
+
+    function getActiveForm() {
+      return allForms[activeTemplateId];
+    }
+
+    function getActiveTextareas() {
+      return Array.from(getActiveForm().querySelectorAll('textarea'));
+    }
+
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+
+    function bindAutoResize() {
+      Object.values(allForms).forEach((form) => {
+        form.querySelectorAll('textarea').forEach((textarea) => {
+          autoResize(textarea);
+          textarea.addEventListener('input', () => {
+            autoResize(textarea);
+            updateSaveButtonState();
+          });
+        });
+      });
+    }
+
+    function isFormComplete() {
+      const form = getActiveForm();
+      return getActiveTemplate().requiredFields.every((fieldName) => {
+        const field = form.elements[fieldName];
+        return field && field.value.trim().length > 0;
+      });
+    }
+
+    function updateSaveButtonState() {
+      saveBtn.disabled = !isFormComplete();
+    }
+
+    function setActiveTemplate(templateId) {
+      activeTemplateId = templateId;
+      Object.entries(allForms).forEach(([id, form]) => {
+        form.classList.toggle('hidden', id !== templateId);
+      });
+
+      const template = getActiveTemplate();
+      pageTitle.textContent = template.name;
+      pageSubtitle.innerHTML = template.subtitle;
+      loadDraft();
+      updateSaveButtonState();
+    }
+
+    function serializeFormValues(form) {
+      return Object.fromEntries(new FormData(form).entries());
+    }
+
+    function loadDraft() {
+      const form = getActiveForm();
+      const template = getActiveTemplate();
+      const raw = localStorage.getItem(template.draftKey);
+
+      form.reset();
+      getActiveTextareas().forEach((textarea) => autoResize(textarea));
+
+      if (!raw) {
+        return;
+      }
+
+      const values = JSON.parse(raw);
+      Object.entries(values).forEach(([name, value]) => {
+        if (form.elements[name]) {
+          form.elements[name].value = value;
+          autoResize(form.elements[name]);
+        }
+      });
+      savedState.textContent = `Чернетка "${template.name}" завантажена.`;
+    }
+
+    function saveDraft() {
+      const form = getActiveForm();
+      const template = getActiveTemplate();
+      const values = serializeFormValues(form);
+      localStorage.setItem(template.draftKey, JSON.stringify(values));
+      return values;
+    }
+
+    function wrapText(ctx, text, maxWidth) {
+      const normalizedText = (text || '').trim();
+      if (!normalizedText) return [''];
+
+      const lines = [];
+      const paragraphs = normalizedText.split('\n');
+      paragraphs.forEach((paragraph) => {
+        const words = paragraph.split(/\s+/).filter(Boolean);
+        if (!words.length) {
+          lines.push('');
+          return;
+        }
+        let currentLine = words[0];
+        for (let i = 1; i < words.length; i += 1) {
+          const testLine = `${currentLine} ${words[i]}`;
+          if (ctx.measureText(testLine).width <= maxWidth) currentLine = testLine;
+          else {
+            lines.push(currentLine);
+            currentLine = words[i];
+          }
+        }
+        lines.push(currentLine);
+      });
+      return lines;
+    }
+
+    function buildFlashCardImage(values, createdAt) {
+      const template = getActiveTemplate();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const width = 1200;
+      const sheetPadding = 40;
+      const sidePadding = 88;
+      const lineHeight = 46;
+      const textSize = 33;
+      const paragraphGap = 18;
+      const textWidth = width - sidePadding * 2;
+
+      ctx.font = `${textSize}px Arial`;
+      const preparedParagraphs = template.fields.map((field) => ({
+        lines: wrapText(ctx, `${field.label}: ${values[field.key] || ''}`, textWidth),
+      }));
+
+      let dynamicHeight = 340;
+      preparedParagraphs.forEach((paragraph) => {
+        dynamicHeight += paragraph.lines.length * lineHeight;
+        dynamicHeight += paragraphGap;
+      });
+      dynamicHeight += 140;
+
+      canvas.width = width;
+      canvas.height = dynamicHeight;
+
+      ctx.fillStyle = '#e7e3dc';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#f7f5f1';
+      ctx.fillRect(sheetPadding, sheetPadding, canvas.width - sheetPadding * 2, canvas.height - sheetPadding * 2);
+      ctx.strokeStyle = '#d3cdc2';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(sheetPadding, sheetPadding, canvas.width - sheetPadding * 2, canvas.height - sheetPadding * 2);
+
+      ctx.fillStyle = '#343a4a';
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 72px Arial';
+      ctx.fillText(template.name.toUpperCase(), canvas.width / 2, 132);
+      ctx.font = 'bold 52px Arial';
+      ctx.fillText(template.subtitle.replace('<br>', ' '), canvas.width / 2, 228);
+
+      ctx.strokeStyle = '#c9c3b7';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(sidePadding, 280);
+      ctx.lineTo(width - sidePadding, 280);
+      ctx.stroke();
+
+      let y = 344;
+      ctx.textAlign = 'left';
+      preparedParagraphs.forEach((paragraph) => {
+        ctx.fillStyle = '#1f2430';
+        ctx.font = `${textSize}px Arial`;
+        paragraph.lines.forEach((line, index) => {
+          ctx.fillText(line, sidePadding, y + index * lineHeight);
+        });
+        y += paragraph.lines.length * lineHeight + paragraphGap;
+      });
+
+      ctx.strokeStyle = '#c9c3b7';
+      ctx.beginPath();
+      ctx.moveTo(sidePadding, canvas.height - 110);
+      ctx.lineTo(width - sidePadding, canvas.height - 110);
+      ctx.stroke();
+      ctx.fillStyle = '#4c5160';
+      ctx.font = '28px Arial';
+      ctx.fillText(`Дата і час: ${formatDisplayDateTime(createdAt)}`, sidePadding, canvas.height - 62);
+
+      return canvas;
+    }
+
+    function downloadAsImage() {
+      if (!isFormComplete()) {
+        savedState.textContent = 'Заповніть обов’язкові поля перед збереженням.';
+        updateSaveButtonState();
+        return;
+      }
+
+      const values = saveDraft();
+      const createdAt = new Date().toISOString();
+      const canvas = buildFlashCardImage(values, createdAt);
+      const imageData = canvas.toDataURL('image/png');
+      const item = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        createdAt,
+        templateId: activeTemplateId,
+        templateName: getActiveTemplate().name,
+        imageData,
+      };
+      saveHistoryItem(item);
+      triggerImageDownload(item.imageData, item.createdAt, item.templateId);
+      savedState.textContent = `PNG "${getActiveTemplate().name}" збережено.`;
+    }
+
+    function openImageInWindow(imageData) {
+      if (!imageData || !imageData.startsWith(pngDataUrlPrefix)) {
+        savedState.textContent = 'Цей запис пошкоджений. Видали його з історії.';
+        return;
+      }
+      const blob = dataUrlToBlob(imageData);
+      if (!blob) {
+        savedState.textContent = 'Не вдалося відкрити картинку.';
+        return;
+      }
+      const blobUrl = URL.createObjectURL(blob);
+      const popup = window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      if (!popup) {
+        URL.revokeObjectURL(blobUrl);
+        savedState.textContent = 'Браузер заблокував нове вікно. Дозволь pop-up для сайту.';
+        return;
+      }
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+    }
+
+    function triggerImageDownload(imageData, createdAt, templateId = 'card') {
+      const link = document.createElement('a');
+      const stamp = createdAt.slice(0, 16).replace(/[:T]/g, '-');
+      link.download = `${templateId}-${stamp}.png`;
+      link.href = imageData;
+      link.click();
+    }
+
+    function getHistory() {
+      const raw = localStorage.getItem(historyKey);
+      if (!raw) return [];
+      try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        const sanitized = parsed.filter((item) => (
+          item
+          && typeof item.id === 'string'
+          && typeof item.createdAt === 'string'
+          && typeof item.imageData === 'string'
+          && item.imageData.startsWith(pngDataUrlPrefix)
+        ));
+        if (sanitized.length !== parsed.length) saveHistory(sanitized);
+        return sanitized;
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveHistory(history) {
+      localStorage.setItem(historyKey, JSON.stringify(history));
+    }
+
+    function saveHistoryItem(item) {
+      if (!item.imageData || !item.imageData.startsWith(pngDataUrlPrefix)) {
+        savedState.textContent = 'Не вдалося зберегти картинку: некоректний формат.';
+        return;
+      }
+      const history = getHistory();
+      history.unshift(item);
+      const trimmed = history.slice(0, maxHistoryItems);
+      saveHistory(trimmed);
+      renderHistory(trimmed);
+    }
+
+    function deleteHistoryItem(id) {
+      const filteredHistory = getHistory().filter((item) => item.id !== id);
+      saveHistory(filteredHistory);
+      renderHistory(filteredHistory);
+    }
+
+    function openDeleteModal(id) {
+      pendingDeleteId = id;
+      deleteModalOverlay.classList.remove('hidden');
+      deleteModalOverlay.setAttribute('aria-hidden', 'false');
+      confirmDeleteBtn.focus();
+    }
+
+    function closeDeleteModal() {
+      pendingDeleteId = null;
+      deleteModalOverlay.classList.add('hidden');
+      deleteModalOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    function openEmotionModal(targetField = thoughtForm.elements.emotion) {
+      currentEmotionField = targetField;
+      syncEmotionChipsState();
+      emotionModalOverlay.classList.remove('hidden');
+      emotionModalOverlay.setAttribute('aria-hidden', 'false');
+      closeEmotionModalBtn.focus();
+    }
+
+    function closeEmotionModal() {
+      emotionModalOverlay.classList.add('hidden');
+      emotionModalOverlay.setAttribute('aria-hidden', 'true');
+      currentEmotionField = null;
+    }
+
+    function openSchemaModal() {
+      syncSchemaChipsState();
+      schemaModalOverlay.classList.remove('hidden');
+      schemaModalOverlay.setAttribute('aria-hidden', 'false');
+      closeSchemaModalBtn.focus();
+    }
+
+    function closeSchemaModal() {
+      schemaModalOverlay.classList.add('hidden');
+      schemaModalOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    function parseEmotionValue() {
+      const emotionField = currentEmotionField || thoughtForm.elements.emotion;
+      return emotionField.value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function setEmotionValue(emotions) {
+      const emotionField = currentEmotionField || thoughtForm.elements.emotion;
+      emotionField.value = emotions.join(', ');
+      autoResize(emotionField);
+      updateSaveButtonState();
+    }
+
+    function syncEmotionChipsState() {
+      const selected = new Set(parseEmotionValue().map((emotion) => emotion.toLowerCase()));
+      emotionModalOverlay.querySelectorAll('.emotion-chip').forEach((chip) => {
+        const emotionValue = (chip.dataset.emotion || chip.textContent.trim()).toLowerCase();
+        chip.classList.toggle('is-selected', selected.has(emotionValue));
+      });
+    }
+
+    function parseSchemaValue() {
+      const schemaField = schemaForm.elements.schema;
+      return schemaField.value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function setSchemaValue(schemas) {
+      const schemaField = schemaForm.elements.schema;
+      schemaField.value = schemas.join(', ');
+      autoResize(schemaField);
+      updateSaveButtonState();
+    }
+
+    function syncSchemaChipsState() {
+      const selected = new Set(parseSchemaValue().map((schema) => schema.toLowerCase()));
+      schemaModalOverlay.querySelectorAll('.schema-chip').forEach((chip) => {
+        const schemaValue = (chip.dataset.schema || chip.textContent.trim()).toLowerCase();
+        chip.classList.toggle('is-selected', selected.has(schemaValue));
+      });
+    }
+
+    function formatDisplayDateTime(isoString) {
+      const date = new Date(isoString);
+      if (Number.isNaN(date.getTime())) return 'невідомо';
+      return date.toLocaleString('uk-UA', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+
+    function getHistoryTemplateName(item) {
+      if (item.templateName) return item.templateName;
+      if (item.templateId && templates[item.templateId]) return templates[item.templateId].name;
+      return 'Флеш-картка';
+    }
+
+    function renderHistory(history = getHistory()) {
+      historyList.innerHTML = '';
+      historyEmpty.style.display = history.length ? 'none' : 'block';
+      history.forEach((item) => {
+        const templateName = getHistoryTemplateName(item);
+        const card = document.createElement('article');
+        card.className = 'history-item';
+
+        const image = document.createElement('img');
+        image.src = item.imageData;
+        image.alt = `Збережена ${templateName}`;
+        image.addEventListener('error', () => deleteHistoryItem(item.id));
+        image.addEventListener('click', () => openImageInWindow(item.imageData));
+        card.appendChild(image);
+
+        const dateLabel = document.createElement('p');
+        dateLabel.className = 'history-date';
+        dateLabel.textContent = `${templateName} • ${formatDisplayDateTime(item.createdAt)}`;
+        card.appendChild(dateLabel);
+
+        const actions = document.createElement('div');
+        actions.className = 'history-actions';
+
+        const downloadBtn = document.createElement('button');
+        downloadBtn.type = 'button';
+        downloadBtn.textContent = '⬇';
+        downloadBtn.title = 'Скачати';
+        downloadBtn.setAttribute('aria-label', 'Скачати');
+        downloadBtn.addEventListener('click', () => triggerImageDownload(item.imageData, item.createdAt, item.templateId || 'card'));
+
+        const previewHistoryBtn = document.createElement('button');
+        previewHistoryBtn.type = 'button';
+        previewHistoryBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5C6.5 5 2.1 8.1.2 12c1.9 3.9 6.3 7 11.8 7s9.9-3.1 11.8-7c-1.9-3.9-6.3-7-11.8-7Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-2.2a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"/></svg>';
+        previewHistoryBtn.title = 'Відкрити';
+        previewHistoryBtn.setAttribute('aria-label', 'Відкрити');
+        previewHistoryBtn.addEventListener('click', () => openImageInWindow(item.imageData));
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'secondary';
+        removeBtn.textContent = '✕';
+        removeBtn.title = 'Видалити';
+        removeBtn.setAttribute('aria-label', 'Видалити');
+        removeBtn.addEventListener('click', () => openDeleteModal(item.id));
+
+        actions.appendChild(downloadBtn);
+        actions.appendChild(previewHistoryBtn);
+        actions.appendChild(removeBtn);
+        card.appendChild(actions);
+        historyList.appendChild(card);
+      });
+    }
+
+    function clearDraft() {
+      const template = getActiveTemplate();
+      const form = getActiveForm();
+      form.reset();
+      getActiveTextareas().forEach((textarea) => autoResize(textarea));
+      localStorage.removeItem(template.draftKey);
+      savedState.textContent = `Форму "${template.name}" очищено.`;
+      updateSaveButtonState();
+    }
+
+    function dataUrlToBlob(dataUrl) {
+      try {
+        const [header, base64Data] = dataUrl.split(',');
+        if (!header || !base64Data || !header.includes('base64')) return null;
+        const mimeMatch = header.match(/data:(.*?);base64/);
+        const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+        const binaryString = atob(base64Data);
+        const length = binaryString.length;
+        const bytes = new Uint8Array(length);
+        for (let i = 0; i < length; i += 1) bytes[i] = binaryString.charCodeAt(i);
+        return new Blob([bytes], { type: mimeType });
+      } catch (error) {
+        return null;
+      }
+    }
+
+    templateSelect.addEventListener('change', (event) => {
+      setActiveTemplate(event.target.value);
+    });
+    openEmotionListBtn.addEventListener('click', () => openEmotionModal(thoughtForm.elements.emotion));
+    openFeelingsEmotionListBtn.addEventListener('click', () => openEmotionModal(schemaForm.elements.feelings));
+    closeEmotionModalBtn.addEventListener('click', closeEmotionModal);
+    openSchemaListBtn.addEventListener('click', openSchemaModal);
+    closeSchemaModalBtn.addEventListener('click', closeSchemaModal);
+    emotionModalOverlay.addEventListener('click', (event) => {
+      if (event.target === emotionModalOverlay) closeEmotionModal();
+    });
+    schemaModalOverlay.addEventListener('click', (event) => {
+      if (event.target === schemaModalOverlay) closeSchemaModal();
+    });
+    emotionModalOverlay.querySelectorAll('.emotion-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const emotionValue = chip.dataset.emotion || chip.textContent.trim();
+        const emotions = parseEmotionValue();
+        const index = emotions.findIndex((item) => item.toLowerCase() === emotionValue.toLowerCase());
+
+        if (index >= 0) {
+          emotions.splice(index, 1);
+        } else {
+          emotions.push(emotionValue);
+        }
+
+        setEmotionValue(emotions);
+        syncEmotionChipsState();
+      });
+    });
+    schemaModalOverlay.querySelectorAll('.schema-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const schemaValue = chip.dataset.schema || chip.textContent.trim();
+        const schemas = parseSchemaValue();
+        const index = schemas.findIndex((item) => item.toLowerCase() === schemaValue.toLowerCase());
+
+        if (index >= 0) {
+          schemas.splice(index, 1);
+        } else {
+          schemas.push(schemaValue);
+        }
+
+        setSchemaValue(schemas);
+        syncSchemaChipsState();
+      });
+    });
+    saveBtn.addEventListener('click', downloadAsImage);
+    resetBtn.addEventListener('click', clearDraft);
+    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+    confirmDeleteBtn.addEventListener('click', () => {
+      if (pendingDeleteId) deleteHistoryItem(pendingDeleteId);
+      closeDeleteModal();
+    });
+    deleteModalOverlay.addEventListener('click', (event) => {
+      if (event.target === deleteModalOverlay) closeDeleteModal();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !deleteModalOverlay.classList.contains('hidden')) closeDeleteModal();
+      if (event.key === 'Escape' && !emotionModalOverlay.classList.contains('hidden')) closeEmotionModal();
+      if (event.key === 'Escape' && !schemaModalOverlay.classList.contains('hidden')) closeSchemaModal();
+    });
+
+    bindAutoResize();
+    setActiveTemplate(activeTemplateId);
+    renderHistory();
+  </script>
+</body>
+</html>
