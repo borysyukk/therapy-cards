@@ -30,12 +30,81 @@
     }
 
     .app {
+      position: relative;
       width: min(100%, 760px);
       background: #f7f5f1;
       border: 8px solid #ece9e2;
       border-radius: 8px;
       box-shadow: 0 20px 50px rgba(29, 30, 34, 0.15);
       padding: 28px;
+    }
+
+    .account-menu {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin: -10px -10px 18px;
+      padding: 10px;
+      background: #ebe7e0;
+      border: 1px solid #d9d4cb;
+      border-radius: 10px;
+    }
+
+    .account-bar-label {
+      margin-right: auto;
+      color: #4c505e;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .account-button {
+      min-height: 40px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #3f4659;
+    }
+
+    .account-button svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+
+    .account-button span {
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .account-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: min(82vw, 280px);
+      background: #f7f5f1;
+      border: 1px solid #d8d2c8;
+      border-radius: 10px;
+      box-shadow: 0 16px 32px rgba(26, 27, 32, 0.18);
+      padding: 12px;
+      text-align: left;
+    }
+
+    .account-status {
+      margin: 0 0 10px;
+      color: #4c505e;
+      font-size: 14px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .account-dropdown button {
+      width: 100%;
+      margin-top: 8px;
     }
 
     .header {
@@ -60,7 +129,7 @@
 
     .template-picker {
       margin: 14px auto 0;
-      width: min(100%, 340px);
+      width: min(100%, 480px);
       text-align: center;
     }
 
@@ -69,20 +138,100 @@
       margin-bottom: 6px;
     }
 
-    .template-picker select {
+    .template-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid #c8c2b8;
+      border-radius: 999px;
+      background: #f8f6f2;
+    }
+
+    .template-tab {
+      border-radius: 999px;
+      background: transparent;
+      color: #2b2f3b;
+      padding: 8px 10px;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .template-tab.is-active {
+      background: #3f4659;
+      color: #ffffff;
+      box-shadow: 0 3px 10px rgba(47, 51, 64, 0.16);
+    }
+
+    .auth-panel {
+      margin-top: 12px;
+      background: #ebe7e0;
+      border: 1px solid #d9d4cb;
+      border-radius: 8px;
+      padding: 22px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .auth-status {
+      margin: 0 0 20px;
+      color: #4c505e;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .auth-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .auth-form input {
       width: 100%;
       border: 1px solid #c8c2b8;
       border-radius: 8px;
       background: #f8f6f2;
-      color: #2b2f3b;
+      color: #20232b;
       padding: 10px 12px;
       font-size: 15px;
       outline: none;
     }
 
-    .template-picker select:focus {
+    .auth-form button {
+      min-width: 0;
+      padding: 13px 14px;
+      font-size: 15px;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow-wrap: anywhere;
+    }
+
+    .auth-form input:focus {
       border-color: #6d7388;
       box-shadow: 0 0 0 3px rgba(109, 115, 136, 0.16);
+    }
+
+    .auth-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .auth-user {
+      color: #343a4a;
+      font-size: 14px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .account-dropdown.hidden,
+    .auth-form.hidden,
+    .auth-actions.hidden,
+    #migrateLocalBtn.hidden {
+      display: none;
     }
 
     .form-shell {
@@ -161,6 +310,12 @@
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+
     textarea:focus {
       border-color: #6d7388;
       box-shadow: 0 0 0 3px rgba(109, 115, 136, 0.16);
@@ -217,48 +372,84 @@
     }
 
     .history-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .history-item {
       background: #ebe7e0;
       border: 1px solid #d0cbc2;
       border-radius: 8px;
-      padding: 8px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, background-color 0.24s ease;
+      will-change: transform;
+      cursor: grab;
+      user-select: none;
     }
 
-    .history-item img {
-      width: 100%;
-      height: 170px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid #c8c2b8;
-      background: #ffffff;
-      display: block;
-      cursor: zoom-in;
+    .history-item.is-moving {
+      border-color: #6d7388;
+      box-shadow: 0 10px 24px rgba(47, 51, 64, 0.18);
+      background: #f2eee7;
+    }
+
+    .history-item.is-dragging {
+      opacity: 0.55;
+      cursor: grabbing;
+      box-shadow: 0 14px 28px rgba(47, 51, 64, 0.22);
+      transform: scale(0.99);
+    }
+
+    .history-item.is-read {
+      border-color: #4f8b63;
+      box-shadow: 0 0 0 3px rgba(79, 139, 99, 0.18);
+      background: #e4eedf;
+    }
+
+    .history-item.is-priority {
+      border-color: #d89a17;
+      background: #f3ead7;
+      box-shadow: 0 0 0 3px rgba(216, 154, 23, 0.12);
+    }
+
+    .history-summary {
+      min-width: 0;
+    }
+
+    .history-title {
+      margin: 0;
+      color: #2f3340;
+      font-size: 15px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .history-actions {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
       gap: 6px;
-      margin-top: 8px;
-      width: 100%;
     }
 
     .history-date {
       margin-top: 8px;
       font-size: 12px;
       color: #5f6473;
-      text-align: center;
     }
 
     .history-actions button {
-      width: 100%;
       min-width: 0;
-      padding: 8px 6px;
+      min-height: 36px;
+      padding: 8px 10px;
       font-size: 18px;
       line-height: 1;
       text-align: center;
@@ -271,6 +462,35 @@
       width: 18px;
       height: 18px;
       display: block;
+    }
+
+    .history-actions button.is-read {
+      background: #4f8b63;
+    }
+
+    .history-actions button.is-priority {
+      background: #d89a17;
+    }
+
+    .read-badge {
+      margin-top: 8px;
+      color: #3d7250;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .incomplete-badge {
+      margin-top: 8px;
+      color: #b16a00;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .priority-badge {
+      margin-top: 8px;
+      color: #9a6500;
+      font-size: 12px;
+      font-weight: 700;
     }
 
     .history-empty {
@@ -310,6 +530,17 @@
       line-height: 1.4;
     }
 
+    .modal.auth-modal {
+      width: min(100%, 680px);
+      padding: 22px;
+    }
+
+    .modal.auth-modal > p {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
     .modal-actions {
       display: flex;
       justify-content: flex-end;
@@ -326,6 +557,109 @@
       width: min(100%, 720px);
       max-height: min(82vh, 760px);
       overflow-y: auto;
+    }
+
+    .preview-modal {
+      width: min(100%, 820px);
+      max-height: min(90vh, 900px);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .preview-header {
+      padding: 24px 28px 18px;
+      background: #f7f5f1;
+      border-bottom: 1px solid #ddd7cc;
+    }
+
+    .preview-header h3 {
+      margin: 0;
+      color: #2f3340;
+      font-size: clamp(24px, 3vw, 32px);
+      line-height: 1.15;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .preview-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 12px;
+      color: #5f6473;
+      font-size: 13px;
+    }
+
+    .preview-date-pill {
+      border-radius: 999px;
+      background: #ebe7e0;
+      color: #4c505e;
+      padding: 5px 10px;
+      font-weight: 700;
+    }
+
+    .preview-read-pill {
+      border-radius: 999px;
+      background: #dfeade;
+      color: #3d7250;
+      padding: 4px 9px;
+      font-weight: 700;
+    }
+
+    .preview-content {
+      max-height: 68vh;
+      overflow-y: auto;
+      padding: 22px 28px 26px;
+      background: #ebe7e0;
+    }
+
+    .preview-fields {
+      display: grid;
+      gap: 10px;
+    }
+
+    .preview-field {
+      margin: 0;
+      padding: 14px 16px;
+      border: 1px solid #d1cbc0;
+      border-radius: 12px;
+      background: #f8f6f2;
+    }
+
+    .preview-field strong {
+      display: block;
+      margin-bottom: 6px;
+      color: #252936;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .preview-field span {
+      display: block;
+      color: #20232b;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .preview-empty {
+      margin: 0;
+      padding: 14px;
+      border: 1px solid #d1cbc0;
+      border-radius: 10px;
+      background: #f8f6f2;
+      color: #4c505e;
+      line-height: 1.45;
+    }
+
+    .preview-modal .modal-actions {
+      margin-top: 0;
+      padding: 16px 28px 20px;
+      border-top: 1px solid #ddd7cc;
+      background: #f7f5f1;
     }
 
     .emotion-groups {
@@ -410,7 +744,7 @@
       textarea {
         min-height: 58px;
         padding: 8px 10px;
-        font-size: 15px;
+        font-size: 16px;
       }
 
       .actions {
@@ -431,35 +765,59 @@
         font-size: 17px;
       }
 
-      .history-list {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .history-item img {
-        height: 130px;
+      .history-item {
+        grid-template-columns: 1fr;
       }
 
       .history-actions {
+        justify-content: flex-start;
         gap: 5px;
       }
 
       .history-date {
         font-size: 11px;
       }
+
+      .auth-form {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-form button {
+        white-space: normal;
+      }
     }
   </style>
 </head>
 <body>
   <main class="app">
+    <div class="account-menu">
+      <span class="account-bar-label">Меню</span>
+      <button type="button" class="account-button" id="authMenuBtn" aria-label="Акаунт" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.4 0-8 2.4-8 5.3 0 .4.3.7.7.7h14.6c.4 0 .7-.3.7-.7 0-2.9-3.6-5.3-8-5.3Z"/>
+        </svg>
+        <span>Акаунт</span>
+      </button>
+      <div class="account-dropdown hidden" id="authDropdown">
+        <p class="account-status" id="accountStatus">Акаунт</p>
+        <div class="auth-actions hidden" id="authActions">
+          <span class="auth-user" id="authUser"></span>
+          <button type="button" class="secondary hidden" id="migrateLocalBtn">Перенести локальні картки</button>
+          <button type="button" id="signOutBtn">Вийти</button>
+        </div>
+      </div>
+    </div>
+
     <section class="header">
       <h1 id="pageTitle">Флеш-картка</h1>
       <p id="pageSubtitle">Новий досвід дозволить укріпити<br>Здорову дорослу частину</p>
       <div class="template-picker">
-        <label for="templateSelect">Тип терапевтичної картки</label>
-        <select id="templateSelect">
-          <option value="schema">Флеш-картка</option>
-          <option value="thought">Картка думок</option>
-        </select>
+        <label>Тип терапевтичної картки</label>
+        <div class="template-tabs" id="templateTabs" role="tablist" aria-label="Тип терапевтичної картки">
+          <button type="button" class="template-tab is-active" data-template="schema" role="tab" aria-selected="true">Флеш-картка</button>
+          <button type="button" class="template-tab" data-template="thought" role="tab" aria-selected="false">Картка думок</button>
+          <button type="button" class="template-tab" data-template="note" role="tab" aria-selected="false">Нотатки</button>
+        </div>
       </div>
     </section>
 
@@ -545,11 +903,18 @@
           <textarea id="realisticScenario" name="realisticScenario" rows="2"></textarea>
         </div>
       </form>
+
+      <form id="noteForm" class="form-page hidden">
+        <div class="field">
+          <label for="noteText">Нотатка</label>
+          <textarea id="noteText" name="noteText" rows="4"></textarea>
+        </div>
+      </form>
     </section>
 
     <div class="actions">
       <button type="button" class="secondary" id="resetBtn">Очистити</button>
-      <button type="button" id="saveBtn">Зберегти як картинку</button>
+      <button type="button" id="saveBtn">Зберегти картку</button>
     </div>
 
     <p class="saved-state" id="savedState"></p>
@@ -567,6 +932,48 @@
       <div class="modal-actions">
         <button type="button" class="secondary" id="cancelDeleteBtn">Скасувати</button>
         <button type="button" id="confirmDeleteBtn">Видалити</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="unreadModalOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="unreadModalTitle">
+      <p id="unreadModalTitle">Зняти позначку “прочитано” з цієї картки?</p>
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="cancelUnreadBtn">Скасувати</button>
+        <button type="button" id="confirmUnreadBtn">Зняти</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="previewModalOverlay" aria-hidden="true">
+    <div class="modal preview-modal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle">
+      <div class="preview-header">
+        <h3 id="previewModalTitle"></h3>
+        <div class="preview-meta" id="previewMeta"></div>
+      </div>
+      <div class="preview-content" id="previewContent"></div>
+      <div class="modal-actions">
+        <button type="button" id="downloadPreviewBtn">Скачати PNG</button>
+        <button type="button" class="secondary" id="closePreviewModalBtn">Закрити</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="authModalOverlay" aria-hidden="true">
+    <div class="modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+      <p id="authModalTitle">Вхід в акаунт</p>
+      <section class="auth-panel" aria-label="Вхід в акаунт">
+        <p class="auth-status" id="authStatus">Підключення акаунта...</p>
+        <form class="auth-form" id="authForm">
+          <input id="authEmail" name="email" type="email" autocomplete="email" placeholder="Email">
+          <input id="authPassword" name="password" type="password" autocomplete="current-password" placeholder="Пароль">
+          <button type="submit" id="signInBtn">Увійти</button>
+          <button type="button" class="secondary" id="signUpBtn">Зареєструватися</button>
+        </form>
+      </section>
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="closeAuthModalBtn">Закрити</button>
       </div>
     </div>
   </div>
@@ -719,34 +1126,85 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const pageTitle = document.getElementById('pageTitle');
     const pageSubtitle = document.getElementById('pageSubtitle');
-    const templateSelect = document.getElementById('templateSelect');
+    const templateTabs = document.getElementById('templateTabs');
     const schemaForm = document.getElementById('schemaForm');
     const thoughtForm = document.getElementById('thoughtForm');
-    const allForms = { schema: schemaForm, thought: thoughtForm };
+    const noteForm = document.getElementById('noteForm');
+    const allForms = { schema: schemaForm, thought: thoughtForm, note: noteForm };
     const saveBtn = document.getElementById('saveBtn');
     const resetBtn = document.getElementById('resetBtn');
     const savedState = document.getElementById('savedState');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
     const deleteModalOverlay = document.getElementById('deleteModalOverlay');
+    const unreadModalOverlay = document.getElementById('unreadModalOverlay');
+    const previewModalOverlay = document.getElementById('previewModalOverlay');
+    const authModalOverlay = document.getElementById('authModalOverlay');
     const emotionModalOverlay = document.getElementById('emotionModalOverlay');
     const schemaModalOverlay = document.getElementById('schemaModalOverlay');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const cancelUnreadBtn = document.getElementById('cancelUnreadBtn');
+    const confirmUnreadBtn = document.getElementById('confirmUnreadBtn');
+    const previewContent = document.getElementById('previewContent');
+    const previewMeta = document.getElementById('previewMeta');
+    const downloadPreviewBtn = document.getElementById('downloadPreviewBtn');
+    const closePreviewModalBtn = document.getElementById('closePreviewModalBtn');
     const openEmotionListBtn = document.getElementById('openEmotionListBtn');
     const openFeelingsEmotionListBtn = document.getElementById('openFeelingsEmotionListBtn');
     const closeEmotionModalBtn = document.getElementById('closeEmotionModalBtn');
     const openSchemaListBtn = document.getElementById('openSchemaListBtn');
     const closeSchemaModalBtn = document.getElementById('closeSchemaModalBtn');
+    const authMenuBtn = document.getElementById('authMenuBtn');
+    const authDropdown = document.getElementById('authDropdown');
+    const accountStatus = document.getElementById('accountStatus');
+    const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
+    const authStatus = document.getElementById('authStatus');
+    const authForm = document.getElementById('authForm');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const signUpBtn = document.getElementById('signUpBtn');
+    const signOutBtn = document.getElementById('signOutBtn');
+    const authActions = document.getElementById('authActions');
+    const authUser = document.getElementById('authUser');
+    const migrateLocalBtn = document.getElementById('migrateLocalBtn');
     const historyKey = 'flashCardHistory';
     const maxHistoryItems = 12;
     const pngDataUrlPrefix = 'data:image/png;base64,';
+    const supabaseUrl = 'https://hghelibiofeoylmxvhcq.supabase.co';
+    const supabaseAnonKey = 'sb_publishable_KPk2PLJX6dPaPk9hhHhN-Q_qG2IMt1d';
+    const iconSvg = {
+      download: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v8.6l2.3-2.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4l2.3 2.3V4a1 1 0 0 1 1-1ZM5 19a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Z"/></svg>',
+      preview: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5C6.5 5 2.1 8.1.2 12c1.9 3.9 6.3 7 11.8 7s9.9-3.1 11.8-7c-1.9-3.9-6.3-7-11.8-7Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-2.2a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"/></svg>',
+      edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 17.3V20h2.7L17.8 8.9 15.1 6.2 4 17.3ZM19.7 7a1 1 0 0 0 0-1.4l-1.3-1.3a1 1 0 0 0-1.4 0l-1 1 2.7 2.7 1-1Z"/></svg>',
+      priority: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.8 1-6.1-4.4-4.3 6.1-.9L12 3Z"/></svg>',
+      read: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.2 16.6 4.9 12.3a1 1 0 0 1 1.4-1.4l2.9 2.9 8.5-8.5a1 1 0 1 1 1.4 1.4l-9.2 9.9a1 1 0 0 1-.7.3Z"/></svg>',
+      remove: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5 12 10.6 6.4 5Z"/></svg>',
+      up: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5a1 1 0 0 1 .7.3l6 6a1 1 0 0 1-1.4 1.4L13 8.4V19a1 1 0 1 1-2 0V8.4l-4.3 4.3a1 1 0 0 1-1.4-1.4l6-6A1 1 0 0 1 12 5Z"/></svg>',
+      down: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 19a1 1 0 0 1-.7-.3l-6-6a1 1 0 1 1 1.4-1.4L11 15.6V5a1 1 0 1 1 2 0v10.6l4.3-4.3a1 1 0 0 1 1.4 1.4l-6 6a1 1 0 0 1-.7.3Z"/></svg>',
+    };
+    const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey && window.supabase);
+    const supabaseClient = isSupabaseConfigured
+      ? window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+        },
+      })
+      : null;
     let pendingDeleteId = null;
-    let activeTemplateId = templateSelect.value;
+    let pendingUnreadItem = null;
+    let activeTemplateId = 'schema';
     let currentEmotionField = null;
+    let currentUser = null;
+    let currentPreviewItem = null;
+    let editingItem = null;
+    let renderedHistory = [];
+    let draggedHistoryItemId = null;
 
     const templates = {
       schema: {
@@ -780,6 +1238,15 @@
           { label: 'Реалістичний сценарій', key: 'realisticScenario' },
         ],
       },
+      note: {
+        name: 'Нотатки',
+        subtitle: 'Швидкі нотатки для себе',
+        draftKey: 'flashCardDraft_note',
+        requiredFields: ['noteText'],
+        fields: [
+          { label: 'Нотатка', key: 'noteText' },
+        ],
+      },
     };
 
     function getActiveTemplate() {
@@ -792,6 +1259,65 @@
 
     function getActiveTextareas() {
       return Array.from(getActiveForm().querySelectorAll('textarea'));
+    }
+
+    function getTemplateById(templateId) {
+      return templates[templateId] || templates.schema;
+    }
+
+    function getFirstFieldValue(item) {
+      const template = getTemplateById(item.templateId);
+      const firstField = template.fields[0];
+      const value = firstField && item.textValues ? item.textValues[firstField.key] : '';
+      return value && value.trim() ? value.trim() : getHistoryTemplateName(item);
+    }
+
+    function hasEditableTextValues(item) {
+      const template = getTemplateById(item.templateId);
+      return Boolean(item.textValues && template.fields.some((field) => String(item.textValues[field.key] || '').trim()));
+    }
+
+    function getItemPriority(item) {
+      if (!item) return false;
+      return Boolean(item.isPriority || item.textValues?.__isPriority);
+    }
+
+    function withPriorityMetadata(textValues, isPriority) {
+      return {
+        ...(textValues || {}),
+        __isPriority: Boolean(isPriority),
+      };
+    }
+
+    function isHistoryItemIncomplete(item) {
+      const template = getTemplateById(item.templateId);
+      if (!hasEditableTextValues(item) || !Array.isArray(template.requiredFields)) return false;
+
+      return template.requiredFields.some((fieldKey) => !String(item.textValues[fieldKey] || '').trim());
+    }
+
+    function getSortValue(item) {
+      if (Number.isFinite(item.sortOrder)) return item.sortOrder;
+      return -new Date(item.createdAt).getTime();
+    }
+
+    function sortHistory(history) {
+      return [...history].sort((firstItem, secondItem) => {
+        const priorityDelta = Number(getItemPriority(secondItem)) - Number(getItemPriority(firstItem));
+        if (priorityDelta) return priorityDelta;
+        return getSortValue(firstItem) - getSortValue(secondItem);
+      });
+    }
+
+    function setButtonIcon(button, iconName) {
+      button.innerHTML = iconSvg[iconName];
+    }
+
+    function disableWhenRead(button, item) {
+      if (!item.isRead) return;
+      button.disabled = true;
+      button.title = 'Картка прочитана. Зніміть позначку, щоб редагувати.';
+      button.setAttribute('aria-label', button.title);
     }
 
     function autoResize(textarea) {
@@ -811,16 +1337,25 @@
       });
     }
 
-    function isFormComplete() {
-      const form = getActiveForm();
-      return getActiveTemplate().requiredFields.every((fieldName) => {
-        const field = form.elements[fieldName];
-        return field && field.value.trim().length > 0;
-      });
+    function hasAnyFilledField() {
+      return getActiveTextareas().some((textarea) => textarea.value.trim().length > 0);
     }
 
     function updateSaveButtonState() {
-      saveBtn.disabled = !isFormComplete();
+      saveBtn.disabled = !hasAnyFilledField();
+    }
+
+    function setEditingItem(item) {
+      editingItem = item;
+      saveBtn.textContent = item ? 'Оновити картку' : 'Зберегти картку';
+    }
+
+    function updateTemplateTabs() {
+      templateTabs.querySelectorAll('.template-tab').forEach((tab) => {
+        const isActive = tab.dataset.template === activeTemplateId;
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('aria-selected', String(isActive));
+      });
     }
 
     function setActiveTemplate(templateId) {
@@ -828,12 +1363,14 @@
       Object.entries(allForms).forEach(([id, form]) => {
         form.classList.toggle('hidden', id !== templateId);
       });
+      updateTemplateTabs();
 
       const template = getActiveTemplate();
       pageTitle.textContent = template.name;
       pageSubtitle.innerHTML = template.subtitle;
       loadDraft();
       updateSaveButtonState();
+      refreshHistory();
     }
 
     function serializeFormValues(form) {
@@ -874,6 +1411,24 @@
       const normalizedText = (text || '').trim();
       if (!normalizedText) return [''];
 
+      function splitLongWord(word) {
+        const chunks = [];
+        let currentChunk = '';
+
+        Array.from(word).forEach((character) => {
+          const testChunk = `${currentChunk}${character}`;
+          if (currentChunk && ctx.measureText(testChunk).width > maxWidth) {
+            chunks.push(currentChunk);
+            currentChunk = character;
+          } else {
+            currentChunk = testChunk;
+          }
+        });
+
+        if (currentChunk) chunks.push(currentChunk);
+        return chunks;
+      }
+
       const lines = [];
       const paragraphs = normalizedText.split('\n');
       paragraphs.forEach((paragraph) => {
@@ -882,18 +1437,100 @@
           lines.push('');
           return;
         }
-        let currentLine = words[0];
-        for (let i = 1; i < words.length; i += 1) {
-          const testLine = `${currentLine} ${words[i]}`;
-          if (ctx.measureText(testLine).width <= maxWidth) currentLine = testLine;
-          else {
-            lines.push(currentLine);
-            currentLine = words[i];
-          }
-        }
+        let currentLine = '';
+        words.forEach((word) => {
+          splitLongWord(word).forEach((chunk, chunkIndex) => {
+            const separator = currentLine && chunkIndex === 0 ? ' ' : '';
+            const testLine = currentLine ? `${currentLine}${separator}${chunk}` : chunk;
+            if (ctx.measureText(testLine).width <= maxWidth) {
+              currentLine = testLine;
+            } else {
+              if (currentLine) lines.push(currentLine);
+              currentLine = chunk;
+            }
+          });
+        });
         lines.push(currentLine);
       });
       return lines;
+    }
+
+    function measureTextWithFont(ctx, text, font) {
+      ctx.font = font;
+      return ctx.measureText(text).width;
+    }
+
+    function splitLongWordWithFont(ctx, word, font, maxWidth) {
+      const chunks = [];
+      let currentChunk = '';
+
+      Array.from(word).forEach((character) => {
+        const testChunk = `${currentChunk}${character}`;
+        if (currentChunk && measureTextWithFont(ctx, testChunk, font) > maxWidth) {
+          chunks.push(currentChunk);
+          currentChunk = character;
+        } else {
+          currentChunk = testChunk;
+        }
+      });
+
+      if (currentChunk) chunks.push(currentChunk);
+      return chunks;
+    }
+
+    function tokenizeRichTextSegment(ctx, segment, maxWidth) {
+      const tokens = [];
+      segment.text.split(/(\s+)/).filter(Boolean).forEach((part) => {
+        if (/^\s+$/.test(part)) {
+          tokens.push({ text: ' ', font: segment.font });
+          return;
+        }
+
+        splitLongWordWithFont(ctx, part, segment.font, maxWidth).forEach((chunk) => {
+          tokens.push({ text: chunk, font: segment.font });
+        });
+      });
+      return tokens;
+    }
+
+    function appendRichTextToken(line, token) {
+      const previousToken = line[line.length - 1];
+      if (previousToken && previousToken.font === token.font) {
+        previousToken.text += token.text;
+      } else {
+        line.push({ ...token });
+      }
+    }
+
+    function wrapRichText(ctx, segments, maxWidth) {
+      const lines = [];
+      let currentLine = [];
+      let currentWidth = 0;
+
+      segments.forEach((segment) => {
+        tokenizeRichTextSegment(ctx, segment, maxWidth).forEach((token) => {
+          if (token.text === ' ' && !currentLine.length) return;
+
+          const tokenWidth = measureTextWithFont(ctx, token.text, token.font);
+          if (currentWidth + tokenWidth <= maxWidth) {
+            appendRichTextToken(currentLine, token);
+            currentWidth += tokenWidth;
+            return;
+          }
+
+          if (currentLine.length) lines.push(currentLine);
+          currentLine = [];
+          currentWidth = 0;
+
+          if (token.text !== ' ') {
+            appendRichTextToken(currentLine, token);
+            currentWidth = tokenWidth;
+          }
+        });
+      });
+
+      if (currentLine.length) lines.push(currentLine);
+      return lines.length ? lines : [[segments[0]]];
     }
 
     function buildFlashCardImage(values, createdAt) {
@@ -906,14 +1543,28 @@
       const lineHeight = 46;
       const textSize = 33;
       const paragraphGap = 18;
+      const titleLineHeight = 82;
+      const subtitleLineHeight = 62;
       const textWidth = width - sidePadding * 2;
+      const fieldLabelFont = `bold ${textSize}px Arial`;
+      const fieldValueFont = `${textSize}px Arial`;
 
-      ctx.font = `${textSize}px Arial`;
       const preparedParagraphs = template.fields.map((field) => ({
-        lines: wrapText(ctx, `${field.label}: ${values[field.key] || ''}`, textWidth),
+        lines: wrapRichText(ctx, [
+          { text: `${field.label}: `, font: fieldLabelFont },
+          { text: values[field.key] || '', font: fieldValueFont },
+        ], textWidth),
       }));
+      ctx.font = 'bold 72px Arial';
+      const titleLines = wrapText(ctx, template.name.toUpperCase(), textWidth);
+      ctx.font = 'bold 52px Arial';
+      const subtitleLines = wrapText(ctx, template.subtitle.replace('<br>', '\n'), textWidth);
+      const titleY = 132;
+      const subtitleY = titleY + titleLines.length * titleLineHeight + 22;
+      const dividerY = subtitleY + subtitleLines.length * subtitleLineHeight + 24;
+      const contentStartY = dividerY + 64;
 
-      let dynamicHeight = 340;
+      let dynamicHeight = contentStartY;
       preparedParagraphs.forEach((paragraph) => {
         dynamicHeight += paragraph.lines.length * lineHeight;
         dynamicHeight += paragraphGap;
@@ -934,24 +1585,32 @@
       ctx.fillStyle = '#343a4a';
       ctx.textAlign = 'center';
       ctx.font = 'bold 72px Arial';
-      ctx.fillText(template.name.toUpperCase(), canvas.width / 2, 132);
+      titleLines.forEach((line, index) => {
+        ctx.fillText(line, canvas.width / 2, titleY + index * titleLineHeight);
+      });
       ctx.font = 'bold 52px Arial';
-      ctx.fillText(template.subtitle.replace('<br>', ' '), canvas.width / 2, 228);
+      subtitleLines.forEach((line, index) => {
+        ctx.fillText(line, canvas.width / 2, subtitleY + index * subtitleLineHeight);
+      });
 
       ctx.strokeStyle = '#c9c3b7';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(sidePadding, 280);
-      ctx.lineTo(width - sidePadding, 280);
+      ctx.moveTo(sidePadding, dividerY);
+      ctx.lineTo(width - sidePadding, dividerY);
       ctx.stroke();
 
-      let y = 344;
+      let y = contentStartY;
       ctx.textAlign = 'left';
       preparedParagraphs.forEach((paragraph) => {
         ctx.fillStyle = '#1f2430';
-        ctx.font = `${textSize}px Arial`;
-        paragraph.lines.forEach((line, index) => {
-          ctx.fillText(line, sidePadding, y + index * lineHeight);
+        paragraph.lines.forEach((lineSegments, index) => {
+          let x = sidePadding;
+          lineSegments.forEach((segment) => {
+            ctx.font = segment.font;
+            ctx.fillText(segment.text, x, y + index * lineHeight);
+            x += ctx.measureText(segment.text).width;
+          });
         });
         y += paragraph.lines.length * lineHeight + paragraphGap;
       });
@@ -968,9 +1627,9 @@
       return canvas;
     }
 
-    function downloadAsImage() {
-      if (!isFormComplete()) {
-        savedState.textContent = 'Заповніть обов’язкові поля перед збереженням.';
+    async function downloadAsImage() {
+      if (!hasAnyFilledField()) {
+        savedState.textContent = 'Заповніть хоча б одне поле перед збереженням.';
         updateSaveButtonState();
         return;
       }
@@ -979,36 +1638,117 @@
       const createdAt = new Date().toISOString();
       const canvas = buildFlashCardImage(values, createdAt);
       const imageData = canvas.toDataURL('image/png');
+      if (editingItem) {
+        const updatedItem = {
+          ...editingItem,
+          templateId: activeTemplateId,
+          templateName: getActiveTemplate().name,
+          imageData,
+          textValues: withPriorityMetadata(values, getItemPriority(editingItem)),
+          isPriority: getItemPriority(editingItem),
+        };
+        const isUpdated = await updateHistoryItem(updatedItem);
+        if (!isUpdated) return;
+        setEditingItem(null);
+        clearDraft();
+        savedState.textContent = `"${getFirstFieldValue(updatedItem)}" оновлено.`;
+        return;
+      }
+
       const item = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         createdAt,
         templateId: activeTemplateId,
         templateName: getActiveTemplate().name,
         imageData,
+        textValues: withPriorityMetadata(values, false),
+        isRead: false,
+        isPriority: false,
+        sortOrder: -Date.now(),
       };
-      saveHistoryItem(item);
-      triggerImageDownload(item.imageData, item.createdAt, item.templateId);
-      savedState.textContent = `PNG "${getActiveTemplate().name}" збережено.`;
+      const isSaved = await saveHistoryItem(item);
+      if (!isSaved) return;
+      clearDraft();
+      savedState.textContent = `"${getActiveTemplate().name}" додано в історію. PNG можна скачати з історії.`;
     }
 
-    function openImageInWindow(imageData) {
-      if (!imageData || !imageData.startsWith(pngDataUrlPrefix)) {
-        savedState.textContent = 'Цей запис пошкоджений. Видали його з історії.';
+    function renderTextPreview(item) {
+      previewContent.innerHTML = '';
+      previewMeta.innerHTML = '';
+      const template = templates[item.templateId] || templates.schema;
+      previewModalTitle.textContent = item.templateName || template.name;
+
+      const dateLabel = document.createElement('p');
+      dateLabel.className = 'preview-date-pill';
+      dateLabel.textContent = formatDisplayDateTime(item.createdAt);
+      previewMeta.appendChild(dateLabel);
+
+      if (item.isRead) {
+        const readPill = document.createElement('span');
+        readPill.className = 'preview-read-pill';
+        readPill.textContent = '✓ Прочитано';
+        previewMeta.appendChild(readPill);
+      }
+
+      if (!item.textValues) {
+        const emptyText = document.createElement('p');
+        emptyText.className = 'preview-empty';
+        emptyText.textContent = 'Текстове прев’ю доступне для нових карток. Цю стару картку можна скачати як PNG.';
+        previewContent.appendChild(emptyText);
         return;
       }
-      const blob = dataUrlToBlob(imageData);
-      if (!blob) {
-        savedState.textContent = 'Не вдалося відкрити картинку.';
-        return;
-      }
-      const blobUrl = URL.createObjectURL(blob);
-      const popup = window.open(blobUrl, '_blank', 'noopener,noreferrer');
-      if (!popup) {
-        URL.revokeObjectURL(blobUrl);
-        savedState.textContent = 'Браузер заблокував нове вікно. Дозволь pop-up для сайту.';
-        return;
-      }
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+
+      const fieldsWrapper = document.createElement('div');
+      fieldsWrapper.className = 'preview-fields';
+      template.fields.forEach((field) => {
+        const wrapper = document.createElement('p');
+        wrapper.className = 'preview-field';
+
+        const label = document.createElement('strong');
+        label.textContent = field.label;
+
+        const value = document.createElement('span');
+        value.textContent = item.textValues[field.key] || '—';
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(value);
+        fieldsWrapper.appendChild(wrapper);
+      });
+      previewContent.appendChild(fieldsWrapper);
+    }
+
+    function openCardPreview(item) {
+      currentPreviewItem = item;
+      renderTextPreview(item);
+      previewModalOverlay.classList.remove('hidden');
+      previewModalOverlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeImagePreview() {
+      previewModalOverlay.classList.add('hidden');
+      previewModalOverlay.setAttribute('aria-hidden', 'true');
+      previewContent.innerHTML = '';
+      previewMeta.innerHTML = '';
+      currentPreviewItem = null;
+    }
+
+    function fillFormValues(form, values = {}) {
+      form.reset();
+      Object.entries(values).forEach(([name, value]) => {
+        if (form.elements[name]) {
+          form.elements[name].value = value;
+        }
+      });
+      Array.from(form.querySelectorAll('textarea')).forEach((textarea) => autoResize(textarea));
+      updateSaveButtonState();
+    }
+
+    function startEditItem(item) {
+      setActiveTemplate(item.templateId);
+      fillFormValues(getActiveForm(), item.textValues || {});
+      setEditingItem(item);
+      savedState.textContent = `Редагуємо "${getFirstFieldValue(item)}".`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function triggerImageDownload(imageData, createdAt, templateId = 'card') {
@@ -1019,53 +1759,383 @@
       link.click();
     }
 
-    function getHistory() {
+    function normalizeHistoryItem(item) {
+      const textValues = item.textValues || item.text_values || null;
+      const isPriority = Boolean(item.isPriority || item.is_priority || textValues?.__isPriority);
+      return {
+        id: item.id,
+        createdAt: item.createdAt || item.created_at,
+        templateId: item.templateId || item.template_id || 'card',
+        templateName: item.templateName || item.template_name || getHistoryTemplateName(item),
+        imageData: item.imageData || item.image_data,
+        textValues,
+        isRead: Boolean(item.isRead || item.is_read),
+        isPriority,
+        sortOrder: Number.isFinite(item.sortOrder) ? item.sortOrder : Number(item.sort_order),
+      };
+    }
+
+    function isValidHistoryItem(item) {
+      return (
+        item
+        && typeof item.id === 'string'
+        && typeof (item.createdAt || item.created_at) === 'string'
+        && typeof (item.imageData || item.image_data) === 'string'
+        && (item.imageData || item.image_data).startsWith(pngDataUrlPrefix)
+      );
+    }
+
+    function getActiveTemplateHistory(history) {
+      return history.filter((item) => item.templateId === activeTemplateId);
+    }
+
+    function normalizeStoredHistory(history) {
+      return history.map((item) => ({
+        ...item,
+        isPriority: getItemPriority(item),
+        textValues: item.textValues ? withPriorityMetadata(item.textValues, getItemPriority(item)) : item.textValues,
+        sortOrder: Number.isFinite(item.sortOrder) ? item.sortOrder : -new Date(item.createdAt).getTime(),
+      }));
+    }
+
+    function getLocalHistory() {
       const raw = localStorage.getItem(historyKey);
       if (!raw) return [];
       try {
         const parsed = JSON.parse(raw);
         if (!Array.isArray(parsed)) return [];
-        const sanitized = parsed.filter((item) => (
-          item
-          && typeof item.id === 'string'
-          && typeof item.createdAt === 'string'
-          && typeof item.imageData === 'string'
-          && item.imageData.startsWith(pngDataUrlPrefix)
-        ));
-        if (sanitized.length !== parsed.length) saveHistory(sanitized);
+        const sanitized = parsed.filter(isValidHistoryItem).map(normalizeHistoryItem);
+        if (sanitized.length !== parsed.length) saveLocalHistory(sanitized);
         return sanitized;
       } catch (error) {
         return [];
       }
     }
 
-    function saveHistory(history) {
+    function saveLocalHistory(history) {
       localStorage.setItem(historyKey, JSON.stringify(history));
     }
 
-    function saveHistoryItem(item) {
+    function updateLocalHistoryItems(updatedItems) {
+      const updatesById = new Map(updatedItems.map((item) => [item.id, item]));
+      const history = getLocalHistory().map((item) => (
+        updatesById.has(item.id) ? { ...item, ...updatesById.get(item.id) } : item
+      ));
+      saveLocalHistory(history);
+    }
+
+    function animateHistoryReorder(previousRects) {
+      Array.from(historyList.children).forEach((element) => {
+        const previousRect = previousRects.get(element.dataset.id);
+        if (!previousRect) return;
+
+        const nextRect = element.getBoundingClientRect();
+        const deltaY = previousRect.top - nextRect.top;
+        if (!deltaY) return;
+
+        element.classList.add('is-moving');
+        element.animate([
+          { transform: `translateY(${deltaY}px)` },
+          { transform: 'translateY(0)' },
+        ], {
+          duration: 320,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        }).addEventListener('finish', () => {
+          element.classList.remove('is-moving');
+        }, { once: true });
+      });
+    }
+
+    function renderHistoryWithAnimation(history) {
+      const previousRects = new Map(
+        Array.from(historyList.children).map((element) => [element.dataset.id, element.getBoundingClientRect()]),
+      );
+      renderHistory(history);
+      requestAnimationFrame(() => animateHistoryReorder(previousRects));
+    }
+
+    function getOrderedHistoryFromDom() {
+      const historyById = new Map(renderedHistory.map((item) => [item.id, item]));
+      return Array.from(historyList.querySelectorAll('.history-item'))
+        .map((element) => historyById.get(element.dataset.id))
+        .filter(Boolean);
+    }
+
+    function applySequentialSortOrder(history) {
+      return history.map((item, index) => ({ ...item, sortOrder: index }));
+    }
+
+    function getDragAfterElement(yPosition, priorityValue) {
+      return Array.from(historyList.querySelectorAll(`.history-item:not(.is-dragging)[data-priority="${priorityValue}"]`)).reduce((closest, element) => {
+        const rect = element.getBoundingClientRect();
+        const offset = yPosition - rect.top - rect.height / 2;
+        if (offset < 0 && offset > closest.offset) return { offset, element };
+        return closest;
+      }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+    }
+
+    function moveDraggedElement(yPosition) {
+      const draggingElement = historyList.querySelector('.history-item.is-dragging');
+      if (!draggingElement) return;
+      const priorityValue = draggingElement.dataset.priority;
+
+      const previousRects = new Map(
+        Array.from(historyList.children).map((element) => [element.dataset.id, element.getBoundingClientRect()]),
+      );
+      const afterElement = getDragAfterElement(yPosition, priorityValue);
+      if (afterElement) {
+        historyList.insertBefore(draggingElement, afterElement);
+      } else if (priorityValue === 'true') {
+        const firstRegularElement = historyList.querySelector('.history-item[data-priority="false"]');
+        if (firstRegularElement) historyList.insertBefore(draggingElement, firstRegularElement);
+        else historyList.appendChild(draggingElement);
+      } else {
+        historyList.appendChild(draggingElement);
+      }
+      requestAnimationFrame(() => animateHistoryReorder(previousRects));
+    }
+
+    async function getCloudHistory() {
+      if (!supabaseClient || !currentUser) return [];
+      const { data, error } = await supabaseClient
+        .from('cards')
+        .select('id, created_at, template_id, template_name, image_data, text_values, is_read, sort_order')
+        .eq('template_id', activeTemplateId)
+        .limit(100);
+
+      if (error) {
+        savedState.textContent = `Не вдалося завантажити хмарну історію: ${error.message}`;
+        return [];
+      }
+
+      return sortHistory((data || []).filter(isValidHistoryItem).map(normalizeHistoryItem)).slice(0, maxHistoryItems);
+    }
+
+    async function refreshHistory() {
+      const history = currentUser ? await getCloudHistory() : getLocalHistory();
+      renderHistory(getActiveTemplateHistory(history));
+      updateMigrationButton();
+    }
+
+    async function saveHistoryItem(item) {
       if (!item.imageData || !item.imageData.startsWith(pngDataUrlPrefix)) {
         savedState.textContent = 'Не вдалося зберегти картинку: некоректний формат.';
         return;
       }
-      const history = getHistory();
+
+      if (supabaseClient && currentUser) {
+        const { error } = await supabaseClient
+          .from('cards')
+          .insert({
+            user_id: currentUser.id,
+            created_at: item.createdAt,
+            template_id: item.templateId,
+            template_name: item.templateName,
+            image_data: item.imageData,
+            text_values: withPriorityMetadata(item.textValues, getItemPriority(item)),
+            is_read: false,
+            sort_order: item.sortOrder,
+          });
+
+        if (error) {
+          savedState.textContent = `Не вдалося зберегти в акаунт: ${error.message}`;
+          return false;
+        }
+
+        await refreshHistory();
+        return true;
+      }
+
+      const history = getLocalHistory();
       history.unshift(item);
-      const trimmed = history.slice(0, maxHistoryItems);
-      saveHistory(trimmed);
-      renderHistory(trimmed);
+      const activeCount = {};
+      const trimmed = sortHistory(normalizeStoredHistory(history)).filter((historyItem) => {
+        activeCount[historyItem.templateId] = (activeCount[historyItem.templateId] || 0) + 1;
+        return activeCount[historyItem.templateId] <= maxHistoryItems;
+      });
+      saveLocalHistory(trimmed);
+      renderHistory(getActiveTemplateHistory(trimmed));
+      return true;
     }
 
-    function deleteHistoryItem(id) {
-      const filteredHistory = getHistory().filter((item) => item.id !== id);
-      saveHistory(filteredHistory);
-      renderHistory(filteredHistory);
+    async function updateHistoryItem(item) {
+      if (supabaseClient && currentUser) {
+        const { error } = await supabaseClient
+          .from('cards')
+          .update({
+            template_id: item.templateId,
+            template_name: item.templateName,
+            image_data: item.imageData,
+            text_values: withPriorityMetadata(item.textValues, getItemPriority(item)),
+            sort_order: item.sortOrder,
+          })
+          .eq('id', item.id);
+
+        if (error) {
+          savedState.textContent = `Не вдалося оновити картку: ${error.message}`;
+          return false;
+        }
+
+        await refreshHistory();
+        return true;
+      }
+
+      const history = getLocalHistory().map((historyItem) => (
+        historyItem.id === item.id ? item : historyItem
+      ));
+      saveLocalHistory(history);
+      renderHistory(getActiveTemplateHistory(history));
+      return true;
+    }
+
+    async function toggleReadStatus(item) {
+      const nextValue = !item.isRead;
+
+      if (supabaseClient && currentUser) {
+        const { error } = await supabaseClient
+          .from('cards')
+          .update({ is_read: nextValue })
+          .eq('id', item.id);
+
+        if (error) {
+          savedState.textContent = `Не вдалося оновити статус: ${error.message}`;
+          return;
+        }
+
+        await refreshHistory();
+        return;
+      }
+
+      const history = getLocalHistory().map((historyItem) => (
+        historyItem.id === item.id ? { ...historyItem, isRead: nextValue } : historyItem
+      ));
+      saveLocalHistory(history);
+      renderHistory(getActiveTemplateHistory(history));
+    }
+
+    async function togglePriorityStatus(item) {
+      const nextValue = !getItemPriority(item);
+      const updatedItem = {
+        ...item,
+        isPriority: nextValue,
+        textValues: withPriorityMetadata(item.textValues, nextValue),
+        sortOrder: getSortValue(item),
+      };
+
+      if (supabaseClient && currentUser) {
+        const { error } = await supabaseClient
+          .from('cards')
+          .update({
+            text_values: updatedItem.textValues,
+            sort_order: updatedItem.sortOrder,
+          })
+          .eq('id', item.id);
+
+        if (error) {
+          savedState.textContent = `Не вдалося оновити пріоритет: ${error.message}`;
+          return;
+        }
+
+        await refreshHistory();
+        return;
+      }
+
+      const history = getLocalHistory().map((historyItem) => (
+        historyItem.id === item.id ? updatedItem : historyItem
+      ));
+      saveLocalHistory(history);
+      renderHistoryWithAnimation(getActiveTemplateHistory(history));
+    }
+
+    async function persistSortOrder(items) {
+      if (supabaseClient && currentUser) {
+        const updates = await Promise.all(items.map((item) => (
+          supabaseClient.from('cards').update({ sort_order: item.sortOrder }).eq('id', item.id)
+        )));
+        const failedUpdate = updates.find((update) => update.error);
+        if (failedUpdate) throw failedUpdate.error;
+        return;
+      }
+
+      updateLocalHistoryItems(items);
+    }
+
+    async function persistDraggedHistoryOrder(previousHistory) {
+      const nextHistory = applySequentialSortOrder(getOrderedHistoryFromDom());
+      renderHistoryWithAnimation(nextHistory);
+
+      try {
+        await persistSortOrder(nextHistory);
+      } catch (error) {
+        savedState.textContent = `Не вдалося змінити порядок: ${error.message}`;
+        renderHistoryWithAnimation(previousHistory);
+      }
+    }
+
+    async function reorderHistoryItem(item, direction) {
+      const activeHistory = sortHistory(renderedHistory.length ? renderedHistory : getActiveTemplateHistory(getLocalHistory()));
+      const currentIndex = activeHistory.findIndex((historyItem) => historyItem.id === item.id);
+      const targetIndex = currentIndex + direction;
+
+      if (currentIndex < 0 || targetIndex < 0 || targetIndex >= activeHistory.length) return;
+
+      const currentItem = activeHistory[currentIndex];
+      const targetItem = activeHistory[targetIndex];
+      if (getItemPriority(currentItem) !== getItemPriority(targetItem)) return;
+      const currentSortOrder = getSortValue(currentItem);
+      const targetSortOrder = getSortValue(targetItem);
+      const optimisticHistory = activeHistory.map((historyItem) => {
+        if (historyItem.id === currentItem.id) return { ...historyItem, sortOrder: targetSortOrder };
+        if (historyItem.id === targetItem.id) return { ...historyItem, sortOrder: currentSortOrder };
+        return historyItem;
+      });
+      renderHistoryWithAnimation(sortHistory(optimisticHistory));
+
+      try {
+        await persistSortOrder([
+          { ...currentItem, sortOrder: targetSortOrder },
+          { ...targetItem, sortOrder: currentSortOrder },
+        ]);
+      } catch (error) {
+        savedState.textContent = `Не вдалося змінити порядок: ${error.message}`;
+        renderHistoryWithAnimation(activeHistory);
+      }
+    }
+
+    function requestReadToggle(item) {
+      if (item.isRead) {
+        openUnreadModal(item);
+        return;
+      }
+
+      toggleReadStatus(item);
+    }
+
+    async function deleteHistoryItem(id) {
+      if (supabaseClient && currentUser) {
+        const { error } = await supabaseClient
+          .from('cards')
+          .delete()
+          .eq('id', id);
+
+        if (error) {
+          savedState.textContent = `Не вдалося видалити картку: ${error.message}`;
+          return;
+        }
+
+        await refreshHistory();
+        return;
+      }
+
+      const filteredHistory = getLocalHistory().filter((item) => item.id !== id);
+      saveLocalHistory(filteredHistory);
+      renderHistory(getActiveTemplateHistory(filteredHistory));
     }
 
     function openDeleteModal(id) {
       pendingDeleteId = id;
       deleteModalOverlay.classList.remove('hidden');
       deleteModalOverlay.setAttribute('aria-hidden', 'false');
-      confirmDeleteBtn.focus();
     }
 
     function closeDeleteModal() {
@@ -1074,12 +2144,23 @@
       deleteModalOverlay.setAttribute('aria-hidden', 'true');
     }
 
+    function openUnreadModal(item) {
+      pendingUnreadItem = item;
+      unreadModalOverlay.classList.remove('hidden');
+      unreadModalOverlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeUnreadModal() {
+      pendingUnreadItem = null;
+      unreadModalOverlay.classList.add('hidden');
+      unreadModalOverlay.setAttribute('aria-hidden', 'true');
+    }
+
     function openEmotionModal(targetField = thoughtForm.elements.emotion) {
       currentEmotionField = targetField;
       syncEmotionChipsState();
       emotionModalOverlay.classList.remove('hidden');
       emotionModalOverlay.setAttribute('aria-hidden', 'false');
-      closeEmotionModalBtn.focus();
     }
 
     function closeEmotionModal() {
@@ -1092,7 +2173,6 @@
       syncSchemaChipsState();
       schemaModalOverlay.classList.remove('hidden');
       schemaModalOverlay.setAttribute('aria-hidden', 'false');
-      closeSchemaModalBtn.focus();
     }
 
     function closeSchemaModal() {
@@ -1164,56 +2244,317 @@
       return 'Флеш-картка';
     }
 
-    function renderHistory(history = getHistory()) {
+    function renderHistory(history = getActiveTemplateHistory(getLocalHistory())) {
+      renderedHistory = sortHistory(history);
       historyList.innerHTML = '';
-      historyEmpty.style.display = history.length ? 'none' : 'block';
-      history.forEach((item) => {
+      historyEmpty.style.display = renderedHistory.length ? 'none' : 'block';
+      renderedHistory.forEach((item, index) => {
         const templateName = getHistoryTemplateName(item);
         const card = document.createElement('article');
         card.className = 'history-item';
+        card.dataset.id = item.id;
+        card.dataset.priority = String(getItemPriority(item));
+        card.draggable = true;
+        card.classList.toggle('is-read', item.isRead);
+        card.classList.toggle('is-priority', getItemPriority(item));
 
-        const image = document.createElement('img');
-        image.src = item.imageData;
-        image.alt = `Збережена ${templateName}`;
-        image.addEventListener('error', () => deleteHistoryItem(item.id));
-        image.addEventListener('click', () => openImageInWindow(item.imageData));
-        card.appendChild(image);
+        card.addEventListener('dragstart', (event) => {
+          if (event.target.closest('button')) {
+            event.preventDefault();
+            return;
+          }
+          draggedHistoryItemId = item.id;
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', item.id);
+          requestAnimationFrame(() => card.classList.add('is-dragging'));
+        });
+
+        card.addEventListener('dragend', () => {
+          card.classList.remove('is-dragging');
+          draggedHistoryItemId = null;
+        });
+        card.addEventListener('click', (event) => {
+          if (event.target.closest('button') || draggedHistoryItemId) return;
+          openCardPreview(item);
+        });
+
+        const summary = document.createElement('div');
+        summary.className = 'history-summary';
+
+        const title = document.createElement('p');
+        title.className = 'history-title';
+        title.textContent = getFirstFieldValue(item);
+        summary.appendChild(title);
 
         const dateLabel = document.createElement('p');
         dateLabel.className = 'history-date';
-        dateLabel.textContent = `${templateName} • ${formatDisplayDateTime(item.createdAt)}`;
-        card.appendChild(dateLabel);
+        dateLabel.textContent = formatDisplayDateTime(item.createdAt);
+        summary.appendChild(dateLabel);
+
+        if (isHistoryItemIncomplete(item)) {
+          const incompleteBadge = document.createElement('p');
+          incompleteBadge.className = 'incomplete-badge';
+          incompleteBadge.textContent = '⚠ Не всі поля заповнені';
+          summary.appendChild(incompleteBadge);
+        }
+
+        if (getItemPriority(item)) {
+          const priorityBadge = document.createElement('p');
+          priorityBadge.className = 'priority-badge';
+          priorityBadge.textContent = '★ У пріоритеті';
+          summary.appendChild(priorityBadge);
+        }
+
+        if (item.isRead) {
+          const readBadge = document.createElement('p');
+          readBadge.className = 'read-badge';
+          readBadge.textContent = '✓ Прочитано';
+          summary.appendChild(readBadge);
+        }
+        card.appendChild(summary);
 
         const actions = document.createElement('div');
         actions.className = 'history-actions';
 
         const downloadBtn = document.createElement('button');
         downloadBtn.type = 'button';
-        downloadBtn.textContent = '⬇';
+        setButtonIcon(downloadBtn, 'download');
         downloadBtn.title = 'Скачати';
         downloadBtn.setAttribute('aria-label', 'Скачати');
+        disableWhenRead(downloadBtn, item);
         downloadBtn.addEventListener('click', () => triggerImageDownload(item.imageData, item.createdAt, item.templateId || 'card'));
 
         const previewHistoryBtn = document.createElement('button');
         previewHistoryBtn.type = 'button';
-        previewHistoryBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5C6.5 5 2.1 8.1.2 12c1.9 3.9 6.3 7 11.8 7s9.9-3.1 11.8-7c-1.9-3.9-6.3-7-11.8-7Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-2.2a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"/></svg>';
+        setButtonIcon(previewHistoryBtn, 'preview');
         previewHistoryBtn.title = 'Відкрити';
         previewHistoryBtn.setAttribute('aria-label', 'Відкрити');
-        previewHistoryBtn.addEventListener('click', () => openImageInWindow(item.imageData));
+        disableWhenRead(previewHistoryBtn, item);
+        previewHistoryBtn.addEventListener('click', () => openCardPreview(item));
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'secondary';
+        setButtonIcon(editBtn, 'edit');
+        editBtn.title = hasEditableTextValues(item) ? 'Редагувати' : 'Редагування доступне для нових текстових карток';
+        editBtn.setAttribute('aria-label', 'Редагувати');
+        editBtn.disabled = !hasEditableTextValues(item);
+        disableWhenRead(editBtn, item);
+        editBtn.addEventListener('click', () => startEditItem(item));
+
+        const priorityBtn = document.createElement('button');
+        priorityBtn.type = 'button';
+        priorityBtn.className = getItemPriority(item) ? 'is-priority' : 'secondary';
+        setButtonIcon(priorityBtn, 'priority');
+        priorityBtn.title = getItemPriority(item) ? 'Прибрати з пріоритету' : 'Додати в пріоритет';
+        priorityBtn.setAttribute('aria-label', priorityBtn.title);
+        disableWhenRead(priorityBtn, item);
+        priorityBtn.addEventListener('click', () => togglePriorityStatus(item));
+
+        const moveUpBtn = document.createElement('button');
+        moveUpBtn.type = 'button';
+        moveUpBtn.className = 'secondary';
+        setButtonIcon(moveUpBtn, 'up');
+        moveUpBtn.title = 'Перемістити вище';
+        moveUpBtn.setAttribute('aria-label', 'Перемістити вище');
+        moveUpBtn.disabled = index === 0 || getItemPriority(item) !== getItemPriority(renderedHistory[index - 1]);
+        disableWhenRead(moveUpBtn, item);
+        moveUpBtn.addEventListener('click', () => reorderHistoryItem(item, -1));
+
+        const moveDownBtn = document.createElement('button');
+        moveDownBtn.type = 'button';
+        moveDownBtn.className = 'secondary';
+        setButtonIcon(moveDownBtn, 'down');
+        moveDownBtn.title = 'Перемістити нижче';
+        moveDownBtn.setAttribute('aria-label', 'Перемістити нижче');
+        moveDownBtn.disabled = index === renderedHistory.length - 1 || getItemPriority(item) !== getItemPriority(renderedHistory[index + 1]);
+        disableWhenRead(moveDownBtn, item);
+        moveDownBtn.addEventListener('click', () => reorderHistoryItem(item, 1));
+
+        const readBtn = document.createElement('button');
+        readBtn.type = 'button';
+        readBtn.className = item.isRead ? 'is-read' : 'secondary';
+        setButtonIcon(readBtn, 'read');
+        readBtn.title = item.isRead ? 'Позначити як непрочитано' : 'Позначити як прочитано';
+        readBtn.setAttribute('aria-label', readBtn.title);
+        readBtn.addEventListener('click', () => requestReadToggle(item));
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.className = 'secondary';
-        removeBtn.textContent = '✕';
+        setButtonIcon(removeBtn, 'remove');
         removeBtn.title = 'Видалити';
         removeBtn.setAttribute('aria-label', 'Видалити');
+        disableWhenRead(removeBtn, item);
         removeBtn.addEventListener('click', () => openDeleteModal(item.id));
 
         actions.appendChild(downloadBtn);
         actions.appendChild(previewHistoryBtn);
+        actions.appendChild(editBtn);
+        actions.appendChild(priorityBtn);
+        actions.appendChild(moveUpBtn);
+        actions.appendChild(moveDownBtn);
+        actions.appendChild(readBtn);
         actions.appendChild(removeBtn);
         card.appendChild(actions);
         historyList.appendChild(card);
+      });
+    }
+
+    function setAuthStatus(message) {
+      authStatus.textContent = message;
+    }
+
+    function closeAuthDropdown() {
+      authDropdown.classList.add('hidden');
+      authMenuBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function toggleAuthDropdown() {
+      if (!currentUser) {
+        openAuthModal();
+        return;
+      }
+      const isOpen = !authDropdown.classList.contains('hidden');
+      authDropdown.classList.toggle('hidden', isOpen);
+      authMenuBtn.setAttribute('aria-expanded', String(!isOpen));
+    }
+
+    function openAuthModal() {
+      closeAuthDropdown();
+      authModalOverlay.classList.remove('hidden');
+      authModalOverlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeAuthModal() {
+      authModalOverlay.classList.add('hidden');
+      authModalOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    function updateMigrationButton() {
+      migrateLocalBtn.classList.toggle('hidden', !currentUser || getLocalHistory().length === 0);
+    }
+
+    function updateAuthUi() {
+      if (!isSupabaseConfigured) {
+        authForm.classList.add('hidden');
+        authActions.classList.add('hidden');
+        accountStatus.textContent = 'Supabase ще не налаштовано.';
+        setAuthStatus('Supabase ще не налаштовано. Після додавання URL і anon key тут буде вхід по email і паролю.');
+        updateMigrationButton();
+        return;
+      }
+
+      if (currentUser) {
+        authForm.classList.add('hidden');
+        authActions.classList.remove('hidden');
+        authUser.textContent = currentUser.email;
+        accountStatus.textContent = `Ви увійшли як ${currentUser.email}`;
+        setAuthStatus('Ви увійшли. Історія карток синхронізується між пристроями.');
+        closeAuthModal();
+      } else {
+        authForm.classList.remove('hidden');
+        authActions.classList.add('hidden');
+        authUser.textContent = '';
+        accountStatus.textContent = 'Увійдіть, щоб синхронізувати картки.';
+        setAuthStatus('Увійдіть або зареєструйтеся, щоб бачити картки на різних пристроях.');
+      }
+
+      updateMigrationButton();
+    }
+
+    async function signInWithPassword() {
+      if (!supabaseClient) return;
+      const email = authEmail.value.trim();
+      const password = authPassword.value;
+      if (!email || !password) {
+        setAuthStatus('Введіть email і пароль.');
+        return;
+      }
+
+      setAuthStatus('Входимо...');
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) {
+        setAuthStatus(`Не вдалося увійти: ${error.message}`);
+        return;
+      }
+
+      authPassword.value = '';
+    }
+
+    async function signUpWithPassword() {
+      if (!supabaseClient) return;
+      const email = authEmail.value.trim();
+      const password = authPassword.value;
+      if (!email || !password) {
+        setAuthStatus('Введіть email і пароль для реєстрації.');
+        return;
+      }
+
+      setAuthStatus('Створюємо акаунт...');
+      const { error } = await supabaseClient.auth.signUp({ email, password });
+      if (error) {
+        setAuthStatus(`Не вдалося зареєструватися: ${error.message}`);
+        return;
+      }
+
+      authPassword.value = '';
+      setAuthStatus('Акаунт створено. Якщо Supabase просить підтвердження, перевірте пошту.');
+    }
+
+    async function signOut() {
+      if (!supabaseClient) return;
+      closeAuthDropdown();
+      await supabaseClient.auth.signOut();
+      savedState.textContent = 'Ви вийшли з акаунта. Показана локальна історія цього браузера.';
+    }
+
+    async function migrateLocalHistoryToCloud() {
+      if (!supabaseClient || !currentUser) return;
+      const localHistory = getLocalHistory();
+      if (!localHistory.length) return;
+
+      setAuthStatus('Переносимо локальні картки в акаунт...');
+      const rows = localHistory.map((item) => ({
+        user_id: currentUser.id,
+        created_at: item.createdAt,
+        template_id: item.templateId || 'card',
+        template_name: getHistoryTemplateName(item),
+        image_data: item.imageData,
+        text_values: withPriorityMetadata(item.textValues, getItemPriority(item)),
+        is_read: item.isRead || false,
+        sort_order: Number.isFinite(item.sortOrder) ? item.sortOrder : getSortValue(item),
+      }));
+      const { error } = await supabaseClient.from('cards').insert(rows);
+      if (error) {
+        setAuthStatus(`Не вдалося перенести локальну історію: ${error.message}`);
+        return;
+      }
+
+      localStorage.removeItem(historyKey);
+      setAuthStatus('Локальні картки перенесено в акаунт.');
+      await refreshHistory();
+    }
+
+    async function initializeAuth() {
+      if (!supabaseClient) {
+        updateAuthUi();
+        renderHistory(getLocalHistory());
+        return;
+      }
+
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error) {
+        setAuthStatus(`Не вдалося перевірити сесію: ${error.message}`);
+      }
+      currentUser = data.session ? data.session.user : null;
+      updateAuthUi();
+      await refreshHistory();
+
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        currentUser = session ? session.user : null;
+        updateAuthUi();
+        refreshHistory();
       });
     }
 
@@ -1223,28 +2564,16 @@
       form.reset();
       getActiveTextareas().forEach((textarea) => autoResize(textarea));
       localStorage.removeItem(template.draftKey);
+      setEditingItem(null);
       savedState.textContent = `Форму "${template.name}" очищено.`;
       updateSaveButtonState();
     }
 
-    function dataUrlToBlob(dataUrl) {
-      try {
-        const [header, base64Data] = dataUrl.split(',');
-        if (!header || !base64Data || !header.includes('base64')) return null;
-        const mimeMatch = header.match(/data:(.*?);base64/);
-        const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
-        const binaryString = atob(base64Data);
-        const length = binaryString.length;
-        const bytes = new Uint8Array(length);
-        for (let i = 0; i < length; i += 1) bytes[i] = binaryString.charCodeAt(i);
-        return new Blob([bytes], { type: mimeType });
-      } catch (error) {
-        return null;
-      }
-    }
-
-    templateSelect.addEventListener('change', (event) => {
-      setActiveTemplate(event.target.value);
+    templateTabs.addEventListener('click', (event) => {
+      const tab = event.target.closest('.template-tab');
+      if (!tab || tab.dataset.template === activeTemplateId) return;
+      setEditingItem(null);
+      setActiveTemplate(tab.dataset.template);
     });
     openEmotionListBtn.addEventListener('click', () => openEmotionModal(thoughtForm.elements.emotion));
     openFeelingsEmotionListBtn.addEventListener('click', () => openEmotionModal(schemaForm.elements.feelings));
@@ -1289,6 +2618,37 @@
         syncSchemaChipsState();
       });
     });
+    historyList.addEventListener('dragover', (event) => {
+      if (!draggedHistoryItemId) return;
+      event.preventDefault();
+      moveDraggedElement(event.clientY);
+    });
+    historyList.addEventListener('drop', (event) => {
+      if (!draggedHistoryItemId) return;
+      event.preventDefault();
+      const previousHistory = [...renderedHistory];
+      draggedHistoryItemId = null;
+      persistDraggedHistoryOrder(previousHistory);
+    });
+    authMenuBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleAuthDropdown();
+    });
+    authDropdown.addEventListener('click', (event) => {
+      event.stopPropagation();
+    });
+    closeAuthModalBtn.addEventListener('click', closeAuthModal);
+    authModalOverlay.addEventListener('click', (event) => {
+      if (event.target === authModalOverlay) closeAuthModal();
+    });
+    document.addEventListener('click', closeAuthDropdown);
+    authForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      signInWithPassword();
+    });
+    signUpBtn.addEventListener('click', signUpWithPassword);
+    signOutBtn.addEventListener('click', signOut);
+    migrateLocalBtn.addEventListener('click', migrateLocalHistoryToCloud);
     saveBtn.addEventListener('click', downloadAsImage);
     resetBtn.addEventListener('click', clearDraft);
     cancelDeleteBtn.addEventListener('click', closeDeleteModal);
@@ -1299,15 +2659,36 @@
     deleteModalOverlay.addEventListener('click', (event) => {
       if (event.target === deleteModalOverlay) closeDeleteModal();
     });
+    cancelUnreadBtn.addEventListener('click', closeUnreadModal);
+    confirmUnreadBtn.addEventListener('click', () => {
+      if (pendingUnreadItem) toggleReadStatus(pendingUnreadItem);
+      closeUnreadModal();
+    });
+    unreadModalOverlay.addEventListener('click', (event) => {
+      if (event.target === unreadModalOverlay) closeUnreadModal();
+    });
+    closePreviewModalBtn.addEventListener('click', closeImagePreview);
+    downloadPreviewBtn.addEventListener('click', () => {
+      if (currentPreviewItem) {
+        triggerImageDownload(currentPreviewItem.imageData, currentPreviewItem.createdAt, currentPreviewItem.templateId || 'card');
+      }
+    });
+    previewModalOverlay.addEventListener('click', (event) => {
+      if (event.target === previewModalOverlay) closeImagePreview();
+    });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && !deleteModalOverlay.classList.contains('hidden')) closeDeleteModal();
+      if (event.key === 'Escape' && !unreadModalOverlay.classList.contains('hidden')) closeUnreadModal();
+      if (event.key === 'Escape' && !previewModalOverlay.classList.contains('hidden')) closeImagePreview();
+      if (event.key === 'Escape' && !authModalOverlay.classList.contains('hidden')) closeAuthModal();
+      if (event.key === 'Escape' && !authDropdown.classList.contains('hidden')) closeAuthDropdown();
       if (event.key === 'Escape' && !emotionModalOverlay.classList.contains('hidden')) closeEmotionModal();
       if (event.key === 'Escape' && !schemaModalOverlay.classList.contains('hidden')) closeSchemaModal();
     });
 
     bindAutoResize();
     setActiveTemplate(activeTemplateId);
-    renderHistory();
+    initializeAuth();
   </script>
 </body>
 </html>
