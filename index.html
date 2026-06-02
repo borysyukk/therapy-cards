@@ -59,7 +59,14 @@
       font-weight: 700;
     }
 
-    .account-button {
+    .account-menu-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .account-button,
+    .settings-button {
       min-height: 40px;
       border-radius: 999px;
       padding: 8px 12px;
@@ -70,18 +77,25 @@
       background: #3f4659;
     }
 
-    .account-button svg {
+    .settings-button {
+      background: #6f7382;
+    }
+
+    .account-button svg,
+    .settings-button svg {
       width: 20px;
       height: 20px;
       display: block;
     }
 
-    .account-button span {
+    .account-button span,
+    .settings-button span {
       font-size: 14px;
       line-height: 1;
     }
 
-    .account-dropdown {
+    .account-dropdown,
+    .settings-dropdown {
       position: absolute;
       top: calc(100% + 8px);
       right: 0;
@@ -92,6 +106,10 @@
       box-shadow: 0 16px 32px rgba(26, 27, 32, 0.18);
       padding: 12px;
       text-align: left;
+    }
+
+    .settings-dropdown {
+      width: min(82vw, 300px);
     }
 
     .account-status {
@@ -105,6 +123,41 @@
     .account-dropdown button {
       width: 100%;
       margin-top: 8px;
+    }
+
+    .tab-settings {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #ddd7cc;
+    }
+
+    .settings-dropdown .tab-settings {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .tab-settings-title {
+      margin: 0 0 8px;
+      color: #343a4a;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .tab-settings-options {
+      display: grid;
+      gap: 6px;
+    }
+
+    .tab-toggle {
+      width: 100%;
+      justify-content: space-between;
+      background: #858ba0;
+      text-align: left;
+    }
+
+    .tab-toggle.is-enabled {
+      background: #3f4659;
     }
 
     .header {
@@ -228,8 +281,10 @@
     }
 
     .account-dropdown.hidden,
+    .settings-dropdown.hidden,
     .auth-form.hidden,
     .auth-actions.hidden,
+    #openAuthFromMenuBtn.hidden,
     #migrateLocalBtn.hidden {
       display: none;
     }
@@ -355,10 +410,58 @@
       background: #858ba0;
     }
 
+    button.is-loading {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .button-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
     .saved-state {
       margin-top: 16px;
       color: #4c505e;
       font-size: 14px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      z-index: 60;
+      transform: translate(-50%, 16px);
+      max-width: min(92vw, 520px);
+      padding: 12px 16px;
+      border-radius: 999px;
+      background: #2f3340;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.3;
+      white-space: nowrap;
+      box-shadow: 0 14px 30px rgba(29, 30, 34, 0.22);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .history {
@@ -378,6 +481,7 @@
     }
 
     .history-item {
+      position: relative;
       background: #ebe7e0;
       border: 1px solid #d0cbc2;
       border-radius: 8px;
@@ -390,6 +494,10 @@
       will-change: transform;
       cursor: grab;
       user-select: none;
+    }
+
+    .history-item.is-menu-open {
+      z-index: 50;
     }
 
     .history-item.is-moving {
@@ -433,11 +541,19 @@
       overflow: hidden;
     }
 
+    .history-title.is-note {
+      display: block;
+      overflow: visible;
+      color: #30323d;
+      font-weight: 400;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
     .history-actions {
+      position: relative;
       display: flex;
-      flex-wrap: wrap;
       justify-content: flex-end;
-      gap: 6px;
     }
 
     .history-date {
@@ -458,18 +574,53 @@
       justify-content: center;
     }
 
-    .history-actions button svg {
-      width: 18px;
-      height: 18px;
-      display: block;
+    .history-menu-toggle {
+      width: 40px;
+      font-size: 22px;
+      letter-spacing: 1px;
     }
 
-    .history-actions button.is-read {
-      background: #4f8b63;
+    .history-menu {
+      position: fixed;
+      z-index: 80;
+      width: min(72vw, 230px);
+      display: grid;
+      gap: 4px;
+      padding: 8px;
+      border: 1px solid #d0cbc2;
+      border-radius: 10px;
+      background: #f7f5f1;
+      box-shadow: 0 14px 28px rgba(29, 30, 34, 0.18);
     }
 
-    .history-actions button.is-priority {
-      background: #d89a17;
+    .history-menu.hidden {
+      display: none;
+    }
+
+    .history-menu button {
+      width: 100%;
+      min-height: 0;
+      justify-content: flex-start;
+      padding: 9px 10px;
+      border-radius: 7px;
+      background: transparent;
+      color: #2f3340;
+      font-size: 14px;
+      line-height: 1.25;
+      text-align: left;
+    }
+
+    .history-menu button:hover:not(:disabled) {
+      background: #ebe7e0;
+    }
+
+    .history-menu button.is-danger {
+      color: #8a3030;
+    }
+
+    .history-menu button.is-active {
+      color: #9a6500;
+      font-weight: 700;
     }
 
     .read-badge {
@@ -645,6 +796,18 @@
       overflow-wrap: anywhere;
     }
 
+    .preview-note-body {
+      margin: 0;
+      padding: 16px;
+      border: 1px solid #d1cbc0;
+      border-radius: 12px;
+      background: #f8f6f2;
+      color: #20232b;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
     .preview-empty {
       margin: 0;
       padding: 14px;
@@ -792,19 +955,38 @@
   <main class="app">
     <div class="account-menu">
       <span class="account-bar-label">Меню</span>
-      <button type="button" class="account-button" id="authMenuBtn" aria-label="Акаунт" aria-expanded="false">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.4 0-8 2.4-8 5.3 0 .4.3.7.7.7h14.6c.4 0 .7-.3.7-.7 0-2.9-3.6-5.3-8-5.3Z"/>
-        </svg>
-        <span>Акаунт</span>
-      </button>
+      <div class="account-menu-actions">
+        <button type="button" class="settings-button" id="tabSettingsMenuBtn" aria-label="Налаштування карток" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 2v12h14V6H5Zm2 3h10v2H7V9Zm0 4h7v2H7v-2Z"/>
+          </svg>
+          <span>Картки</span>
+        </button>
+        <button type="button" class="account-button" id="authMenuBtn" aria-label="Акаунт" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.4 0-8 2.4-8 5.3 0 .4.3.7.7.7h14.6c.4 0 .7-.3.7-.7 0-2.9-3.6-5.3-8-5.3Z"/>
+          </svg>
+          <span>Акаунт</span>
+        </button>
+      </div>
       <div class="account-dropdown hidden" id="authDropdown">
         <p class="account-status" id="accountStatus">Акаунт</p>
+        <button type="button" id="openAuthFromMenuBtn">Увійти / зареєструватися</button>
         <div class="auth-actions hidden" id="authActions">
           <span class="auth-user" id="authUser"></span>
           <button type="button" class="secondary hidden" id="migrateLocalBtn">Перенести локальні картки</button>
           <button type="button" id="signOutBtn">Вийти</button>
         </div>
+      </div>
+      <div class="settings-dropdown hidden" id="tabSettingsDropdown">
+        <section class="tab-settings" aria-label="Налаштування відображення вкладок">
+          <p class="tab-settings-title">Відображення вкладок</p>
+          <div class="tab-settings-options">
+            <button type="button" class="tab-toggle is-enabled" data-tab-toggle="schema">Флеш-картка: увімкнено</button>
+            <button type="button" class="tab-toggle is-enabled" data-tab-toggle="thought">Картка думок: увімкнено</button>
+            <button type="button" class="tab-toggle is-enabled" data-tab-toggle="note">Нотатки: увімкнено</button>
+          </div>
+        </section>
       </div>
     </div>
 
@@ -918,6 +1100,7 @@
     </div>
 
     <p class="saved-state" id="savedState"></p>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <section class="history">
       <h2>Історія заповнених карток</h2>
@@ -954,7 +1137,8 @@
       </div>
       <div class="preview-content" id="previewContent"></div>
       <div class="modal-actions">
-        <button type="button" id="downloadPreviewBtn">Скачати PNG</button>
+        <button type="button" id="sharePreviewBtn">Поширити</button>
+        <button type="button" id="editPreviewBtn">Редагувати картку</button>
         <button type="button" class="secondary" id="closePreviewModalBtn">Закрити</button>
       </div>
     </div>
@@ -969,7 +1153,7 @@
           <input id="authEmail" name="email" type="email" autocomplete="email" placeholder="Email">
           <input id="authPassword" name="password" type="password" autocomplete="current-password" placeholder="Пароль">
           <button type="submit" id="signInBtn">Увійти</button>
-          <button type="button" class="secondary" id="signUpBtn">Зареєструватися</button>
+          <button type="button" id="signUpBtn">Зареєструватися</button>
         </form>
       </section>
       <div class="modal-actions">
@@ -1138,6 +1322,7 @@
     const saveBtn = document.getElementById('saveBtn');
     const resetBtn = document.getElementById('resetBtn');
     const savedState = document.getElementById('savedState');
+    const toast = document.getElementById('toast');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
     const deleteModalOverlay = document.getElementById('deleteModalOverlay');
@@ -1152,16 +1337,20 @@
     const confirmUnreadBtn = document.getElementById('confirmUnreadBtn');
     const previewContent = document.getElementById('previewContent');
     const previewMeta = document.getElementById('previewMeta');
-    const downloadPreviewBtn = document.getElementById('downloadPreviewBtn');
+    const sharePreviewBtn = document.getElementById('sharePreviewBtn');
+    const editPreviewBtn = document.getElementById('editPreviewBtn');
     const closePreviewModalBtn = document.getElementById('closePreviewModalBtn');
     const openEmotionListBtn = document.getElementById('openEmotionListBtn');
     const openFeelingsEmotionListBtn = document.getElementById('openFeelingsEmotionListBtn');
     const closeEmotionModalBtn = document.getElementById('closeEmotionModalBtn');
     const openSchemaListBtn = document.getElementById('openSchemaListBtn');
     const closeSchemaModalBtn = document.getElementById('closeSchemaModalBtn');
+    const tabSettingsMenuBtn = document.getElementById('tabSettingsMenuBtn');
+    const tabSettingsDropdown = document.getElementById('tabSettingsDropdown');
     const authMenuBtn = document.getElementById('authMenuBtn');
     const authDropdown = document.getElementById('authDropdown');
     const accountStatus = document.getElementById('accountStatus');
+    const openAuthFromMenuBtn = document.getElementById('openAuthFromMenuBtn');
     const closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
     const authStatus = document.getElementById('authStatus');
     const authForm = document.getElementById('authForm');
@@ -1173,6 +1362,9 @@
     const authUser = document.getElementById('authUser');
     const migrateLocalBtn = document.getElementById('migrateLocalBtn');
     const historyKey = 'flashCardHistory';
+    const visibleTabsKey = 'flashCardVisibleTabs';
+    const sharedCardHashKey = 'card';
+    const sharedCardPathPrefix = 'card/';
     const maxHistoryItems = 12;
     const pngDataUrlPrefix = 'data:image/png;base64,';
     const supabaseUrl = 'https://hghelibiofeoylmxvhcq.supabase.co';
@@ -1205,6 +1397,9 @@
     let editingItem = null;
     let renderedHistory = [];
     let draggedHistoryItemId = null;
+    let isSaving = false;
+    let toastTimeoutId = null;
+    let activeHistoryMenu = null;
 
     const templates = {
       schema: {
@@ -1313,6 +1508,38 @@
       button.innerHTML = iconSvg[iconName];
     }
 
+    function closeHistoryMenus() {
+      historyList.querySelectorAll('.history-menu').forEach((menu) => {
+        menu.classList.add('hidden');
+        menu.style.top = '';
+        menu.style.left = '';
+      });
+      historyList.querySelectorAll('.history-menu-toggle').forEach((toggle) => {
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+      historyList.querySelectorAll('.history-item.is-menu-open').forEach((item) => {
+        item.classList.remove('is-menu-open');
+      });
+      activeHistoryMenu = null;
+    }
+
+    function positionHistoryMenu(toggle, menu) {
+      const margin = 8;
+      const gap = 6;
+      const toggleRect = toggle.getBoundingClientRect();
+      const menuWidth = menu.offsetWidth;
+      const menuHeight = menu.offsetHeight;
+      const left = Math.min(
+        Math.max(toggleRect.right - menuWidth, margin),
+        window.innerWidth - menuWidth - margin,
+      );
+      const shouldOpenUp = window.innerHeight - toggleRect.bottom < menuHeight + margin && toggleRect.top > menuHeight;
+      const top = shouldOpenUp ? toggleRect.top - menuHeight - gap : toggleRect.bottom + gap;
+
+      menu.style.left = `${left}px`;
+      menu.style.top = `${Math.max(margin, top)}px`;
+    }
+
     function disableWhenRead(button, item) {
       if (!item.isRead) return;
       button.disabled = true;
@@ -1342,23 +1569,51 @@
     }
 
     function updateSaveButtonState() {
-      saveBtn.disabled = !hasAnyFilledField();
+      saveBtn.disabled = isSaving || !hasAnyFilledField();
+    }
+
+    function getSaveButtonLabel() {
+      return editingItem ? 'Оновити картку' : 'Зберегти картку';
+    }
+
+    function setSaveButtonLoading(isLoading) {
+      isSaving = isLoading;
+      saveBtn.classList.toggle('is-loading', isLoading);
+      saveBtn.innerHTML = isLoading
+        ? '<span class="button-spinner" aria-hidden="true"></span><span>Збереження...</span>'
+        : getSaveButtonLabel();
+      updateSaveButtonState();
+    }
+
+    function showToast(message) {
+      window.clearTimeout(toastTimeoutId);
+      toast.textContent = message;
+      toast.classList.add('is-visible');
+      toastTimeoutId = window.setTimeout(() => {
+        toast.classList.remove('is-visible');
+      }, 2600);
     }
 
     function setEditingItem(item) {
       editingItem = item;
-      saveBtn.textContent = item ? 'Оновити картку' : 'Зберегти картку';
+      if (!isSaving) saveBtn.textContent = getSaveButtonLabel();
+      updateSaveButtonState();
     }
 
     function updateTemplateTabs() {
       templateTabs.querySelectorAll('.template-tab').forEach((tab) => {
         const isActive = tab.dataset.template === activeTemplateId;
+        const isVisible = isTemplateVisible(tab.dataset.template);
+        tab.hidden = !isVisible;
         tab.classList.toggle('is-active', isActive);
         tab.setAttribute('aria-selected', String(isActive));
       });
     }
 
     function setActiveTemplate(templateId) {
+      if (!isTemplateVisible(templateId)) {
+        templateId = getFirstVisibleTemplateId();
+      }
       activeTemplateId = templateId;
       Object.entries(allForms).forEach(([id, form]) => {
         form.classList.toggle('hidden', id !== templateId);
@@ -1371,6 +1626,57 @@
       loadDraft();
       updateSaveButtonState();
       refreshHistory();
+    }
+
+    function getVisibleTemplates() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(visibleTabsKey));
+        if (Array.isArray(parsed) && parsed.length) {
+          return parsed.filter((templateId) => templates[templateId]);
+        }
+      } catch (error) {
+        // Ignore invalid settings and fall back to all tabs.
+      }
+      return Object.keys(templates);
+    }
+
+    function saveVisibleTemplates(templateIds) {
+      localStorage.setItem(visibleTabsKey, JSON.stringify(templateIds));
+    }
+
+    function isTemplateVisible(templateId) {
+      return getVisibleTemplates().includes(templateId);
+    }
+
+    function getFirstVisibleTemplateId() {
+      return getVisibleTemplates()[0] || 'schema';
+    }
+
+    function updateTabSettingsButtons() {
+      const visibleTemplates = getVisibleTemplates();
+      tabSettingsDropdown.querySelectorAll('[data-tab-toggle]').forEach((button) => {
+        const templateId = button.dataset.tabToggle;
+        const isEnabled = visibleTemplates.includes(templateId);
+        button.classList.toggle('is-enabled', isEnabled);
+        button.textContent = `${templates[templateId].name}: ${isEnabled ? 'увімкнено' : 'вимкнено'}`;
+      });
+    }
+
+    function toggleTemplateVisibility(templateId) {
+      const visibleTemplates = getVisibleTemplates();
+      const isEnabled = visibleTemplates.includes(templateId);
+      let nextVisibleTemplates = isEnabled
+        ? visibleTemplates.filter((id) => id !== templateId)
+        : [...visibleTemplates, templateId];
+
+      if (!nextVisibleTemplates.length) {
+        nextVisibleTemplates = [templateId];
+        showToast('Має залишитись хоча б одна вкладка');
+      }
+
+      saveVisibleTemplates(nextVisibleTemplates);
+      updateTabSettingsButtons();
+      setActiveTemplate(isTemplateVisible(activeTemplateId) ? activeTemplateId : getFirstVisibleTemplateId());
     }
 
     function serializeFormValues(form) {
@@ -1628,48 +1934,60 @@
     }
 
     async function downloadAsImage() {
+      if (isSaving) return;
+
       if (!hasAnyFilledField()) {
         savedState.textContent = 'Заповніть хоча б одне поле перед збереженням.';
         updateSaveButtonState();
         return;
       }
 
-      const values = saveDraft();
-      const createdAt = new Date().toISOString();
-      const canvas = buildFlashCardImage(values, createdAt);
-      const imageData = canvas.toDataURL('image/png');
-      if (editingItem) {
-        const updatedItem = {
-          ...editingItem,
+      setSaveButtonLoading(true);
+      savedState.textContent = editingItem ? 'Оновлюємо картку...' : 'Зберігаємо картку...';
+
+      try {
+        const values = saveDraft();
+        const createdAt = new Date().toISOString();
+        const canvas = buildFlashCardImage(values, createdAt);
+        const imageData = canvas.toDataURL('image/png');
+        if (editingItem) {
+          const currentEditingItem = editingItem;
+          const updatedItem = {
+            ...currentEditingItem,
+            templateId: activeTemplateId,
+            templateName: getActiveTemplate().name,
+            imageData,
+            textValues: withPriorityMetadata(values, getItemPriority(currentEditingItem)),
+            isPriority: getItemPriority(currentEditingItem),
+          };
+          const isUpdated = await updateHistoryItem(updatedItem);
+          if (!isUpdated) return;
+          setEditingItem(null);
+          clearDraft();
+          savedState.textContent = `"${getFirstFieldValue(updatedItem)}" оновлено.`;
+          showToast('Картку оновлено');
+          return;
+        }
+
+        const item = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          createdAt,
           templateId: activeTemplateId,
           templateName: getActiveTemplate().name,
           imageData,
-          textValues: withPriorityMetadata(values, getItemPriority(editingItem)),
-          isPriority: getItemPriority(editingItem),
+          textValues: withPriorityMetadata(values, false),
+          isRead: false,
+          isPriority: false,
+          sortOrder: -Date.now(),
         };
-        const isUpdated = await updateHistoryItem(updatedItem);
-        if (!isUpdated) return;
-        setEditingItem(null);
+        const isSaved = await saveHistoryItem(item);
+        if (!isSaved) return;
         clearDraft();
-        savedState.textContent = `"${getFirstFieldValue(updatedItem)}" оновлено.`;
-        return;
+        savedState.textContent = `"${getActiveTemplate().name}" додано в історію. PNG можна скачати з історії.`;
+        showToast('Картку збережено');
+      } finally {
+        setSaveButtonLoading(false);
       }
-
-      const item = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        createdAt,
-        templateId: activeTemplateId,
-        templateName: getActiveTemplate().name,
-        imageData,
-        textValues: withPriorityMetadata(values, false),
-        isRead: false,
-        isPriority: false,
-        sortOrder: -Date.now(),
-      };
-      const isSaved = await saveHistoryItem(item);
-      if (!isSaved) return;
-      clearDraft();
-      savedState.textContent = `"${getActiveTemplate().name}" додано в історію. PNG можна скачати з історії.`;
     }
 
     function renderTextPreview(item) {
@@ -1698,6 +2016,14 @@
         return;
       }
 
+      if (item.templateId === 'note') {
+        const noteBody = document.createElement('p');
+        noteBody.className = 'preview-note-body';
+        noteBody.textContent = item.textValues.noteText || '—';
+        previewContent.appendChild(noteBody);
+        return;
+      }
+
       const fieldsWrapper = document.createElement('div');
       fieldsWrapper.className = 'preview-fields';
       template.fields.forEach((field) => {
@@ -1717,19 +2043,238 @@
       previewContent.appendChild(fieldsWrapper);
     }
 
+    function buildShareText(item) {
+      const template = getTemplateById(item.templateId);
+      const lines = [
+        item.templateName || template.name,
+        formatDisplayDateTime(item.createdAt),
+        '',
+      ];
+
+      if (!item.textValues) {
+        lines.push('Текстове прев’ю доступне тільки для нових текстових карток.');
+        return lines.join('\n');
+      }
+
+      template.fields.forEach((field) => {
+        lines.push(`${field.label}:`);
+        lines.push(item.textValues[field.key] || '—');
+        lines.push('');
+      });
+
+      return lines.join('\n').trim();
+    }
+
+    function encodeBase64Url(value) {
+      const json = JSON.stringify(value);
+      const bytes = new TextEncoder().encode(json);
+      let binary = '';
+      bytes.forEach((byte) => {
+        binary += String.fromCharCode(byte);
+      });
+      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+    }
+
+    function decodeBase64Url(value) {
+      const base64 = value.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(value.length / 4) * 4, '=');
+      const binary = atob(base64);
+      const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes));
+    }
+
+    function getShareableTextValues(item) {
+      const template = getTemplateById(item.templateId);
+      return Object.fromEntries(template.fields.map((field) => [
+        field.key,
+        item.textValues?.[field.key] || '',
+      ]));
+    }
+
+    function getShareDescription(item) {
+      const template = getTemplateById(item.templateId);
+      const firstField = template.fields[0];
+      const value = firstField ? String(item.textValues?.[firstField.key] || '').trim() : '';
+      return value || item.templateName || template.name;
+    }
+
+    function truncateText(value, maxLength = 120) {
+      const normalized = String(value || '').replace(/\s+/g, ' ').trim();
+      if (normalized.length <= maxLength) return normalized;
+      return `${normalized.slice(0, maxLength - 1).trim()}…`;
+    }
+
+    function transliterateToSlug(value) {
+      const map = {
+        а: 'a', б: 'b', в: 'v', г: 'h', ґ: 'g', д: 'd', е: 'e', є: 'ie', ж: 'zh', з: 'z',
+        и: 'y', і: 'i', ї: 'i', й: 'i', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p',
+        р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'kh', ц: 'ts', ч: 'ch', ш: 'sh',
+        щ: 'shch', ь: '', ю: 'iu', я: 'ia',
+      };
+      return String(value || '')
+        .toLowerCase()
+        .split('')
+        .map((character) => map[character] ?? character)
+        .join('')
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 30)
+        .replace(/-+$/g, '') || 'card';
+    }
+
+    function generateShareSlug(item) {
+      const suffix = Math.random().toString(36).slice(2, 6);
+      return `${transliterateToSlug(getShareDescription(item))}-${suffix}`;
+    }
+
+    function buildLegacyShareUrl(item) {
+      const payload = {
+        templateId: item.templateId,
+        templateName: item.templateName || getHistoryTemplateName(item),
+        createdAt: item.createdAt,
+        textValues: getShareableTextValues(item),
+      };
+      const url = new URL(window.location.href);
+      url.search = '';
+      url.hash = `${sharedCardHashKey}=${encodeBase64Url(payload)}`;
+      return url.toString();
+    }
+
+    async function buildShareUrl(item) {
+      if (!supabaseClient) return buildLegacyShareUrl(item);
+
+      const slug = generateShareSlug(item);
+      const { error } = await supabaseClient
+        .from('shared_cards')
+        .insert({
+          slug,
+          template_id: item.templateId,
+          template_name: item.templateName || getHistoryTemplateName(item),
+          description: truncateText(getShareDescription(item), 160),
+          text_values: getShareableTextValues(item),
+        });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const url = new URL(window.location.href);
+      url.search = '';
+      url.hash = `${sharedCardPathPrefix}${slug}`;
+      return url.toString();
+    }
+
+    async function shareCard(item) {
+      const title = item.templateName || getHistoryTemplateName(item);
+      const description = truncateText(getShareDescription(item), 120);
+      const text = `${title}\n${description}`;
+
+      try {
+        const url = await buildShareUrl(item);
+        if (navigator.share) {
+          await navigator.share({ title, text, url });
+          return;
+        }
+
+        await navigator.clipboard.writeText(url);
+        showToast('Лінк на картку скопійовано');
+        savedState.textContent = 'Лінк на картку скопійовано. Його можна надіслати.';
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          savedState.textContent = `Не вдалося створити короткий лінк: ${error.message}`;
+        }
+      }
+    }
+
+    async function openShortSharedCard(slug) {
+      if (!supabaseClient) {
+        savedState.textContent = 'Не вдалося відкрити короткий лінк: Supabase не налаштовано.';
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from('shared_cards')
+        .select('slug, created_at, template_id, template_name, text_values')
+        .eq('slug', slug)
+        .single();
+
+      if (error) {
+        savedState.textContent = 'Не вдалося відкрити поширену картку. Можливо, лінк неправильний.';
+        return;
+      }
+
+      const template = getTemplateById(data.template_id);
+      openCardPreview({
+        id: data.slug,
+        createdAt: data.created_at || new Date().toISOString(),
+        templateId: data.template_id || 'schema',
+        templateName: data.template_name || template.name,
+        textValues: data.text_values || {},
+        isRead: false,
+        isPriority: false,
+        isShared: true,
+      });
+    }
+
+    function openLegacySharedCard(value) {
+      const payload = decodeBase64Url(value);
+      const template = getTemplateById(payload.templateId);
+      openCardPreview({
+        id: 'shared-card',
+        createdAt: payload.createdAt || new Date().toISOString(),
+        templateId: payload.templateId || 'schema',
+        templateName: payload.templateName || template.name,
+        textValues: payload.textValues || {},
+        isRead: false,
+        isPriority: false,
+        isShared: true,
+      });
+    }
+
+    async function openSharedCardFromUrl() {
+      const hash = window.location.hash.slice(1);
+      if (!hash) return;
+
+      try {
+        if (hash.startsWith(sharedCardPathPrefix)) {
+          await openShortSharedCard(hash.slice(sharedCardPathPrefix.length));
+          return;
+        }
+
+        const [key, value] = hash.split('=');
+        if (key === sharedCardHashKey && value) openLegacySharedCard(value);
+      } catch (error) {
+        savedState.textContent = 'Не вдалося відкрити поширену картку: лінк пошкоджено.';
+      }
+    }
+
     function openCardPreview(item) {
       currentPreviewItem = item;
       renderTextPreview(item);
+      editPreviewBtn.hidden = item.isShared || !hasEditableTextValues(item);
+      editPreviewBtn.disabled = Boolean(item.isRead);
+      editPreviewBtn.textContent = item.isRead ? 'Картка прочитана' : 'Редагувати картку';
       previewModalOverlay.classList.remove('hidden');
       previewModalOverlay.setAttribute('aria-hidden', 'false');
     }
 
     function closeImagePreview() {
+      const shouldClearSharedHash = currentPreviewItem?.isShared && (
+        window.location.hash.startsWith(`#${sharedCardHashKey}=`)
+        || window.location.hash.startsWith(`#${sharedCardPathPrefix}`)
+      );
       previewModalOverlay.classList.add('hidden');
       previewModalOverlay.setAttribute('aria-hidden', 'true');
       previewContent.innerHTML = '';
       previewMeta.innerHTML = '';
+      editPreviewBtn.hidden = false;
+      editPreviewBtn.disabled = false;
+      editPreviewBtn.textContent = 'Редагувати картку';
       currentPreviewItem = null;
+      if (shouldClearSharedHash) {
+        window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+      }
     }
 
     function fillFormValues(form, values = {}) {
@@ -2245,6 +2790,7 @@
     }
 
     function renderHistory(history = getActiveTemplateHistory(getLocalHistory())) {
+      activeHistoryMenu = null;
       renderedHistory = sortHistory(history);
       historyList.innerHTML = '';
       historyEmpty.style.display = renderedHistory.length ? 'none' : 'block';
@@ -2283,6 +2829,7 @@
 
         const title = document.createElement('p');
         title.className = 'history-title';
+        title.classList.toggle('is-note', item.templateId === 'note');
         title.textContent = getFirstFieldValue(item);
         summary.appendChild(title);
 
@@ -2315,87 +2862,77 @@
 
         const actions = document.createElement('div');
         actions.className = 'history-actions';
+        actions.addEventListener('click', (event) => event.stopPropagation());
 
-        const downloadBtn = document.createElement('button');
-        downloadBtn.type = 'button';
-        setButtonIcon(downloadBtn, 'download');
-        downloadBtn.title = 'Скачати';
-        downloadBtn.setAttribute('aria-label', 'Скачати');
-        disableWhenRead(downloadBtn, item);
-        downloadBtn.addEventListener('click', () => triggerImageDownload(item.imageData, item.createdAt, item.templateId || 'card'));
+        const menuToggle = document.createElement('button');
+        menuToggle.type = 'button';
+        menuToggle.className = 'history-menu-toggle';
+        menuToggle.textContent = '⋯';
+        menuToggle.title = 'Дії з карткою';
+        menuToggle.setAttribute('aria-label', 'Дії з карткою');
+        menuToggle.setAttribute('aria-expanded', 'false');
 
-        const previewHistoryBtn = document.createElement('button');
-        previewHistoryBtn.type = 'button';
-        setButtonIcon(previewHistoryBtn, 'preview');
-        previewHistoryBtn.title = 'Відкрити';
-        previewHistoryBtn.setAttribute('aria-label', 'Відкрити');
-        disableWhenRead(previewHistoryBtn, item);
-        previewHistoryBtn.addEventListener('click', () => openCardPreview(item));
+        const menu = document.createElement('div');
+        menu.className = 'history-menu hidden';
 
-        const editBtn = document.createElement('button');
-        editBtn.type = 'button';
-        editBtn.className = 'secondary';
-        setButtonIcon(editBtn, 'edit');
-        editBtn.title = hasEditableTextValues(item) ? 'Редагувати' : 'Редагування доступне для нових текстових карток';
-        editBtn.setAttribute('aria-label', 'Редагувати');
-        editBtn.disabled = !hasEditableTextValues(item);
-        disableWhenRead(editBtn, item);
-        editBtn.addEventListener('click', () => startEditItem(item));
+        function addMenuAction(label, handler, options = {}) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = label;
+          if (options.className) button.className = options.className;
+          button.disabled = Boolean(options.disabled);
+          if (options.disableWhenRead) disableWhenRead(button, item);
+          button.addEventListener('click', () => {
+            if (button.disabled) return;
+            closeHistoryMenus();
+            menuToggle.setAttribute('aria-expanded', 'false');
+            handler();
+          });
+          menu.appendChild(button);
+          return button;
+        }
 
-        const priorityBtn = document.createElement('button');
-        priorityBtn.type = 'button';
-        priorityBtn.className = getItemPriority(item) ? 'is-priority' : 'secondary';
-        setButtonIcon(priorityBtn, 'priority');
-        priorityBtn.title = getItemPriority(item) ? 'Прибрати з пріоритету' : 'Додати в пріоритет';
-        priorityBtn.setAttribute('aria-label', priorityBtn.title);
-        disableWhenRead(priorityBtn, item);
-        priorityBtn.addEventListener('click', () => togglePriorityStatus(item));
+        addMenuAction('Скачати PNG', () => triggerImageDownload(item.imageData, item.createdAt, item.templateId || 'card'), { disableWhenRead: true });
+        addMenuAction('Відкрити', () => openCardPreview(item), { disableWhenRead: true });
+        addMenuAction('Поширити', () => shareCard(item), { disableWhenRead: true });
+        addMenuAction('Редагувати', () => startEditItem(item), {
+          disabled: !hasEditableTextValues(item),
+          disableWhenRead: true,
+        });
+        addMenuAction(getItemPriority(item) ? 'Прибрати з пріоритету' : 'Додати в пріоритет', () => togglePriorityStatus(item), {
+          className: getItemPriority(item) ? 'is-active' : '',
+          disableWhenRead: true,
+        });
+        addMenuAction('Перемістити вище', () => reorderHistoryItem(item, -1), {
+          disabled: index === 0 || getItemPriority(item) !== getItemPriority(renderedHistory[index - 1]),
+          disableWhenRead: true,
+        });
+        addMenuAction('Перемістити нижче', () => reorderHistoryItem(item, 1), {
+          disabled: index === renderedHistory.length - 1 || getItemPriority(item) !== getItemPriority(renderedHistory[index + 1]),
+          disableWhenRead: true,
+        });
+        addMenuAction(item.isRead ? 'Позначити як непрочитано' : 'Позначити як прочитано', () => requestReadToggle(item));
+        addMenuAction('Видалити', () => openDeleteModal(item.id), {
+          className: 'is-danger',
+          disableWhenRead: true,
+        });
 
-        const moveUpBtn = document.createElement('button');
-        moveUpBtn.type = 'button';
-        moveUpBtn.className = 'secondary';
-        setButtonIcon(moveUpBtn, 'up');
-        moveUpBtn.title = 'Перемістити вище';
-        moveUpBtn.setAttribute('aria-label', 'Перемістити вище');
-        moveUpBtn.disabled = index === 0 || getItemPriority(item) !== getItemPriority(renderedHistory[index - 1]);
-        disableWhenRead(moveUpBtn, item);
-        moveUpBtn.addEventListener('click', () => reorderHistoryItem(item, -1));
+        menuToggle.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const isOpen = activeHistoryMenu === menu && !menu.classList.contains('hidden');
+          closeHistoryMenus();
 
-        const moveDownBtn = document.createElement('button');
-        moveDownBtn.type = 'button';
-        moveDownBtn.className = 'secondary';
-        setButtonIcon(moveDownBtn, 'down');
-        moveDownBtn.title = 'Перемістити нижче';
-        moveDownBtn.setAttribute('aria-label', 'Перемістити нижче');
-        moveDownBtn.disabled = index === renderedHistory.length - 1 || getItemPriority(item) !== getItemPriority(renderedHistory[index + 1]);
-        disableWhenRead(moveDownBtn, item);
-        moveDownBtn.addEventListener('click', () => reorderHistoryItem(item, 1));
+          if (!isOpen) {
+            menu.classList.remove('hidden');
+            positionHistoryMenu(menuToggle, menu);
+            card.classList.add('is-menu-open');
+            menuToggle.setAttribute('aria-expanded', 'true');
+            activeHistoryMenu = menu;
+          }
+        });
 
-        const readBtn = document.createElement('button');
-        readBtn.type = 'button';
-        readBtn.className = item.isRead ? 'is-read' : 'secondary';
-        setButtonIcon(readBtn, 'read');
-        readBtn.title = item.isRead ? 'Позначити як непрочитано' : 'Позначити як прочитано';
-        readBtn.setAttribute('aria-label', readBtn.title);
-        readBtn.addEventListener('click', () => requestReadToggle(item));
-
-        const removeBtn = document.createElement('button');
-        removeBtn.type = 'button';
-        removeBtn.className = 'secondary';
-        setButtonIcon(removeBtn, 'remove');
-        removeBtn.title = 'Видалити';
-        removeBtn.setAttribute('aria-label', 'Видалити');
-        disableWhenRead(removeBtn, item);
-        removeBtn.addEventListener('click', () => openDeleteModal(item.id));
-
-        actions.appendChild(downloadBtn);
-        actions.appendChild(previewHistoryBtn);
-        actions.appendChild(editBtn);
-        actions.appendChild(priorityBtn);
-        actions.appendChild(moveUpBtn);
-        actions.appendChild(moveDownBtn);
-        actions.appendChild(readBtn);
-        actions.appendChild(removeBtn);
+        actions.appendChild(menuToggle);
+        actions.appendChild(menu);
         card.appendChild(actions);
         historyList.appendChild(card);
       });
@@ -2410,14 +2947,24 @@
       authMenuBtn.setAttribute('aria-expanded', 'false');
     }
 
+    function closeTabSettingsDropdown() {
+      tabSettingsDropdown.classList.add('hidden');
+      tabSettingsMenuBtn.setAttribute('aria-expanded', 'false');
+    }
+
     function toggleAuthDropdown() {
-      if (!currentUser) {
-        openAuthModal();
-        return;
-      }
       const isOpen = !authDropdown.classList.contains('hidden');
+      closeTabSettingsDropdown();
       authDropdown.classList.toggle('hidden', isOpen);
       authMenuBtn.setAttribute('aria-expanded', String(!isOpen));
+    }
+
+    function toggleTabSettingsDropdown() {
+      const isOpen = !tabSettingsDropdown.classList.contains('hidden');
+      closeAuthDropdown();
+      updateTabSettingsButtons();
+      tabSettingsDropdown.classList.toggle('hidden', isOpen);
+      tabSettingsMenuBtn.setAttribute('aria-expanded', String(!isOpen));
     }
 
     function openAuthModal() {
@@ -2448,6 +2995,7 @@
       if (currentUser) {
         authForm.classList.add('hidden');
         authActions.classList.remove('hidden');
+        openAuthFromMenuBtn.classList.add('hidden');
         authUser.textContent = currentUser.email;
         accountStatus.textContent = `Ви увійшли як ${currentUser.email}`;
         setAuthStatus('Ви увійшли. Історія карток синхронізується між пристроями.');
@@ -2455,12 +3003,14 @@
       } else {
         authForm.classList.remove('hidden');
         authActions.classList.add('hidden');
+        openAuthFromMenuBtn.classList.remove('hidden');
         authUser.textContent = '';
         accountStatus.textContent = 'Увійдіть, щоб синхронізувати картки.';
         setAuthStatus('Увійдіть або зареєструйтеся, щоб бачити картки на різних пристроях.');
       }
 
       updateMigrationButton();
+      updateTabSettingsButtons();
     }
 
     async function signInWithPassword() {
@@ -2492,7 +3042,13 @@
       }
 
       setAuthStatus('Створюємо акаунт...');
-      const { error } = await supabaseClient.auth.signUp({ email, password });
+      const { error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        },
+      });
       if (error) {
         setAuthStatus(`Не вдалося зареєструватися: ${error.message}`);
         return;
@@ -2634,20 +3190,35 @@
       event.stopPropagation();
       toggleAuthDropdown();
     });
+    tabSettingsMenuBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleTabSettingsDropdown();
+    });
     authDropdown.addEventListener('click', (event) => {
+      event.stopPropagation();
+    });
+    tabSettingsDropdown.addEventListener('click', (event) => {
       event.stopPropagation();
     });
     closeAuthModalBtn.addEventListener('click', closeAuthModal);
     authModalOverlay.addEventListener('click', (event) => {
       if (event.target === authModalOverlay) closeAuthModal();
     });
-    document.addEventListener('click', closeAuthDropdown);
+    document.addEventListener('click', () => {
+      closeAuthDropdown();
+      closeTabSettingsDropdown();
+      closeHistoryMenus();
+    });
     authForm.addEventListener('submit', (event) => {
       event.preventDefault();
       signInWithPassword();
     });
     signUpBtn.addEventListener('click', signUpWithPassword);
     signOutBtn.addEventListener('click', signOut);
+    openAuthFromMenuBtn.addEventListener('click', openAuthModal);
+    tabSettingsDropdown.querySelectorAll('[data-tab-toggle]').forEach((button) => {
+      button.addEventListener('click', () => toggleTemplateVisibility(button.dataset.tabToggle));
+    });
     migrateLocalBtn.addEventListener('click', migrateLocalHistoryToCloud);
     saveBtn.addEventListener('click', downloadAsImage);
     resetBtn.addEventListener('click', clearDraft);
@@ -2668,10 +3239,16 @@
       if (event.target === unreadModalOverlay) closeUnreadModal();
     });
     closePreviewModalBtn.addEventListener('click', closeImagePreview);
-    downloadPreviewBtn.addEventListener('click', () => {
+    sharePreviewBtn.addEventListener('click', () => {
       if (currentPreviewItem) {
-        triggerImageDownload(currentPreviewItem.imageData, currentPreviewItem.createdAt, currentPreviewItem.templateId || 'card');
+        shareCard(currentPreviewItem);
       }
+    });
+    editPreviewBtn.addEventListener('click', () => {
+      if (!currentPreviewItem || currentPreviewItem.isShared || currentPreviewItem.isRead) return;
+      const itemToEdit = currentPreviewItem;
+      closeImagePreview();
+      startEditItem(itemToEdit);
     });
     previewModalOverlay.addEventListener('click', (event) => {
       if (event.target === previewModalOverlay) closeImagePreview();
@@ -2682,13 +3259,17 @@
       if (event.key === 'Escape' && !previewModalOverlay.classList.contains('hidden')) closeImagePreview();
       if (event.key === 'Escape' && !authModalOverlay.classList.contains('hidden')) closeAuthModal();
       if (event.key === 'Escape' && !authDropdown.classList.contains('hidden')) closeAuthDropdown();
+      if (event.key === 'Escape' && !tabSettingsDropdown.classList.contains('hidden')) closeTabSettingsDropdown();
+      if (event.key === 'Escape') closeHistoryMenus();
       if (event.key === 'Escape' && !emotionModalOverlay.classList.contains('hidden')) closeEmotionModal();
       if (event.key === 'Escape' && !schemaModalOverlay.classList.contains('hidden')) closeSchemaModal();
     });
+    window.addEventListener('hashchange', openSharedCardFromUrl);
 
     bindAutoResize();
     setActiveTemplate(activeTemplateId);
     initializeAuth();
+    openSharedCardFromUrl();
   </script>
 </body>
 </html>
