@@ -125,6 +125,17 @@
       margin-top: 8px;
     }
 
+    .settings-dropdown button {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .export-settings {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #ddd7cc;
+    }
+
     .tab-settings {
       margin-top: 12px;
       padding-top: 12px;
@@ -193,7 +204,7 @@
 
     .template-tabs {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(var(--visible-tabs, 3), minmax(0, 1fr));
       gap: 6px;
       padding: 4px;
       border: 1px solid #c8c2b8;
@@ -480,6 +491,63 @@
       gap: 10px;
     }
 
+    .history-pagination {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #d0cbc2;
+    }
+
+    .history-pagination.hidden {
+      display: none;
+    }
+
+    .history-pagination-status {
+      margin: 0;
+      color: #4c505e;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .history-pagination-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .export-selection-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding: 10px;
+      border: 1px solid #d0cbc2;
+      border-radius: 8px;
+      background: #ebe7e0;
+    }
+
+    .export-selection-bar.hidden {
+      display: none;
+    }
+
+    .export-selection-bar p {
+      margin: 0;
+      color: #4c505e;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .export-selection-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
     .history-item {
       position: relative;
       background: #ebe7e0;
@@ -491,9 +559,21 @@
       gap: 12px;
       align-items: center;
       transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, background-color 0.24s ease;
-      will-change: transform;
       cursor: grab;
       user-select: none;
+    }
+
+    .history-item.is-export-selectable {
+      padding-left: 54px;
+    }
+
+    .export-select {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      width: 22px;
+      height: 22px;
+      accent-color: #3f4659;
     }
 
     .history-item.is-menu-open {
@@ -543,11 +623,28 @@
 
     .history-title.is-note {
       display: block;
-      overflow: visible;
+      max-height: 96px;
+      overflow: hidden;
       color: #30323d;
       font-weight: 400;
       line-height: 1.45;
       white-space: pre-wrap;
+    }
+
+    .history-title.is-note.is-expanded {
+      max-height: none;
+    }
+
+    .note-expand-button {
+      margin-top: 8px;
+      border: 0;
+      background: transparent;
+      color: #4a5575;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 0;
+      text-decoration: underline;
+      cursor: pointer;
     }
 
     .history-actions {
@@ -979,6 +1076,11 @@
         </div>
       </div>
       <div class="settings-dropdown hidden" id="tabSettingsDropdown">
+        <section class="export-settings" aria-label="Експорт карток">
+          <p class="tab-settings-title">Витягнути картки</p>
+          <button type="button" id="exportUnreadBtn">Витягнути непрочитані</button>
+          <button type="button" class="secondary" id="startExportSelectionBtn">Обрати для витягування</button>
+        </section>
         <section class="tab-settings" aria-label="Налаштування відображення вкладок">
           <p class="tab-settings-title">Відображення вкладок</p>
           <div class="tab-settings-options">
@@ -1104,8 +1206,22 @@
 
     <section class="history">
       <h2>Історія заповнених карток</h2>
+      <div class="export-selection-bar hidden" id="exportSelectionBar">
+        <p id="exportSelectionStatus">Оберіть картки для TXT</p>
+        <div class="export-selection-actions">
+          <button type="button" id="exportSelectedBtn">Витягнути вибрані</button>
+          <button type="button" class="secondary" id="cancelExportSelectionBtn">Скасувати</button>
+        </div>
+      </div>
       <div class="history-list" id="historyList"></div>
       <p class="history-empty" id="historyEmpty">Поки що немає збережених картинок.</p>
+      <div class="history-pagination hidden" id="historyPagination">
+        <p class="history-pagination-status" id="historyPaginationStatus"></p>
+        <div class="history-pagination-actions">
+          <button type="button" class="secondary" id="historyPrevPageBtn">Назад</button>
+          <button type="button" class="secondary" id="historyNextPageBtn">Далі</button>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -1325,6 +1441,10 @@
     const toast = document.getElementById('toast');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
+    const historyPagination = document.getElementById('historyPagination');
+    const historyPaginationStatus = document.getElementById('historyPaginationStatus');
+    const historyPrevPageBtn = document.getElementById('historyPrevPageBtn');
+    const historyNextPageBtn = document.getElementById('historyNextPageBtn');
     const deleteModalOverlay = document.getElementById('deleteModalOverlay');
     const unreadModalOverlay = document.getElementById('unreadModalOverlay');
     const previewModalOverlay = document.getElementById('previewModalOverlay');
@@ -1347,6 +1467,12 @@
     const closeSchemaModalBtn = document.getElementById('closeSchemaModalBtn');
     const tabSettingsMenuBtn = document.getElementById('tabSettingsMenuBtn');
     const tabSettingsDropdown = document.getElementById('tabSettingsDropdown');
+    const exportUnreadBtn = document.getElementById('exportUnreadBtn');
+    const startExportSelectionBtn = document.getElementById('startExportSelectionBtn');
+    const exportSelectionBar = document.getElementById('exportSelectionBar');
+    const exportSelectionStatus = document.getElementById('exportSelectionStatus');
+    const exportSelectedBtn = document.getElementById('exportSelectedBtn');
+    const cancelExportSelectionBtn = document.getElementById('cancelExportSelectionBtn');
     const authMenuBtn = document.getElementById('authMenuBtn');
     const authDropdown = document.getElementById('authDropdown');
     const accountStatus = document.getElementById('accountStatus');
@@ -1365,7 +1491,7 @@
     const visibleTabsKey = 'flashCardVisibleTabs';
     const sharedCardHashKey = 'card';
     const sharedCardPathPrefix = 'card/';
-    const maxHistoryItems = 12;
+    const historyPageSize = 12;
     const pngDataUrlPrefix = 'data:image/png;base64,';
     const supabaseUrl = 'https://hghelibiofeoylmxvhcq.supabase.co';
     const supabaseAnonKey = 'sb_publishable_KPk2PLJX6dPaPk9hhHhN-Q_qG2IMt1d';
@@ -1397,9 +1523,16 @@
     let editingItem = null;
     let renderedHistory = [];
     let draggedHistoryItemId = null;
+    let currentHistoryPage = 1;
+    let totalHistoryItems = 0;
+    let historyRefreshToken = 0;
     let isSaving = false;
     let toastTimeoutId = null;
     let activeHistoryMenu = null;
+    let activeHistoryMenuToggle = null;
+    let isExportSelectionMode = false;
+    const selectedExportIds = new Set();
+    const expandedNoteIds = new Set();
 
     const templates = {
       schema: {
@@ -1521,6 +1654,7 @@
         item.classList.remove('is-menu-open');
       });
       activeHistoryMenu = null;
+      activeHistoryMenuToggle = null;
     }
 
     function positionHistoryMenu(toggle, menu) {
@@ -1538,6 +1672,11 @@
 
       menu.style.left = `${left}px`;
       menu.style.top = `${Math.max(margin, top)}px`;
+    }
+
+    function repositionActiveHistoryMenu() {
+      if (!activeHistoryMenu || !activeHistoryMenuToggle || activeHistoryMenu.classList.contains('hidden')) return;
+      positionHistoryMenu(activeHistoryMenuToggle, activeHistoryMenu);
     }
 
     function disableWhenRead(button, item) {
@@ -1601,16 +1740,18 @@
     }
 
     function updateTemplateTabs() {
+      const visibleTemplates = getVisibleTemplates();
+      templateTabs.style.setProperty('--visible-tabs', visibleTemplates.length);
       templateTabs.querySelectorAll('.template-tab').forEach((tab) => {
         const isActive = tab.dataset.template === activeTemplateId;
-        const isVisible = isTemplateVisible(tab.dataset.template);
+        const isVisible = visibleTemplates.includes(tab.dataset.template);
         tab.hidden = !isVisible;
         tab.classList.toggle('is-active', isActive);
         tab.setAttribute('aria-selected', String(isActive));
       });
     }
 
-    function setActiveTemplate(templateId) {
+    function setActiveTemplate(templateId, options = {}) {
       if (!isTemplateVisible(templateId)) {
         templateId = getFirstVisibleTemplateId();
       }
@@ -1625,7 +1766,10 @@
       pageSubtitle.innerHTML = template.subtitle;
       loadDraft();
       updateSaveButtonState();
-      refreshHistory();
+      if (!options.skipHistoryRefresh) {
+        currentHistoryPage = 1;
+        refreshHistory();
+      }
     }
 
     function getVisibleTemplates() {
@@ -2304,6 +2448,103 @@
       link.click();
     }
 
+    function isExportableHistoryItem(item) {
+      return !item.isRead && hasEditableTextValues(item);
+    }
+
+    function getExportableHistory() {
+      return sortHistory(renderedHistory.length ? renderedHistory : getActiveTemplateHistory(getLocalHistory()))
+        .filter(isExportableHistoryItem);
+    }
+
+    function formatHistoryItemForExport(item, index) {
+      const template = getTemplateById(item.templateId);
+      const lines = [
+        `${index + 1}. ${item.templateName || template.name}`,
+        `Дата: ${formatDisplayDateTime(item.createdAt)}`,
+      ];
+
+      template.fields.forEach((field) => {
+        const value = String(item.textValues?.[field.key] || '').trim();
+        if (!value) return;
+        lines.push('', `${field.label}:`, value);
+      });
+
+      return lines.join('\n');
+    }
+
+    function buildExportText(items) {
+      const template = getActiveTemplate();
+      const header = [
+        `Експорт: ${template.name}`,
+        `Створено: ${formatDisplayDateTime(new Date().toISOString())}`,
+        `Карток: ${items.length}`,
+        '',
+        '==============================',
+        '',
+      ];
+      return `${header.join('\n')}${items.map(formatHistoryItemForExport).join('\n\n------------------------------\n\n')}\n`;
+    }
+
+    function downloadTextFile(text, filename) {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function exportHistoryItems(items) {
+      if (!items.length) {
+        showToast('Немає карток для витягування');
+        savedState.textContent = 'Немає непрочитаних заповнених карток для витягування.';
+        return;
+      }
+
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      const filename = `${activeTemplateId}-cards-${dateStamp}.txt`;
+      downloadTextFile(buildExportText(items), filename);
+      showToast(`Витягнуто карток: ${items.length}`);
+      savedState.textContent = `TXT файл створено: ${items.length} карток.`;
+    }
+
+    function updateExportSelectionUi() {
+      exportSelectionBar.classList.toggle('hidden', !isExportSelectionMode);
+      exportSelectionStatus.textContent = selectedExportIds.size
+        ? `Вибрано карток: ${selectedExportIds.size}`
+        : 'Оберіть картки для TXT';
+      exportSelectedBtn.disabled = selectedExportIds.size === 0;
+    }
+
+    function startExportSelectionMode() {
+      const exportableHistory = getExportableHistory();
+      if (!exportableHistory.length) {
+        exportHistoryItems([]);
+        return;
+      }
+
+      closeTabSettingsDropdown();
+      isExportSelectionMode = true;
+      selectedExportIds.clear();
+      renderHistory(renderedHistory);
+      updateExportSelectionUi();
+      showToast('Оберіть картки для TXT');
+    }
+
+    function cancelExportSelectionMode() {
+      isExportSelectionMode = false;
+      selectedExportIds.clear();
+      renderHistory(renderedHistory);
+      updateExportSelectionUi();
+    }
+
+    function exportSelectedHistoryItems() {
+      const selectedItems = getExportableHistory().filter((item) => selectedExportIds.has(item.id));
+      exportHistoryItems(selectedItems);
+      cancelExportSelectionMode();
+    }
+
     function normalizeHistoryItem(item) {
       const textValues = item.textValues || item.text_values || null;
       const isPriority = Boolean(item.isPriority || item.is_priority || textValues?.__isPriority);
@@ -2332,6 +2573,31 @@
 
     function getActiveTemplateHistory(history) {
       return history.filter((item) => item.templateId === activeTemplateId);
+    }
+
+    function getHistoryPageStart() {
+      return (currentHistoryPage - 1) * historyPageSize;
+    }
+
+    function getTotalHistoryPages() {
+      return Math.max(1, Math.ceil(totalHistoryItems / historyPageSize));
+    }
+
+    function getLocalHistoryPage() {
+      const activeHistory = sortHistory(getActiveTemplateHistory(getLocalHistory()));
+      totalHistoryItems = activeHistory.length;
+      const start = getHistoryPageStart();
+      return activeHistory.slice(start, start + historyPageSize);
+    }
+
+    function updateHistoryPaginationUi() {
+      const totalPages = getTotalHistoryPages();
+      historyPagination.classList.toggle('hidden', totalHistoryItems <= historyPageSize);
+      historyPaginationStatus.textContent = totalHistoryItems
+        ? `Сторінка ${currentHistoryPage} з ${totalPages} · карток: ${totalHistoryItems}`
+        : '';
+      historyPrevPageBtn.disabled = currentHistoryPage <= 1;
+      historyNextPageBtn.disabled = currentHistoryPage >= totalPages;
     }
 
     function normalizeStoredHistory(history) {
@@ -2442,23 +2708,41 @@
 
     async function getCloudHistory() {
       if (!supabaseClient || !currentUser) return [];
-      const { data, error } = await supabaseClient
+      const from = getHistoryPageStart();
+      const to = from + historyPageSize - 1;
+      const { data, error, count } = await supabaseClient
         .from('cards')
-        .select('id, created_at, template_id, template_name, image_data, text_values, is_read, sort_order')
+        .select('id, created_at, template_id, template_name, image_data, text_values, is_read, sort_order', { count: 'exact' })
         .eq('template_id', activeTemplateId)
-        .limit(100);
+        .order('sort_order', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) {
         savedState.textContent = `Не вдалося завантажити хмарну історію: ${error.message}`;
+        totalHistoryItems = 0;
         return [];
       }
 
-      return sortHistory((data || []).filter(isValidHistoryItem).map(normalizeHistoryItem)).slice(0, maxHistoryItems);
+      totalHistoryItems = Number.isFinite(count) ? count : (data || []).length;
+      return sortHistory((data || []).filter(isValidHistoryItem).map(normalizeHistoryItem));
     }
 
-    async function refreshHistory() {
-      const history = currentUser ? await getCloudHistory() : getLocalHistory();
-      renderHistory(getActiveTemplateHistory(history));
+    async function refreshHistory(options = {}) {
+      if (options.resetPage) currentHistoryPage = 1;
+      const refreshToken = ++historyRefreshToken;
+      const history = currentUser ? await getCloudHistory() : getLocalHistoryPage();
+      if (refreshToken !== historyRefreshToken) return;
+
+      const totalPages = getTotalHistoryPages();
+      if (currentHistoryPage > totalPages) {
+        currentHistoryPage = totalPages;
+        await refreshHistory();
+        return;
+      }
+
+      renderHistory(history);
+      updateHistoryPaginationUi();
       updateMigrationButton();
     }
 
@@ -2487,19 +2771,14 @@
           return false;
         }
 
-        await refreshHistory();
+        await refreshHistory({ resetPage: true });
         return true;
       }
 
       const history = getLocalHistory();
       history.unshift(item);
-      const activeCount = {};
-      const trimmed = sortHistory(normalizeStoredHistory(history)).filter((historyItem) => {
-        activeCount[historyItem.templateId] = (activeCount[historyItem.templateId] || 0) + 1;
-        return activeCount[historyItem.templateId] <= maxHistoryItems;
-      });
-      saveLocalHistory(trimmed);
-      renderHistory(getActiveTemplateHistory(trimmed));
+      saveLocalHistory(normalizeStoredHistory(history));
+      await refreshHistory({ resetPage: true });
       return true;
     }
 
@@ -2529,7 +2808,7 @@
         historyItem.id === item.id ? item : historyItem
       ));
       saveLocalHistory(history);
-      renderHistory(getActiveTemplateHistory(history));
+      await refreshHistory();
       return true;
     }
 
@@ -2555,7 +2834,7 @@
         historyItem.id === item.id ? { ...historyItem, isRead: nextValue } : historyItem
       ));
       saveLocalHistory(history);
-      renderHistory(getActiveTemplateHistory(history));
+      await refreshHistory();
     }
 
     async function togglePriorityStatus(item) {
@@ -2589,7 +2868,7 @@
         historyItem.id === item.id ? updatedItem : historyItem
       ));
       saveLocalHistory(history);
-      renderHistoryWithAnimation(getActiveTemplateHistory(history));
+      await refreshHistory();
     }
 
     async function persistSortOrder(items) {
@@ -2674,7 +2953,7 @@
 
       const filteredHistory = getLocalHistory().filter((item) => item.id !== id);
       saveLocalHistory(filteredHistory);
-      renderHistory(getActiveTemplateHistory(filteredHistory));
+      await refreshHistory();
     }
 
     function openDeleteModal(id) {
@@ -2791,11 +3070,13 @@
 
     function renderHistory(history = getActiveTemplateHistory(getLocalHistory())) {
       activeHistoryMenu = null;
+      activeHistoryMenuToggle = null;
       renderedHistory = sortHistory(history);
       historyList.innerHTML = '';
       historyEmpty.style.display = renderedHistory.length ? 'none' : 'block';
       renderedHistory.forEach((item, index) => {
         const templateName = getHistoryTemplateName(item);
+        const isExportable = isExportableHistoryItem(item);
         const card = document.createElement('article');
         card.className = 'history-item';
         card.dataset.id = item.id;
@@ -2803,9 +3084,10 @@
         card.draggable = true;
         card.classList.toggle('is-read', item.isRead);
         card.classList.toggle('is-priority', getItemPriority(item));
+        card.classList.toggle('is-export-selectable', isExportSelectionMode && isExportable);
 
         card.addEventListener('dragstart', (event) => {
-          if (event.target.closest('button')) {
+          if (event.target.closest('button') || event.target.closest('input')) {
             event.preventDefault();
             return;
           }
@@ -2820,9 +3102,24 @@
           draggedHistoryItemId = null;
         });
         card.addEventListener('click', (event) => {
-          if (event.target.closest('button') || draggedHistoryItemId) return;
+          if (event.target.closest('button') || event.target.closest('input') || draggedHistoryItemId) return;
+          if (item.templateId === 'note') return;
           openCardPreview(item);
         });
+
+        if (isExportSelectionMode && isExportable) {
+          const exportCheckbox = document.createElement('input');
+          exportCheckbox.type = 'checkbox';
+          exportCheckbox.className = 'export-select';
+          exportCheckbox.checked = selectedExportIds.has(item.id);
+          exportCheckbox.setAttribute('aria-label', 'Обрати картку для витягування');
+          exportCheckbox.addEventListener('change', () => {
+            if (exportCheckbox.checked) selectedExportIds.add(item.id);
+            else selectedExportIds.delete(item.id);
+            updateExportSelectionUi();
+          });
+          card.appendChild(exportCheckbox);
+        }
 
         const summary = document.createElement('div');
         summary.className = 'history-summary';
@@ -2830,8 +3127,23 @@
         const title = document.createElement('p');
         title.className = 'history-title';
         title.classList.toggle('is-note', item.templateId === 'note');
+        title.classList.toggle('is-expanded', expandedNoteIds.has(item.id));
         title.textContent = getFirstFieldValue(item);
         summary.appendChild(title);
+
+        if (item.templateId === 'note' && getFirstFieldValue(item).length > 180) {
+          const noteExpandBtn = document.createElement('button');
+          noteExpandBtn.type = 'button';
+          noteExpandBtn.className = 'note-expand-button';
+          noteExpandBtn.textContent = expandedNoteIds.has(item.id) ? 'Показати менше' : 'Показати більше';
+          noteExpandBtn.addEventListener('click', () => {
+            if (expandedNoteIds.has(item.id)) expandedNoteIds.delete(item.id);
+            else expandedNoteIds.add(item.id);
+            title.classList.toggle('is-expanded', expandedNoteIds.has(item.id));
+            noteExpandBtn.textContent = expandedNoteIds.has(item.id) ? 'Показати менше' : 'Показати більше';
+          });
+          summary.appendChild(noteExpandBtn);
+        }
 
         const dateLabel = document.createElement('p');
         dateLabel.className = 'history-date';
@@ -2893,7 +3205,9 @@
         }
 
         addMenuAction('Скачати PNG', () => triggerImageDownload(item.imageData, item.createdAt, item.templateId || 'card'), { disableWhenRead: true });
-        addMenuAction('Відкрити', () => openCardPreview(item), { disableWhenRead: true });
+        if (item.templateId !== 'note') {
+          addMenuAction('Відкрити', () => openCardPreview(item), { disableWhenRead: true });
+        }
         addMenuAction('Поширити', () => shareCard(item), { disableWhenRead: true });
         addMenuAction('Редагувати', () => startEditItem(item), {
           disabled: !hasEditableTextValues(item),
@@ -2928,6 +3242,7 @@
             card.classList.add('is-menu-open');
             menuToggle.setAttribute('aria-expanded', 'true');
             activeHistoryMenu = menu;
+            activeHistoryMenuToggle = menuToggle;
           }
         });
 
@@ -3095,7 +3410,7 @@
     async function initializeAuth() {
       if (!supabaseClient) {
         updateAuthUi();
-        renderHistory(getLocalHistory());
+        await refreshHistory();
         return;
       }
 
@@ -3129,6 +3444,9 @@
       const tab = event.target.closest('.template-tab');
       if (!tab || tab.dataset.template === activeTemplateId) return;
       setEditingItem(null);
+      isExportSelectionMode = false;
+      selectedExportIds.clear();
+      updateExportSelectionUi();
       setActiveTemplate(tab.dataset.template);
     });
     openEmotionListBtn.addEventListener('click', () => openEmotionModal(thoughtForm.elements.emotion));
@@ -3219,6 +3537,25 @@
     tabSettingsDropdown.querySelectorAll('[data-tab-toggle]').forEach((button) => {
       button.addEventListener('click', () => toggleTemplateVisibility(button.dataset.tabToggle));
     });
+    exportUnreadBtn.addEventListener('click', () => {
+      closeTabSettingsDropdown();
+      exportHistoryItems(getExportableHistory());
+    });
+    startExportSelectionBtn.addEventListener('click', startExportSelectionMode);
+    exportSelectedBtn.addEventListener('click', exportSelectedHistoryItems);
+    cancelExportSelectionBtn.addEventListener('click', cancelExportSelectionMode);
+    historyPrevPageBtn.addEventListener('click', () => {
+      if (currentHistoryPage <= 1) return;
+      currentHistoryPage -= 1;
+      cancelExportSelectionMode();
+      refreshHistory();
+    });
+    historyNextPageBtn.addEventListener('click', () => {
+      if (currentHistoryPage >= getTotalHistoryPages()) return;
+      currentHistoryPage += 1;
+      cancelExportSelectionMode();
+      refreshHistory();
+    });
     migrateLocalBtn.addEventListener('click', migrateLocalHistoryToCloud);
     saveBtn.addEventListener('click', downloadAsImage);
     resetBtn.addEventListener('click', clearDraft);
@@ -3265,9 +3602,11 @@
       if (event.key === 'Escape' && !schemaModalOverlay.classList.contains('hidden')) closeSchemaModal();
     });
     window.addEventListener('hashchange', openSharedCardFromUrl);
+    window.addEventListener('resize', repositionActiveHistoryMenu);
+    window.addEventListener('scroll', repositionActiveHistoryMenu, true);
 
     bindAutoResize();
-    setActiveTemplate(activeTemplateId);
+    setActiveTemplate(activeTemplateId, { skipHistoryRefresh: true });
     initializeAuth();
     openSharedCardFromUrl();
   </script>
