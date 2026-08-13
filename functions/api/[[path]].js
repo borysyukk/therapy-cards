@@ -132,7 +132,7 @@ async function getUserFromSession(env, request) {
 async function requireUser(env, request) {
   const user = await getUserFromSession(env, request);
   if (!user) {
-    const error = new Error('Потрібен вхід в акаунт.');
+    const error = new Error('Потрібен вхід у профіль.');
     error.status = 401;
     throw error;
   }
@@ -239,7 +239,7 @@ function cardPayload(body, fallbackId) {
     id: String(body.id || fallbackId || crypto.randomUUID()),
     created_at: String(body.created_at || body.createdAt || new Date().toISOString()),
     template_id: String(body.template_id || body.templateId || 'thought'),
-    template_name: String(body.template_name || body.templateName || 'Картка'),
+    template_name: String(body.template_name || body.templateName || 'Запис'),
     text_values: JSON.stringify(textValues),
     is_read: body.is_read || body.isRead ? 1 : 0,
     sort_order: Number.isFinite(body.sort_order) ? body.sort_order : Number(body.sortOrder),
@@ -259,7 +259,7 @@ async function handleCreateCard(env, request, user) {
 async function handleCreateCardsBatch(env, request, user) {
   const body = await readJson(request);
   const items = Array.isArray(body.items) ? body.items : [];
-  if (!items.length) return json({ error: 'Немає карток для перенесення.' }, 400);
+  if (!items.length) return json({ error: 'Немає записів для перенесення.' }, 400);
 
   const statements = items.map((item) => {
     const card = cardPayload(item);
@@ -274,7 +274,7 @@ async function handleCreateCardsBatch(env, request, user) {
 
 async function handleUpdateCard(env, request, user, id) {
   const existing = await env.DB.prepare('SELECT * FROM cards WHERE id = ? AND user_id = ?').bind(id, user.id).first();
-  if (!existing) return json({ error: 'Картку не знайдено.' }, 404);
+  if (!existing) return json({ error: 'Запис не знайдено.' }, 404);
 
   const body = await readJson(request);
   const next = {
@@ -313,14 +313,14 @@ async function handleReorderCards(env, request, user) {
 
 async function handleDeleteCard(env, user, id) {
   const result = await env.DB.prepare('DELETE FROM cards WHERE id = ? AND user_id = ?').bind(id, user.id).run();
-  if (!result.meta?.changes) return json({ error: 'Картку не знайдено.' }, 404);
+  if (!result.meta?.changes) return json({ error: 'Запис не знайдено.' }, 404);
   return json({ ok: true });
 }
 
 async function handleCreateShare(env, request) {
   const body = await readJson(request);
   const slug = String(body.slug || '').trim();
-  if (!slug) return json({ error: 'Немає slug для лінка.' }, 400);
+  if (!slug) return json({ error: 'Немає коду для посилання.' }, 400);
   const textValues = JSON.stringify(body.text_values || body.textValues || {});
   await env.DB.prepare(
     `INSERT INTO shared_cards (slug, created_at, template_id, template_name, description, text_values)
@@ -329,7 +329,7 @@ async function handleCreateShare(env, request) {
     slug,
     new Date().toISOString(),
     String(body.template_id || body.templateId || 'thought'),
-    String(body.template_name || body.templateName || 'Картка'),
+    String(body.template_name || body.templateName || 'Запис'),
     String(body.description || '').slice(0, 160),
     textValues,
   ).run();
@@ -340,7 +340,7 @@ async function handleGetShare(env, slug) {
   const row = await env.DB.prepare(
     'SELECT slug, created_at, template_id, template_name, text_values FROM shared_cards WHERE slug = ?',
   ).bind(slug).first();
-  if (!row) return json({ error: 'Картку не знайдено.' }, 404);
+  if (!row) return json({ error: 'Запис не знайдено.' }, 404);
   return json({ item: parseCardRow({ ...row, id: row.slug || row.id }) });
 }
 

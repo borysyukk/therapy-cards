@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Терапевтичні картки | Картка думок та нотатки</title>
-  <meta name="description" content="Онлайн терапевтичні картки: картка думок і нотатки. Заповнюйте поля, зберігайте результат у PNG та переглядайте історію.">
-  <meta property="og:title" content="Терапевтичні картки | Картка думок та нотатки">
-  <meta property="og:description" content="Зручний інструмент для заповнення терапевтичних карток із збереженням історії та експортом у PNG.">
+  <title>Терапевтичний журнал | Запис думок і примітки</title>
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="googlebot" content="noindex, nofollow, noarchive">
+  <meta property="og:title" content="Терапевтичний журнал | Запис думок і примітки">
+  <meta property="og:description" content="Інструмент для ведення терапевтичних записів зі збереженням архіву та експортом у PNG.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="uk_UA">
   <meta property="og:image" content="https://dummyimage.com/1200x630/f6f1ff/4c1d95.png&text=%D0%A2%D0%B5%D1%80%D0%B0%D0%BF%D0%B5%D0%B2%D1%82%D0%B8%D1%87%D0%BD%D1%96+%D0%BA%D0%B0%D1%80%D1%82%D0%BA%D0%B8">
-  <meta property="og:image:alt" content="Терапевтичні картки: флеш-картка та картка думок">
+  <meta property="og:image:alt" content="Терапевтичний журнал: запис думок і примітки">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2318181B'/%3E%3Cpath d='M18 22h28M18 32h20M18 42h16' stroke='%23ffffff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2318181B'/%3E%3Cpath fill='%23ffffff' d='M20 14h16l12 12v26a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4zm16 2.8V28h11.2L36 16.8zM24 36h16v3.2H24V36zm0 8h16V47.2H24V44z'/%3E%3C/svg%3E">
   <style>
     :root {
       --color-primary: #18181b;
@@ -181,16 +182,6 @@
     .account-button:hover:not(:disabled),
     .settings-button:hover:not(:disabled) {
       background: var(--color-muted-2);
-    }
-
-    #newCardBtn {
-      background: var(--color-accent);
-      color: var(--color-on-primary);
-      white-space: nowrap;
-    }
-
-    #newCardBtn:hover:not(:disabled) {
-      background: #1d4ed8;
     }
 
     .account-button svg,
@@ -906,49 +897,62 @@
       color: var(--color-secondary);
     }
 
-    .history-title {
-      margin: 0;
-      color: var(--color-foreground);
-      font-size: 15px;
-      font-weight: 600;
-      line-height: 1.45;
-      overflow-wrap: anywhere;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+    .history-body {
+      position: relative;
+      max-height: 4.7em;
       overflow: hidden;
     }
 
-    .history-title.is-note {
-      display: block;
-      max-height: 96px;
-      overflow: hidden;
-      color: var(--color-body);
-      font-weight: 500;
-      line-height: 1.5;
-      white-space: pre-wrap;
-    }
-
-    .history-title.is-note.is-expanded {
+    .history-item.is-expanded .history-body {
       max-height: none;
+      overflow: visible;
     }
 
-    .note-expand-button {
-      margin-top: 8px;
-      border: 0;
-      background: transparent;
-      color: var(--color-accent);
-      font-size: 13px;
-      font-weight: 700;
-      padding: 6px 0;
-      min-height: 44px;
-      text-decoration: underline;
+    .history-item.is-truncated,
+    .history-item.is-expanded {
       cursor: pointer;
     }
 
-    .note-expand-button:hover:not(:disabled) {
-      background: transparent;
-      color: #1d4ed8;
+    .history-item.is-truncated:not(.is-expanded) .history-body::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 40px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, var(--color-surface-strong) 88%);
+    }
+
+    .history-item.is-read.is-truncated:not(.is-expanded) .history-body::after {
+      background: linear-gradient(180deg, rgba(240, 253, 244, 0) 0%, #f0fdf4 88%);
+    }
+
+    .history-item.is-priority.is-truncated:not(.is-expanded) .history-body::after {
+      background: linear-gradient(180deg, rgba(255, 251, 235, 0) 0%, #fffbeb 88%);
+    }
+
+    .history-field + .history-field {
+      margin-top: 10px;
+    }
+
+    .history-field-label {
+      margin: 0 0 3px;
+      color: var(--color-foreground-soft);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .history-field-value {
+      margin: 0;
+      color: var(--color-foreground);
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
 
     .history-actions {
@@ -1323,8 +1327,7 @@
 
       .brand-meta,
       .account-button span,
-      .settings-button span,
-      #newCardBtn span.desktop-only {
+      .settings-button span {
         display: none;
       }
 
@@ -1510,50 +1513,49 @@
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="18" height="18">
-            <path fill="currentColor" d="M5 6h14v2H5V6Zm0 5h11v2H5v-2Zm0 5h8v2H5v-2Z"/>
+            <path fill="currentColor" d="M7 3h8l5 5v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm8 1.8V9h4.2L15 4.8ZM8 12h8v1.5H8V12Zm0 3.5h8V17H8v-1.5Z"/>
           </svg>
         </span>
         <div class="brand-copy">
-          <p class="brand-name">Терапевтичні картки</p>
-          <p class="brand-meta">Особистий простір для карток</p>
+          <p class="brand-name">Терапевтичний журнал</p>
+          <p class="brand-meta">Особистий журнал самоспостереження</p>
         </div>
       </div>
       <div class="account-menu">
-        <button type="button" id="newCardBtn">Нова картка</button>
         <div class="account-menu-actions">
-          <button type="button" class="settings-button" id="tabSettingsMenuBtn" aria-label="Налаштування карток" aria-expanded="false">
+          <button type="button" class="settings-button" id="tabSettingsMenuBtn" aria-label="Налаштування" aria-expanded="false">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <path fill="currentColor" d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 2v12h14V6H5Zm2 3h10v2H7V9Zm0 4h7v2H7v-2Z"/>
             </svg>
-            <span>Картки</span>
+            <span>Налаштування</span>
           </button>
-          <button type="button" class="account-button" id="authMenuBtn" aria-label="Акаунт" aria-expanded="false">
+          <button type="button" class="account-button" id="authMenuBtn" aria-label="Профіль" aria-expanded="false">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.4 0-8 2.4-8 5.3 0 .4.3.7.7.7h14.6c.4 0 .7-.3.7-.7 0-2.9-3.6-5.3-8-5.3Z"/>
             </svg>
-            <span>Акаунт</span>
+            <span>Профіль</span>
           </button>
         </div>
         <div class="account-dropdown hidden" id="authDropdown">
-          <p class="account-status" id="accountStatus">Акаунт</p>
+          <p class="account-status" id="accountStatus">Профіль</p>
           <button type="button" id="openAuthFromMenuBtn">Увійти / зареєструватися</button>
           <div class="auth-actions hidden" id="authActions">
             <span class="auth-user" id="authUser"></span>
-            <button type="button" class="secondary hidden" id="migrateLocalBtn">Перенести локальні картки</button>
+            <button type="button" class="secondary hidden" id="migrateLocalBtn">Перенести локальні записи</button>
             <button type="button" id="signOutBtn">Вийти</button>
           </div>
         </div>
         <div class="settings-dropdown hidden" id="tabSettingsDropdown">
-          <section class="export-settings" aria-label="Експорт карток">
-            <p class="tab-settings-title">Витягнути картки</p>
-            <button type="button" id="exportUnreadBtn">Витягнути непрочитані</button>
-            <button type="button" class="secondary" id="startExportSelectionBtn">Обрати для витягування</button>
+          <section class="export-settings" aria-label="Експорт записів">
+            <p class="tab-settings-title">Експорт записів</p>
+            <button type="button" id="exportUnreadBtn">Експортувати непрочитані</button>
+            <button type="button" class="secondary" id="startExportSelectionBtn">Обрати для експорту</button>
           </section>
           <section class="tab-settings" aria-label="Налаштування відображення вкладок">
-            <p class="tab-settings-title">Відображення вкладок</p>
+            <p class="tab-settings-title">Типи записів</p>
             <div class="tab-settings-options">
-              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="thought">Картка думок: увімкнено</button>
-              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="note">Нотатки: увімкнено</button>
+              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="thought">Запис думок: увімкнено</button>
+              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="note">Примітки: увімкнено</button>
             </div>
           </section>
         </div>
@@ -1564,24 +1566,24 @@
       <aside class="sidebar" id="historyPane">
         <div class="sidebar-types">
           <div class="template-picker">
-            <label>Тип картки</label>
-            <div class="template-tabs" id="templateTabs" role="tablist" aria-label="Тип терапевтичної картки">
-              <button type="button" class="template-tab is-active" data-template="thought" role="tab" aria-selected="true">Картка думок</button>
-              <button type="button" class="template-tab" data-template="note" role="tab" aria-selected="false">Нотатки</button>
+            <label>Тип запису</label>
+            <div class="template-tabs" id="templateTabs" role="tablist" aria-label="Тип запису">
+              <button type="button" class="template-tab is-active" data-template="thought" role="tab" aria-selected="true">Запис думок</button>
+              <button type="button" class="template-tab" data-template="note" role="tab" aria-selected="false">Примітки</button>
             </div>
           </div>
         </div>
         <section class="history">
-          <h2>Історія</h2>
+          <h2>Архів</h2>
           <div class="export-selection-bar hidden" id="exportSelectionBar">
-            <p id="exportSelectionStatus">Оберіть картки для TXT</p>
+            <p id="exportSelectionStatus">Оберіть записи для TXT</p>
             <div class="export-selection-actions">
-              <button type="button" id="exportSelectedBtn">Витягнути вибрані</button>
+              <button type="button" id="exportSelectedBtn">Експортувати вибрані</button>
               <button type="button" class="secondary" id="cancelExportSelectionBtn">Скасувати</button>
             </div>
           </div>
           <div class="history-list" id="historyList"></div>
-          <p class="history-empty" id="historyEmpty">Поки що немає збережених карток.</p>
+          <p class="history-empty" id="historyEmpty">Поки що немає збережених записів.</p>
           <div class="history-pagination hidden" id="historyPagination">
             <p class="history-pagination-status" id="historyPaginationStatus"></p>
             <div class="history-pagination-actions">
@@ -1595,7 +1597,7 @@
       <main class="composer" id="composer" tabindex="-1">
         <div class="composer-inner">
           <section class="header">
-            <h1 id="pageTitle">Картка думок</h1>
+            <h1 id="pageTitle">Запис думок</h1>
             <p id="pageSubtitle">Аналіз ситуації, думок, емоцій та наслідків</p>
           </section>
 
@@ -1636,7 +1638,7 @@
 
             <form id="noteForm" class="form-page hidden">
               <div class="field">
-                <label for="noteText">Нотатка</label>
+                <label for="noteText">Примітка</label>
                 <textarea id="noteText" name="noteText" rows="4"></textarea>
               </div>
             </form>
@@ -1644,7 +1646,7 @@
 
           <div class="actions">
             <button type="button" class="secondary" id="resetBtn">Очистити</button>
-            <button type="button" id="saveBtn">Зберегти картку</button>
+            <button type="button" id="saveBtn">Зберегти запис</button>
           </div>
           <p class="saved-state" id="savedState"></p>
         </div>
@@ -1657,19 +1659,19 @@
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M4 20h4l10.5-10.5-4-4L4 16v4Zm14.7-13.3c.4-.4.4-1 0-1.4l-2-2a1 1 0 0 0-1.4 0l-1.8 1.8 4 4 1.2-1.4Z"/>
           </svg>
-          Написати
+          Запис
         </button>
         <button type="button" id="mobileHistoryBtn">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M5 5h14v2H5V5Zm0 6h14v2H5v-2Zm0 6h10v2H5v-2Z"/>
           </svg>
-          Історія
+          Архів
         </button>
         <button type="button" id="mobileAccountBtn">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.4 0-8 2.4-8 5.3 0 .4.3.7.7.7h14.6c.4 0 .7-.3.7-.7 0-2.9-3.6-5.3-8-5.3Z"/>
           </svg>
-          Акаунт
+          Профіль
         </button>
       </div>
     </nav>
@@ -1678,7 +1680,7 @@
 
   <div class="modal-overlay hidden" id="deleteModalOverlay" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
-      <p id="deleteModalTitle">Точно видалити цю картку з історії?</p>
+      <p id="deleteModalTitle">Видалити цей запис з архіву?</p>
       <div class="modal-actions">
         <button type="button" class="secondary" id="cancelDeleteBtn">Скасувати</button>
         <button type="button" id="confirmDeleteBtn">Видалити</button>
@@ -1688,7 +1690,7 @@
 
   <div class="modal-overlay hidden" id="unreadModalOverlay" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="unreadModalTitle">
-      <p id="unreadModalTitle">Зняти позначку “прочитано” з цієї картки?</p>
+      <p id="unreadModalTitle">Зняти позначку «прочитано» з цього запису?</p>
       <div class="modal-actions">
         <button type="button" class="secondary" id="cancelUnreadBtn">Скасувати</button>
         <button type="button" id="confirmUnreadBtn">Зняти</button>
@@ -1704,8 +1706,8 @@
       </div>
       <div class="preview-content" id="previewContent"></div>
       <div class="modal-actions">
-        <button type="button" id="sharePreviewBtn">Поширити</button>
-        <button type="button" id="editPreviewBtn">Редагувати картку</button>
+        <button type="button" id="sharePreviewBtn">Надіслати посилання</button>
+        <button type="button" id="editPreviewBtn">Редагувати запис</button>
         <button type="button" class="secondary" id="closePreviewModalBtn">Закрити</button>
       </div>
     </div>
@@ -1713,9 +1715,9 @@
 
   <div class="modal-overlay hidden" id="authModalOverlay" aria-hidden="true">
     <div class="modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
-      <p id="authModalTitle">Вхід в акаунт</p>
-      <section class="auth-panel" aria-label="Вхід в акаунт">
-        <p class="auth-status" id="authStatus">Увійдіть, щоб синхронізувати картки.</p>
+      <p id="authModalTitle">Вхід у профіль</p>
+      <section class="auth-panel" aria-label="Вхід у профіль">
+        <p class="auth-status" id="authStatus">Увійдіть, щоб синхронізувати записи.</p>
         <form class="auth-form" id="authForm">
           <div class="auth-field">
             <label for="authEmail">Email</label>
@@ -1841,7 +1843,6 @@
     const savedState = document.getElementById('savedState');
     const toast = document.getElementById('toast');
     const composer = document.getElementById('composer');
-    const newCardBtn = document.getElementById('newCardBtn');
     const mobileComposeBtn = document.getElementById('mobileComposeBtn');
     const mobileHistoryBtn = document.getElementById('mobileHistoryBtn');
     const mobileAccountBtn = document.getElementById('mobileAccountBtn');
@@ -1940,12 +1941,12 @@
     let activeHistoryMenuToggle = null;
     let isExportSelectionMode = false;
     const selectedExportIds = new Set();
-    const expandedNoteIds = new Set();
+    const expandedHistoryIds = new Set();
 
     const creatableTemplateIds = ['thought', 'note'];
     const templates = {
       schema: {
-        name: 'Флеш-картка',
+        name: 'Архівний запис',
         subtitle: 'Новий досвід дозволить укріпити<br>Здорову дорослу частину',
         draftKey: 'flashCardDraft_schema',
         requiredFields: ['feelings', 'trigger', 'schema', 'past', 'distortion', 'healthyAdult', 'hardMoment', 'choice'],
@@ -1961,8 +1962,8 @@
         ],
       },
       thought: {
-        name: 'Картка думок',
-        subtitle: 'Аналіз ситуації, думок, емоцій та наслідків',
+        name: 'Запис думок',
+        subtitle: 'Протокол ситуації, думок, емоцій і наслідків',
         draftKey: 'flashCardDraft_thought',
         requiredFields: ['situation', 'thought', 'emotion', 'behavior', 'consequences'],
         fields: [
@@ -1976,12 +1977,12 @@
         ],
       },
       note: {
-        name: 'Нотатки',
-        subtitle: 'Швидкі нотатки для себе',
+        name: 'Примітки',
+        subtitle: 'Короткі робочі примітки',
         draftKey: 'flashCardDraft_note',
         requiredFields: ['noteText'],
         fields: [
-          { label: 'Нотатка', key: 'noteText' },
+          { label: 'Примітка', key: 'noteText' },
         ],
       },
     };
@@ -2091,7 +2092,7 @@
     function disableWhenRead(button, item) {
       if (!item.isRead) return;
       button.disabled = true;
-      button.title = 'Картка прочитана. Зніміть позначку, щоб редагувати.';
+      button.title = 'Запис позначено як прочитаний. Зніміть позначку, щоб редагувати.';
       button.setAttribute('aria-label', button.title);
     }
 
@@ -2121,7 +2122,7 @@
     }
 
     function getSaveButtonLabel() {
-      return editingItem ? 'Оновити картку' : 'Зберегти картку';
+      return editingItem ? 'Оновити запис' : 'Зберегти запис';
     }
 
     function setSaveButtonLoading(isLoading) {
@@ -2225,7 +2226,7 @@
 
       if (!nextVisibleTemplates.length) {
         nextVisibleTemplates = [templateId];
-        showToast('Має залишитись хоча б одна вкладка');
+        showToast('Має лишитися хоча б один тип запису');
       }
 
       saveVisibleTemplates(nextVisibleTemplates);
@@ -2256,7 +2257,7 @@
           autoResize(form.elements[name]);
         }
       });
-      savedState.textContent = `Чернетка "${template.name}" завантажена.`;
+      savedState.textContent = `Чернетку «${template.name}» завантажено.`;
     }
 
     function saveDraft() {
@@ -2497,7 +2498,7 @@
       }
 
       setSaveButtonLoading(true);
-      savedState.textContent = editingItem ? 'Оновлюємо картку...' : 'Зберігаємо картку...';
+      savedState.textContent = editingItem ? 'Оновлюємо запис...' : 'Зберігаємо запис...';
 
       try {
         const values = saveDraft();
@@ -2521,7 +2522,7 @@
           setEditingItem(null);
           clearDraft();
           savedState.textContent = `"${getFirstFieldValue(updatedItem)}" оновлено.`;
-          showToast('Картку оновлено');
+          showToast('Запис оновлено');
           return;
         }
 
@@ -2539,8 +2540,8 @@
         const isSaved = await saveHistoryItem(item);
         if (!isSaved) return;
         clearDraft();
-        savedState.textContent = `"${getActiveTemplate().name}" додано в історію. PNG можна скачати з історії.`;
-        showToast('Картку збережено');
+        savedState.textContent = `«${getActiveTemplate().name}» додано до архіву. PNG можна завантажити з архіву.`;
+        showToast('Запис збережено');
         setAppView('history');
       } finally {
         setSaveButtonLoading(false);
@@ -2561,14 +2562,14 @@
       if (item.isRead) {
         const readPill = document.createElement('span');
         readPill.className = 'preview-read-pill';
-        readPill.textContent = '✓ Прочитано';
+        readPill.textContent = 'Прочитано';
         previewMeta.appendChild(readPill);
       }
 
       if (!item.textValues) {
         const emptyText = document.createElement('p');
         emptyText.className = 'preview-empty';
-        emptyText.textContent = 'Текстове прев’ю доступне для нових карток. Цю стару картку можна скачати як PNG.';
+        emptyText.textContent = 'Текстовий перегляд доступний для нових записів. Цей архівний запис можна завантажити як PNG.';
         previewContent.appendChild(emptyText);
         return;
       }
@@ -2609,7 +2610,7 @@
       ];
 
       if (!item.textValues) {
-        lines.push('Текстове прев’ю доступне тільки для нових текстових карток.');
+        lines.push('Текстовий перегляд доступний лише для нових текстових записів.');
         return lines.join('\n');
       }
 
@@ -2733,11 +2734,11 @@
         }
 
         await navigator.clipboard.writeText(url);
-        showToast('Лінк на картку скопійовано');
-        savedState.textContent = 'Лінк на картку скопійовано. Його можна надіслати.';
+        showToast('Посилання на запис скопійовано');
+        savedState.textContent = 'Посилання на запис скопійовано. Його можна надіслати.';
       } catch (error) {
         if (error.name !== 'AbortError') {
-          savedState.textContent = `Не вдалося створити короткий лінк: ${error.message}`;
+          savedState.textContent = `Не вдалося створити коротке посилання: ${error.message}`;
         }
       }
     }
@@ -2758,7 +2759,7 @@
           isShared: true,
         });
       } catch (error) {
-        savedState.textContent = 'Не вдалося відкрити поширену картку. Можливо, лінк неправильний.';
+        savedState.textContent = 'Не вдалося відкрити спільний запис. Можливо, посилання неправильне.';
       }
     }
 
@@ -2790,7 +2791,7 @@
         const [key, value] = hash.split('=');
         if (key === sharedCardHashKey && value) openLegacySharedCard(value);
       } catch (error) {
-        savedState.textContent = 'Не вдалося відкрити поширену картку: лінк пошкоджено.';
+        savedState.textContent = 'Не вдалося відкрити спільний запис: посилання пошкоджено.';
       }
     }
 
@@ -2799,7 +2800,7 @@
       renderTextPreview(item);
       editPreviewBtn.hidden = item.isShared || !hasEditableTextValues(item) || !allForms[item.templateId];
       editPreviewBtn.disabled = Boolean(item.isRead);
-      editPreviewBtn.textContent = item.isRead ? 'Картка прочитана' : 'Редагувати картку';
+      editPreviewBtn.textContent = item.isRead ? 'Запис прочитано' : 'Редагувати запис';
       previewModalOverlay.classList.remove('hidden');
       previewModalOverlay.setAttribute('aria-hidden', 'false');
     }
@@ -2815,7 +2816,7 @@
       previewMeta.innerHTML = '';
       editPreviewBtn.hidden = false;
       editPreviewBtn.disabled = false;
-      editPreviewBtn.textContent = 'Редагувати картку';
+      editPreviewBtn.textContent = 'Редагувати запис';
       currentPreviewItem = null;
       if (shouldClearSharedHash) {
         window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
@@ -2845,7 +2846,7 @@
 
     function startEditItem(item) {
       if (!allForms[item.templateId]) {
-        showToast('Цей тип картки більше не редагується');
+        showToast('Цей тип запису більше не редагується');
         return;
       }
       setActiveTemplate(item.templateId);
@@ -2903,7 +2904,7 @@
       const header = [
         `Експорт: ${template.name}`,
         `Створено: ${formatDisplayDateTime(new Date().toISOString())}`,
-        `Карток: ${items.length}`,
+        `Записів: ${items.length}`,
         '',
         '==============================',
         '',
@@ -2922,23 +2923,23 @@
 
     function exportHistoryItems(items) {
       if (!items.length) {
-        showToast('Немає карток для витягування');
-        savedState.textContent = 'Немає непрочитаних заповнених карток для витягування.';
+        showToast('Немає записів для експорту');
+        savedState.textContent = 'Немає непрочитаних заповнених записів для експорту.';
         return;
       }
 
       const dateStamp = new Date().toISOString().slice(0, 10);
       const filename = `${activeTemplateId}-cards-${dateStamp}.txt`;
       downloadTextFile(buildExportText(items), filename);
-      showToast(`Витягнуто карток: ${items.length}`);
-      savedState.textContent = `TXT файл створено: ${items.length} карток.`;
+      showToast(`Експортовано записів: ${items.length}`);
+      savedState.textContent = `Створено TXT-файл: ${items.length} записів.`;
     }
 
     function updateExportSelectionUi() {
       exportSelectionBar.classList.toggle('hidden', !isExportSelectionMode);
       exportSelectionStatus.textContent = selectedExportIds.size
-        ? `Вибрано карток: ${selectedExportIds.size}`
-        : 'Оберіть картки для TXT';
+        ? `Вибрано записів: ${selectedExportIds.size}`
+        : 'Оберіть записи для TXT';
       exportSelectedBtn.disabled = selectedExportIds.size === 0;
     }
 
@@ -2955,7 +2956,7 @@
       selectedExportIds.clear();
       renderHistory(renderedHistory);
       updateExportSelectionUi();
-      showToast('Оберіть картки для TXT');
+      showToast('Оберіть записи для TXT');
     }
 
     function cancelExportSelectionMode() {
@@ -3020,7 +3021,7 @@
       const totalPages = getTotalHistoryPages();
       historyPagination.classList.toggle('hidden', totalHistoryItems === 0);
       historyPaginationStatus.textContent = totalHistoryItems
-        ? `Сторінка ${currentHistoryPage} з ${totalPages} · карток: ${totalHistoryItems}`
+        ? `Сторінка ${currentHistoryPage} з ${totalPages} · записів: ${totalHistoryItems}`
         : '';
       historyPrevPageBtn.disabled = currentHistoryPage <= 1;
       historyNextPageBtn.disabled = currentHistoryPage >= totalPages;
@@ -3139,7 +3140,7 @@
         totalHistoryItems = Number(data.total) || 0;
         return sortHistory((data.items || []).filter(isValidHistoryItem).map(normalizeHistoryItem));
       } catch (error) {
-        savedState.textContent = `Не вдалося завантажити хмарну історію: ${error.message}`;
+        savedState.textContent = `Не вдалося завантажити хмарний архів: ${error.message}`;
         totalHistoryItems = 0;
         return [];
       }
@@ -3181,13 +3182,13 @@
           await refreshHistory({ resetPage: true });
           return true;
         } catch (error) {
-          savedState.textContent = `Не вдалося зберегти в акаунт: ${error.message}`;
+          savedState.textContent = `Не вдалося зберегти в профіль: ${error.message}`;
           return false;
         }
       }
 
       if (!item.imageData || !item.imageData.startsWith(pngDataUrlPrefix)) {
-        savedState.textContent = 'Не вдалося зберегти картинку: некоректний формат.';
+        savedState.textContent = 'Не вдалося зберегти зображення: некоректний формат.';
         return;
       }
 
@@ -3213,7 +3214,7 @@
           await refreshHistory();
           return true;
         } catch (error) {
-          savedState.textContent = `Не вдалося оновити картку: ${error.message}`;
+          savedState.textContent = `Не вдалося оновити запис: ${error.message}`;
           return false;
         }
       }
@@ -3352,7 +3353,7 @@
           await api(`/api/cards/${encodeURIComponent(id)}`, { method: 'DELETE' });
           await refreshHistory();
         } catch (error) {
-          savedState.textContent = `Не вдалося видалити картку: ${error.message}`;
+          savedState.textContent = `Не вдалося видалити запис: ${error.message}`;
         }
         return;
       }
@@ -3435,7 +3436,7 @@
     }
 
     function getHistoryTemplateName(item) {
-      return item.templateName || templates[item.templateId]?.name || 'Картка';
+      return templates[item.templateId]?.name || item.templateName || 'Запис';
     }
 
     function renderHistory(history = getActiveTemplateHistory(getLocalHistory())) {
@@ -3474,8 +3475,13 @@
         });
         card.addEventListener('click', (event) => {
           if (event.target.closest('button') || event.target.closest('input') || draggedHistoryItemId) return;
-          if (item.templateId === 'note') return;
-          openCardPreview(item);
+          if (!card.classList.contains('is-truncated') && !card.classList.contains('is-expanded')) return;
+          const willExpand = !card.classList.contains('is-expanded');
+          card.classList.toggle('is-expanded', willExpand);
+          card.setAttribute('aria-expanded', String(willExpand));
+          if (willExpand) expandedHistoryIds.add(item.id);
+          else expandedHistoryIds.delete(item.id);
+          card.title = willExpand ? 'Натисніть, щоб згорнути' : 'Натисніть, щоб відкрити повний запис';
         });
 
         if (isExportSelectionMode && isExportable) {
@@ -3483,7 +3489,7 @@
           exportCheckbox.type = 'checkbox';
           exportCheckbox.className = 'export-select';
           exportCheckbox.checked = selectedExportIds.has(item.id);
-          exportCheckbox.setAttribute('aria-label', 'Обрати картку для витягування');
+          exportCheckbox.setAttribute('aria-label', 'Обрати запис для експорту');
           exportCheckbox.addEventListener('change', () => {
             if (exportCheckbox.checked) selectedExportIds.add(item.id);
             else selectedExportIds.delete(item.id);
@@ -3509,25 +3515,41 @@
         cardTop.appendChild(dateLabel);
         summary.appendChild(cardTop);
 
-        const title = document.createElement('p');
-        title.className = 'history-title';
-        title.classList.toggle('is-note', item.templateId === 'note');
-        title.classList.toggle('is-expanded', expandedNoteIds.has(item.id));
-        title.textContent = getFirstFieldValue(item);
-        summary.appendChild(title);
+        const body = document.createElement('div');
+        body.className = 'history-body';
+        const template = getTemplateById(item.templateId);
+        const values = item.textValues || {};
+        const fields = item.templateId === 'note'
+          ? [{ label: '', key: template.fields[0]?.key || 'noteText' }]
+          : template.fields;
+        fields.forEach((field) => {
+          const value = String(values[field.key] || '').trim();
+          if (!value) return;
+          const fieldBlock = document.createElement('div');
+          fieldBlock.className = 'history-field';
+          if (field.label) {
+            const fieldLabel = document.createElement('p');
+            fieldLabel.className = 'history-field-label';
+            fieldLabel.textContent = field.label;
+            fieldBlock.appendChild(fieldLabel);
+          }
+          const fieldValue = document.createElement('p');
+          fieldValue.className = 'history-field-value';
+          fieldValue.textContent = value;
+          fieldBlock.appendChild(fieldValue);
+          body.appendChild(fieldBlock);
+        });
+        if (!body.childElementCount) {
+          const emptyValue = document.createElement('p');
+          emptyValue.className = 'history-field-value';
+          emptyValue.textContent = getFirstFieldValue(item);
+          body.appendChild(emptyValue);
+        }
+        summary.appendChild(body);
 
-        if (item.templateId === 'note' && getFirstFieldValue(item).length > 180) {
-          const noteExpandBtn = document.createElement('button');
-          noteExpandBtn.type = 'button';
-          noteExpandBtn.className = 'note-expand-button';
-          noteExpandBtn.textContent = expandedNoteIds.has(item.id) ? 'Показати менше' : 'Показати більше';
-          noteExpandBtn.addEventListener('click', () => {
-            if (expandedNoteIds.has(item.id)) expandedNoteIds.delete(item.id);
-            else expandedNoteIds.add(item.id);
-            title.classList.toggle('is-expanded', expandedNoteIds.has(item.id));
-            noteExpandBtn.textContent = expandedNoteIds.has(item.id) ? 'Показати менше' : 'Показати більше';
-          });
-          summary.appendChild(noteExpandBtn);
+        if (expandedHistoryIds.has(item.id)) {
+          card.classList.add('is-expanded');
+          card.setAttribute('aria-expanded', 'true');
         }
 
         const flags = [];
@@ -3555,8 +3577,8 @@
         menuToggle.type = 'button';
         menuToggle.className = 'history-menu-toggle';
         menuToggle.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 7a1.75 1.75 0 1 0 0-3.5A1.75 1.75 0 0 0 12 7Zm0 6.75a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5ZM12 20.5a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5Z"/></svg>';
-        menuToggle.title = 'Дії з карткою';
-        menuToggle.setAttribute('aria-label', 'Дії з карткою');
+        menuToggle.title = 'Дії із записом';
+        menuToggle.setAttribute('aria-label', 'Дії із записом');
         menuToggle.setAttribute('aria-expanded', 'false');
 
         const menu = document.createElement('div');
@@ -3579,11 +3601,11 @@
           return button;
         }
 
-        addMenuAction('Скачати PNG', () => downloadHistoryPng(item), { disableWhenRead: true });
+        addMenuAction('Завантажити PNG', () => downloadHistoryPng(item), { disableWhenRead: true });
         if (item.templateId !== 'note') {
           addMenuAction('Відкрити', () => openCardPreview(item), { disableWhenRead: true });
         }
-        addMenuAction('Поширити', () => shareCard(item), { disableWhenRead: true });
+        addMenuAction('Надіслати посилання', () => shareCard(item), { disableWhenRead: true });
         addMenuAction('Редагувати', () => startEditItem(item), {
           disabled: !hasEditableTextValues(item),
           disableWhenRead: true,
@@ -3625,6 +3647,23 @@
         actions.appendChild(menu);
         card.appendChild(actions);
         historyList.appendChild(card);
+      });
+
+      requestAnimationFrame(() => {
+        historyList.querySelectorAll('.history-item').forEach((card) => {
+          const body = card.querySelector('.history-body');
+          if (!body) return;
+          const wasExpanded = card.classList.contains('is-expanded');
+          card.classList.remove('is-expanded');
+          if (body.scrollHeight > body.clientHeight + 2) {
+            card.classList.add('is-truncated');
+            card.title = 'Натисніть, щоб відкрити повний запис';
+          }
+          if (wasExpanded) {
+            card.classList.add('is-expanded');
+            card.title = 'Натисніть, щоб згорнути';
+          }
+        });
       });
     }
 
@@ -3692,15 +3731,15 @@
         openAuthFromMenuBtn.classList.add('hidden');
         authUser.textContent = currentUser.email;
         accountStatus.textContent = `Ви увійшли як ${currentUser.email}`;
-        setAuthStatus('Ви увійшли. Історія карток синхронізується між пристроями.');
+        setAuthStatus('Ви увійшли. Архів записів синхронізується між пристроями.');
         closeAuthModal();
       } else {
         authForm.classList.remove('hidden');
         authActions.classList.add('hidden');
         openAuthFromMenuBtn.classList.remove('hidden');
         authUser.textContent = '';
-        accountStatus.textContent = 'Увійдіть, щоб синхронізувати картки.';
-        setAuthStatus('Увійдіть або зареєструйтеся, щоб бачити картки на різних пристроях.');
+        accountStatus.textContent = 'Увійдіть, щоб синхронізувати записи.';
+        setAuthStatus('Увійдіть або зареєструйтеся, щоб бачити записи на різних пристроях.');
       }
 
       updateMigrationButton();
@@ -3735,14 +3774,14 @@
         return;
       }
 
-      setAuthStatus('Створюємо акаунт...');
+      setAuthStatus('Створюємо профіль...');
       try {
         const data = await api('/api/auth/signup', { method: 'POST', body: { email, password } });
         currentUser = data.user;
         authPassword.value = '';
         updateAuthUi();
         await refreshHistory({ resetPage: true });
-        setAuthStatus('Акаунт створено. Картки зберігатимуться в хмарі.');
+        setAuthStatus('Профіль створено. Записи зберігатимуться в хмарі.');
       } catch (error) {
         setAuthStatus(`Не вдалося зареєструватися: ${error.message}`);
       }
@@ -3758,7 +3797,7 @@
       currentUser = null;
       updateAuthUi();
       await refreshHistory({ resetPage: true });
-      savedState.textContent = 'Ви вийшли з акаунта. Показана локальна історія цього браузера.';
+      savedState.textContent = 'Ви вийшли з профілю. Показано локальний архів цього браузера.';
     }
 
     async function migrateLocalHistoryToCloud() {
@@ -3766,7 +3805,7 @@
       const localHistory = getLocalHistory();
       if (!localHistory.length) return;
 
-      setAuthStatus('Переносимо локальні картки в акаунт...');
+      setAuthStatus('Переносимо локальні записи в профіль...');
       try {
         await api('/api/cards/batch', {
           method: 'POST',
@@ -3783,10 +3822,10 @@
           },
         });
         localStorage.removeItem(historyKey);
-        setAuthStatus('Локальні картки перенесено в акаунт.');
+        setAuthStatus('Локальні записи перенесено в профіль.');
         await refreshHistory({ resetPage: true });
       } catch (error) {
-        setAuthStatus(`Не вдалося перенести локальну історію: ${error.message}`);
+        setAuthStatus(`Не вдалося перенести локальний архів: ${error.message}`);
       }
     }
 
@@ -3820,13 +3859,6 @@
       selectedExportIds.clear();
       updateExportSelectionUi();
       setActiveTemplate(tab.dataset.template);
-    });
-    newCardBtn.addEventListener('click', () => {
-      clearDraft();
-      setAppView('compose');
-      composer.scrollTo({ top: 0, behavior: 'smooth' });
-      const firstField = getActiveForm().querySelector('textarea');
-      if (firstField) firstField.focus();
     });
     mobileComposeBtn.addEventListener('click', () => setAppView('compose'));
     mobileHistoryBtn.addEventListener('click', () => setAppView('history'));
