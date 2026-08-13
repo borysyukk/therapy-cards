@@ -13,34 +13,34 @@
   <meta property="og:image:alt" content="Терапевтичні картки: флеш-картка та картка думок">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%237c3aed'/%3E%3Cpath d='M18 22h28M18 32h20M18 42h16' stroke='%23ffffff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2318181B'/%3E%3Cpath d='M18 22h28M18 32h20M18 42h16' stroke='%23ffffff' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
   <style>
     :root {
-      --color-primary: #7c3aed;
-      --color-primary-strong: #6d28d9;
+      --color-primary: #18181b;
+      --color-primary-strong: #09090b;
       --color-on-primary: #ffffff;
-      --color-secondary: #c4b5fd;
-      --color-accent: #047857;
-      --color-accent-soft: #d1fae5;
-      --color-background: #f6f1ff;
-      --color-surface: rgba(255, 252, 255, 0.86);
-      --color-surface-strong: #fffdfb;
-      --color-muted: #f3eefc;
-      --color-muted-2: #eee8fb;
-      --color-foreground: #3b0764;
-      --color-foreground-soft: #5b21b6;
-      --color-body: #4c1d95;
-      --color-border: #e9d5ff;
-      --color-ring: #8b5cf6;
-      --color-destructive: #b91c1c;
+      --color-secondary: #3f3f46;
+      --color-accent: #2563eb;
+      --color-accent-soft: #dbeafe;
+      --color-background: #f4f4f5;
+      --color-surface: #ffffff;
+      --color-surface-strong: #ffffff;
+      --color-muted: #f4f4f5;
+      --color-muted-2: #e4e4e7;
+      --color-foreground: #09090b;
+      --color-foreground-soft: #52525b;
+      --color-body: #3f3f46;
+      --color-border: #e4e4e7;
+      --color-ring: #2563eb;
+      --color-destructive: #dc2626;
       --color-warning: #b45309;
       --color-read: #047857;
-      --shadow-soft: 0 18px 50px rgba(91, 33, 182, 0.12);
-      --shadow-card: 0 10px 28px rgba(76, 29, 149, 0.08);
-      --radius-xl: 28px;
-      --radius-lg: 20px;
-      --radius-md: 14px;
+      --shadow-soft: 0 18px 40px rgba(24, 24, 27, 0.08);
+      --shadow-card: 0 8px 20px rgba(24, 24, 27, 0.06);
+      --radius-xl: 24px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
       --radius-sm: 10px;
       --font-display: "Lora", Georgia, serif;
       --font-ui: "Raleway", "Segoe UI", sans-serif;
@@ -48,95 +48,114 @@
       --space-2: 16px;
       --space-3: 24px;
       --space-4: 32px;
+      --topbar-height: 64px;
+      --mobile-nav-height: 64px;
     }
 
     * {
       box-sizing: border-box;
     }
 
-    html {
-      min-height: 100%;
+    html,
+    body {
+      height: 100%;
     }
 
     body {
       margin: 0;
-      min-height: 100vh;
+      min-height: 100dvh;
       font-family: var(--font-ui);
       color: var(--color-body);
-      background:
-        radial-gradient(1200px 700px at -10% -20%, #ddd6fe 0%, transparent 55%),
-        radial-gradient(900px 600px at 110% 10%, #a7f3d0 0%, transparent 46%),
-        radial-gradient(800px 500px at 70% 120%, #f5d0fe 0%, transparent 50%),
-        var(--color-background);
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: max(24px, env(safe-area-inset-top)) 24px max(32px, env(safe-area-inset-bottom));
+      background: var(--color-background);
+      overflow: hidden;
     }
 
-    body::before,
-    body::after {
-      content: "";
-      position: fixed;
-      z-index: 0;
-      pointer-events: none;
-      filter: blur(18px);
-      opacity: 0.7;
+    .skip-link {
+      position: absolute;
+      left: 12px;
+      top: -48px;
+      z-index: 200;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+      font-weight: 700;
+      text-decoration: none;
     }
 
-    body::before {
-      width: 280px;
-      height: 280px;
-      left: 8%;
-      top: 12%;
-      border-radius: 62% 38% 43% 57% / 48% 41% 59% 52%;
-      background: #c4b5fd;
-      animation: breathe 12s ease-in-out infinite;
-    }
-
-    body::after {
-      width: 220px;
-      height: 220px;
-      right: 6%;
-      bottom: 8%;
-      border-radius: 48% 52% 68% 32% / 42% 63% 37% 58%;
-      background: #6ee7b7;
-      animation: breathe 14s ease-in-out infinite reverse;
+    .skip-link:focus {
+      top: 12px;
     }
 
     .app {
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      background: var(--color-background);
+      overflow: hidden;
+    }
+
+    .topbar {
       position: relative;
-      z-index: 1;
-      width: min(100%, 780px);
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: var(--topbar-height);
+      padding: 8px 16px;
+      padding-top: max(8px, env(safe-area-inset-top));
       background: var(--color-surface);
-      border: 1px solid rgba(233, 213, 255, 0.9);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-soft);
-      padding: 28px;
-      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      border-radius: 10px;
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+      display: grid;
+      place-items: center;
+    }
+
+    .brand-copy {
+      min-width: 0;
+    }
+
+    .brand-name {
+      margin: 0;
+      color: var(--color-foreground);
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .brand-meta {
+      margin: 2px 0 0;
+      color: var(--color-foreground-soft);
+      font-size: 12px;
+      font-weight: 600;
     }
 
     .account-menu {
       position: relative;
-      z-index: 10;
       display: flex;
-      justify-content: flex-end;
       align-items: center;
-      margin: -8px -8px 22px;
-      padding: 10px;
-      background: var(--color-muted);
-      border: 1px solid var(--color-border);
-      border-radius: 999px;
+      gap: 8px;
     }
 
     .account-bar-label {
-      margin-right: auto;
-      margin-left: 10px;
-      color: var(--color-foreground-soft);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      display: none;
     }
 
     .account-menu-actions {
@@ -154,18 +173,24 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      background: var(--color-primary);
-      box-shadow: 0 8px 18px rgba(124, 58, 237, 0.22);
-    }
-
-    .settings-button {
-      background: #6d28d9;
+      background: var(--color-muted);
+      color: var(--color-foreground);
       box-shadow: none;
     }
 
     .account-button:hover:not(:disabled),
     .settings-button:hover:not(:disabled) {
-      transform: translateY(-1px);
+      background: var(--color-muted-2);
+    }
+
+    #newCardBtn {
+      background: var(--color-accent);
+      color: var(--color-on-primary);
+      white-space: nowrap;
+    }
+
+    #newCardBtn:hover:not(:disabled) {
+      background: #1d4ed8;
     }
 
     .account-button svg,
@@ -244,7 +269,7 @@
     .tab-toggle {
       width: 100%;
       justify-content: space-between;
-      background: #a78bfa;
+      background: var(--color-secondary);
       text-align: left;
     }
 
@@ -252,69 +277,106 @@
       background: var(--color-primary);
     }
 
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+    }
+
+    .sidebar-types {
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .sidebar-label {
+      margin: 0 0 8px;
+      color: var(--color-foreground-soft);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     .header {
-      margin-bottom: 24px;
-      text-align: center;
+      margin: 0;
+      text-align: left;
     }
 
     .header h1 {
-      margin: 0 0 10px;
+      margin: 0 0 8px;
       font-family: var(--font-display);
-      font-size: clamp(28px, 5vw, 42px);
+      font-size: clamp(28px, 3vw, 40px);
       font-weight: 600;
       letter-spacing: -0.03em;
-      text-transform: none;
       color: var(--color-foreground);
     }
 
     .header p {
       margin: 0;
       color: var(--color-foreground-soft);
-      font-size: clamp(15px, 2vw, 20px);
+      font-size: 16px;
       font-weight: 500;
-      line-height: 1.45;
+      line-height: 1.5;
     }
 
     .template-picker {
-      margin: 18px auto 0;
-      width: min(100%, 520px);
-      text-align: center;
+      margin: 0;
+      width: 100%;
+      text-align: left;
     }
 
     .template-picker label {
-      font-size: 13px;
+      font-size: 11px;
       margin-bottom: 8px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
+      font-weight: 700;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--color-foreground-soft);
     }
 
     .template-tabs {
-      display: grid;
-      grid-template-columns: repeat(var(--visible-tabs, 3), minmax(0, 1fr));
-      gap: 6px;
-      padding: 6px;
-      border: 1px solid var(--color-border);
-      border-radius: 999px;
-      background: var(--color-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
     }
 
     .template-tab {
+      width: 100%;
       min-height: 44px;
-      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      border-radius: var(--radius-md);
       background: transparent;
       color: var(--color-foreground);
-      padding: 8px 10px;
+      padding: 10px 12px;
       font-size: 14px;
       line-height: 1.2;
       font-weight: 600;
+      text-align: left;
+    }
+
+    .template-tab:hover:not(:disabled):not(.is-active) {
+      background: var(--color-muted);
+      color: var(--color-foreground);
     }
 
     .template-tab.is-active {
       background: var(--color-primary);
       color: var(--color-on-primary);
-      box-shadow: 0 8px 16px rgba(124, 58, 237, 0.22);
+      box-shadow: none;
     }
 
     .auth-panel {
@@ -376,7 +438,7 @@
 
     .auth-form input:focus {
       border-color: var(--color-ring);
-      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.22);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22);
     }
 
     .auth-actions {
@@ -403,11 +465,29 @@
       display: none;
     }
 
+    .composer {
+      min-height: 0;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .composer-inner {
+      width: min(100%, 760px);
+      margin: 0 auto;
+      padding: 28px 28px 40px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
     .form-shell {
-      background: var(--color-muted);
+      background: var(--color-surface);
       border-radius: var(--radius-lg);
       padding: 22px 20px;
       border: 1px solid var(--color-border);
+      margin-top: 24px;
+      flex: 1;
     }
 
     .field {
@@ -421,7 +501,7 @@
     .field-optional label::after {
       content: " (необов'язково)";
       font-size: 13px;
-      color: #7c3aed99;
+      color: var(--color-foreground-soft);
       font-weight: 500;
     }
 
@@ -453,7 +533,7 @@
     .link-button {
       border: 0;
       background: transparent;
-      color: var(--color-primary-strong);
+      color: var(--color-accent);
       font-size: 13px;
       font-weight: 700;
       padding: 6px 0;
@@ -461,6 +541,11 @@
       text-decoration: underline;
       cursor: pointer;
       white-space: nowrap;
+    }
+
+    .link-button:hover:not(:disabled) {
+      background: transparent;
+      color: #1d4ed8;
     }
 
     textarea {
@@ -491,21 +576,25 @@
 
     textarea:focus {
       border-color: var(--color-ring);
-      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
     }
 
     textarea::placeholder {
       font-size: 14px;
-      color: #7c6aa8;
+      color: #71717a;
       line-height: 1.4;
     }
 
     .actions {
+      position: sticky;
+      bottom: 0;
       display: flex;
       gap: 10px;
       justify-content: flex-end;
       margin-top: 20px;
       flex-wrap: wrap;
+      padding: 14px 0 8px;
+      background: linear-gradient(180deg, rgba(244, 244, 245, 0) 0%, var(--color-background) 28%);
     }
 
     button {
@@ -519,7 +608,7 @@
       cursor: pointer;
       color: var(--color-on-primary);
       background: var(--color-primary);
-      transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, opacity 0.18s ease;
+      transition: background-color 0.18s ease, opacity 0.18s ease;
     }
 
     button:hover:not(:disabled) {
@@ -541,16 +630,21 @@
     }
 
     button.secondary {
-      background: #7c6ad6;
+      background: var(--color-muted);
+      color: var(--color-foreground);
+    }
+
+    button.secondary:hover:not(:disabled) {
+      background: var(--color-muted-2);
     }
 
     #saveBtn {
       background: var(--color-accent);
-      box-shadow: 0 10px 20px rgba(4, 120, 87, 0.18);
+      box-shadow: none;
     }
 
     #saveBtn:hover:not(:disabled) {
-      background: #065f46;
+      background: #1d4ed8;
     }
 
     button.is-loading {
@@ -580,7 +674,7 @@
       position: fixed;
       left: 50%;
       bottom: 18px;
-      z-index: 60;
+      z-index: 90;
       transform: translate(-50%, 16px);
       max-width: min(92vw, 520px);
       padding: 12px 16px;
@@ -614,13 +708,18 @@
     }
 
     .history {
-      margin-top: 32px;
+      min-height: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      overflow: auto;
     }
 
     .history h2 {
-      margin: 0 0 14px;
+      margin: 0 0 12px;
       font-family: var(--font-display);
-      font-size: 24px;
+      font-size: 18px;
       font-weight: 600;
       color: var(--color-foreground);
     }
@@ -628,7 +727,7 @@
     .history-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
 
     .history-pagination {
@@ -690,36 +789,37 @@
 
     .history-item {
       position: relative;
-      background: var(--color-surface-strong);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: 16px;
+      background: var(--color-muted);
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      padding: 12px;
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
-      gap: 12px;
+      gap: 8px;
       align-items: center;
-      transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, background-color 0.24s ease;
+      transition: background-color 0.18s ease, border-color 0.18s ease;
       cursor: grab;
       user-select: none;
-      box-shadow: 0 6px 18px rgba(91, 33, 182, 0.05);
+      box-shadow: none;
     }
 
     .history-item:hover {
-      box-shadow: var(--shadow-card);
-      transform: translateY(-1px);
+      background: #ececee;
+      box-shadow: none;
+      transform: none;
     }
 
     .history-item.is-export-selectable {
-      padding-left: 54px;
+      padding-left: 44px;
     }
 
     .export-select {
       position: absolute;
-      top: 16px;
-      left: 16px;
+      top: 14px;
+      left: 12px;
       width: 22px;
       height: 22px;
-      accent-color: var(--color-primary);
+      accent-color: var(--color-accent);
     }
 
     .history-item.is-menu-open {
@@ -727,9 +827,9 @@
     }
 
     .history-item.is-moving {
-      border-color: var(--color-secondary);
-      box-shadow: var(--shadow-card);
-      background: #faf5ff;
+      border-color: var(--color-accent);
+      box-shadow: none;
+      background: var(--color-accent-soft);
     }
 
     .history-item.is-dragging {
@@ -785,13 +885,18 @@
       margin-top: 8px;
       border: 0;
       background: transparent;
-      color: var(--color-primary-strong);
+      color: var(--color-accent);
       font-size: 13px;
       font-weight: 700;
       padding: 6px 0;
       min-height: 44px;
       text-decoration: underline;
       cursor: pointer;
+    }
+
+    .note-expand-button:hover:not(:disabled) {
+      background: transparent;
+      color: #1d4ed8;
     }
 
     .history-actions {
@@ -803,7 +908,7 @@
     .history-date {
       margin-top: 8px;
       font-size: 12px;
-      color: #7c6aa8;
+      color: #71717a;
     }
 
     .history-actions button {
@@ -823,6 +928,11 @@
       font-size: 22px;
       letter-spacing: 1px;
       background: var(--color-muted);
+      color: var(--color-foreground);
+    }
+
+    .history-menu-toggle:hover:not(:disabled) {
+      background: var(--color-muted-2);
       color: var(--color-foreground);
     }
 
@@ -892,20 +1002,19 @@
 
     .history-empty {
       margin: 0;
-      color: #7c6aa8;
+      color: #71717a;
       font-size: 14px;
     }
 
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(59, 7, 100, 0.46);
+      background: rgba(24, 24, 27, 0.48);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 16px;
-      z-index: 30;
-      backdrop-filter: blur(6px);
+      z-index: 100;
     }
 
     .modal-overlay.hidden {
@@ -989,7 +1098,7 @@
       gap: 10px;
       align-items: center;
       margin-top: 12px;
-      color: #7c6aa8;
+      color: #71717a;
       font-size: 13px;
     }
 
@@ -1093,41 +1202,96 @@
       cursor: pointer;
     }
 
-    .emotion-chip.is-selected {
-      background: var(--color-primary);
-      border-color: var(--color-primary);
-      color: var(--color-on-primary);
+    .emotion-chip:hover:not(:disabled):not(.is-selected) {
+      background: var(--color-muted);
+      color: var(--color-foreground);
     }
 
-    @media (max-width: 640px) {
+    .mobile-nav {
+      display: none;
+    }
+
+    @media (max-width: 860px) {
       body {
-        padding: 10px;
+        overflow: hidden;
       }
 
       .app {
-        padding: 14px;
-        border-radius: 22px;
+        grid-template-rows: auto minmax(0, 1fr) auto;
       }
 
-      .account-menu {
-        border-radius: 22px;
+      .topbar {
+        padding: 8px 12px;
       }
 
-      .header {
-        margin-bottom: 14px;
+      .brand-meta,
+      .account-button span,
+      .settings-button span,
+      #newCardBtn span.desktop-only {
+        display: none;
+      }
+
+      @media (max-width: 420px) {
+        .brand-name {
+          display: none;
+        }
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .sidebar {
+        display: flex;
+        border-right: 0;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .template-tabs {
+        flex-direction: row;
+      }
+
+      .template-tab {
+        flex: 1;
+        justify-content: center;
+        text-align: center;
+        font-size: 13px;
+        padding: 10px 6px;
+      }
+
+      body[data-view="compose"] .history {
+        display: none;
+      }
+
+      body[data-view="history"] .composer {
+        display: none;
+      }
+
+      body[data-view="history"] .workspace {
+        grid-template-rows: minmax(0, 1fr);
+      }
+
+      body[data-view="history"] .sidebar {
+        border-bottom: 0;
+        min-height: 0;
+      }
+
+      .composer-inner {
+        padding: 20px 16px 28px;
       }
 
       .header h1 {
-        margin-bottom: 8px;
         font-size: 26px;
       }
 
       .header p {
-        font-size: 16px;
+        font-size: 15px;
       }
 
       .form-shell {
         padding: 14px;
+        margin-top: 16px;
       }
 
       .field {
@@ -1148,19 +1312,7 @@
       .actions {
         margin-top: 14px;
         gap: 8px;
-      }
-
-      button {
-        padding: 10px 14px;
-        font-size: 14px;
-      }
-
-      .history {
-        margin-top: 20px;
-      }
-
-      .history h2 {
-        font-size: 20px;
+        padding-bottom: 12px;
       }
 
       .history-item {
@@ -1172,16 +1324,61 @@
         gap: 5px;
       }
 
-      .history-date {
-        font-size: 12px;
-      }
-
       .auth-form {
         grid-template-columns: 1fr;
       }
 
       .auth-form button {
         white-space: normal;
+      }
+
+      .toast {
+        bottom: calc(var(--mobile-nav-height) + 12px + env(safe-area-inset-bottom));
+      }
+
+      .mobile-nav {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        min-height: var(--mobile-nav-height);
+        padding-bottom: env(safe-area-inset-bottom);
+        background: var(--color-surface);
+        border-top: 1px solid var(--color-border);
+      }
+
+      .mobile-nav button {
+        border-radius: 0;
+        background: transparent;
+        color: var(--color-foreground-soft);
+        min-height: 64px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 700;
+        box-shadow: none;
+      }
+
+      .mobile-nav button:hover:not(:disabled) {
+        background: var(--color-muted);
+      }
+
+      .mobile-nav button.is-active {
+        color: var(--color-foreground);
+        background: transparent;
+      }
+
+      .mobile-nav svg {
+        width: 22px;
+        height: 22px;
+      }
+    }
+
+    @media (min-width: 861px) {
+      body[data-view] .sidebar,
+      body[data-view] .composer {
+        display: flex;
       }
     }
 
@@ -1195,182 +1392,226 @@
     }
   </style>
 </head>
-<body>
-  <main class="app">
-    <div class="account-menu">
-      <span class="account-bar-label">Меню</span>
-      <div class="account-menu-actions">
-        <button type="button" class="settings-button" id="tabSettingsMenuBtn" aria-label="Налаштування карток" aria-expanded="false">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-            <path fill="currentColor" d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 2v12h14V6H5Zm2 3h10v2H7V9Zm0 4h7v2H7v-2Z"/>
+<body data-view="compose">
+  <a class="skip-link" href="#composer">Перейти до форми</a>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path fill="currentColor" d="M5 6h14v2H5V6Zm0 5h11v2H5v-2Zm0 5h8v2H5v-2Z"/>
           </svg>
-          <span>Картки</span>
-        </button>
-        <button type="button" class="account-button" id="authMenuBtn" aria-label="Акаунт" aria-expanded="false">
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-            <path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.4 0-8 2.4-8 5.3 0 .4.3.7.7.7h14.6c.4 0 .7-.3.7-.7 0-2.9-3.6-5.3-8-5.3Z"/>
-          </svg>
-          <span>Акаунт</span>
-        </button>
-      </div>
-      <div class="account-dropdown hidden" id="authDropdown">
-        <p class="account-status" id="accountStatus">Акаунт</p>
-        <button type="button" id="openAuthFromMenuBtn">Увійти / зареєструватися</button>
-        <div class="auth-actions hidden" id="authActions">
-          <span class="auth-user" id="authUser"></span>
-          <button type="button" class="secondary hidden" id="migrateLocalBtn">Перенести локальні картки</button>
-          <button type="button" id="signOutBtn">Вийти</button>
+        </span>
+        <div class="brand-copy">
+          <p class="brand-name">Терапевтичні картки</p>
+          <p class="brand-meta">Особистий простір для карток</p>
         </div>
       </div>
-      <div class="settings-dropdown hidden" id="tabSettingsDropdown">
-        <section class="export-settings" aria-label="Експорт карток">
-          <p class="tab-settings-title">Витягнути картки</p>
-          <button type="button" id="exportUnreadBtn">Витягнути непрочитані</button>
-          <button type="button" class="secondary" id="startExportSelectionBtn">Обрати для витягування</button>
-        </section>
-        <section class="tab-settings" aria-label="Налаштування відображення вкладок">
-          <p class="tab-settings-title">Відображення вкладок</p>
-          <div class="tab-settings-options">
-            <button type="button" class="tab-toggle is-enabled" data-tab-toggle="schema">Флеш-картка: увімкнено</button>
-            <button type="button" class="tab-toggle is-enabled" data-tab-toggle="thought">Картка думок: увімкнено</button>
-            <button type="button" class="tab-toggle is-enabled" data-tab-toggle="note">Нотатки: увімкнено</button>
+      <div class="account-menu">
+        <button type="button" id="newCardBtn">Нова картка</button>
+        <div class="account-menu-actions">
+          <button type="button" class="settings-button" id="tabSettingsMenuBtn" aria-label="Налаштування карток" aria-expanded="false">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 2v12h14V6H5Zm2 3h10v2H7V9Zm0 4h7v2H7v-2Z"/>
+            </svg>
+            <span>Картки</span>
+          </button>
+          <button type="button" class="account-button" id="authMenuBtn" aria-label="Акаунт" aria-expanded="false">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.4 0-8 2.4-8 5.3 0 .4.3.7.7.7h14.6c.4 0 .7-.3.7-.7 0-2.9-3.6-5.3-8-5.3Z"/>
+            </svg>
+            <span>Акаунт</span>
+          </button>
+        </div>
+        <div class="account-dropdown hidden" id="authDropdown">
+          <p class="account-status" id="accountStatus">Акаунт</p>
+          <button type="button" id="openAuthFromMenuBtn">Увійти / зареєструватися</button>
+          <div class="auth-actions hidden" id="authActions">
+            <span class="auth-user" id="authUser"></span>
+            <button type="button" class="secondary hidden" id="migrateLocalBtn">Перенести локальні картки</button>
+            <button type="button" id="signOutBtn">Вийти</button>
+          </div>
+        </div>
+        <div class="settings-dropdown hidden" id="tabSettingsDropdown">
+          <section class="export-settings" aria-label="Експорт карток">
+            <p class="tab-settings-title">Витягнути картки</p>
+            <button type="button" id="exportUnreadBtn">Витягнути непрочитані</button>
+            <button type="button" class="secondary" id="startExportSelectionBtn">Обрати для витягування</button>
+          </section>
+          <section class="tab-settings" aria-label="Налаштування відображення вкладок">
+            <p class="tab-settings-title">Відображення вкладок</p>
+            <div class="tab-settings-options">
+              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="schema">Флеш-картка: увімкнено</button>
+              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="thought">Картка думок: увімкнено</button>
+              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="note">Нотатки: увімкнено</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar" id="historyPane">
+        <div class="sidebar-types">
+          <div class="template-picker">
+            <label>Тип картки</label>
+            <div class="template-tabs" id="templateTabs" role="tablist" aria-label="Тип терапевтичної картки">
+              <button type="button" class="template-tab is-active" data-template="schema" role="tab" aria-selected="true">Флеш-картка</button>
+              <button type="button" class="template-tab" data-template="thought" role="tab" aria-selected="false">Картка думок</button>
+              <button type="button" class="template-tab" data-template="note" role="tab" aria-selected="false">Нотатки</button>
+            </div>
+          </div>
+        </div>
+        <section class="history">
+          <h2>Історія</h2>
+          <div class="export-selection-bar hidden" id="exportSelectionBar">
+            <p id="exportSelectionStatus">Оберіть картки для TXT</p>
+            <div class="export-selection-actions">
+              <button type="button" id="exportSelectedBtn">Витягнути вибрані</button>
+              <button type="button" class="secondary" id="cancelExportSelectionBtn">Скасувати</button>
+            </div>
+          </div>
+          <div class="history-list" id="historyList"></div>
+          <p class="history-empty" id="historyEmpty">Поки що немає збережених карток.</p>
+          <div class="history-pagination hidden" id="historyPagination">
+            <p class="history-pagination-status" id="historyPaginationStatus"></p>
+            <div class="history-pagination-actions">
+              <button type="button" class="secondary" id="historyPrevPageBtn">Назад</button>
+              <button type="button" class="secondary" id="historyNextPageBtn">Далі</button>
+            </div>
           </div>
         </section>
-      </div>
+      </aside>
+
+      <main class="composer" id="composer" tabindex="-1">
+        <div class="composer-inner">
+          <section class="header">
+            <h1 id="pageTitle">Флеш-картка</h1>
+            <p id="pageSubtitle">Новий досвід дозволить укріпити<br>Здорову дорослу частину</p>
+          </section>
+
+          <section class="form-shell">
+            <form id="schemaForm" class="form-page">
+              <div class="field">
+                <div class="field-label-row">
+                  <label for="feelings">Зараз я відчуваю (емоції та фізичні відчуття)</label>
+                  <button type="button" class="link-button" id="openFeelingsEmotionListBtn">Список емоцій</button>
+                </div>
+                <textarea id="feelings" name="feelings" rows="2"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="trigger">Тому що (опишіть ситуацію/тригер)</label>
+                <textarea id="trigger" name="trigger" rows="2"></textarea>
+              </div>
+
+              <div class="field">
+                <div class="field-label-row">
+                  <label for="schema">Активувалася моя схема</label>
+                  <button type="button" class="link-button" id="openSchemaListBtn">Список схем</button>
+                </div>
+                <textarea id="schema" name="schema" rows="2"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="past">яка йде з мого минулого, коли</label>
+                <textarea id="past" name="past" rows="2"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="distortion">Тому зараз я сприймаю ситуацію перебільшено, думаючи що</label>
+                <textarea id="distortion" name="distortion" rows="2"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="healthyAdult">З погляду Здорового дорослого я знаю, що</label>
+                <textarea id="healthyAdult" name="healthyAdult" rows="2"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="hardMoment">Навіть коли схема змушує мене</label>
+                <textarea id="hardMoment" name="hardMoment" rows="2"></textarea>
+              </div>
+
+              <div class="field">
+                <label for="choice">Я обираю</label>
+                <textarea id="choice" name="choice" rows="2"></textarea>
+              </div>
+            </form>
+
+            <form id="thoughtForm" class="form-page hidden">
+              <div class="field">
+                <label for="situation">Ситуація</label>
+                <textarea id="situation" name="situation" rows="2"></textarea>
+              </div>
+              <div class="field">
+                <label for="thought">Думка</label>
+                <textarea id="thought" name="thought" rows="2"></textarea>
+              </div>
+              <div class="field">
+                <div class="field-label-row">
+                  <label for="emotion">Емоція</label>
+                  <button type="button" class="link-button" id="openEmotionListBtn">Список емоцій</button>
+                </div>
+                <textarea id="emotion" name="emotion" rows="2"></textarea>
+              </div>
+              <div class="field">
+                <label for="behavior">Поведінка</label>
+                <textarea id="behavior" name="behavior" rows="2"></textarea>
+              </div>
+              <div class="field">
+                <label for="consequences">Наслідки</label>
+                <textarea id="consequences" name="consequences" rows="2"></textarea>
+              </div>
+              <div class="field field-optional">
+                <label for="unrealisticScenario">Нереалістичний сценарій</label>
+                <textarea id="unrealisticScenario" name="unrealisticScenario" rows="2"></textarea>
+              </div>
+              <div class="field field-optional">
+                <label for="realisticScenario">Реалістичний сценарій</label>
+                <textarea id="realisticScenario" name="realisticScenario" rows="2"></textarea>
+              </div>
+            </form>
+
+            <form id="noteForm" class="form-page hidden">
+              <div class="field">
+                <label for="noteText">Нотатка</label>
+                <textarea id="noteText" name="noteText" rows="4"></textarea>
+              </div>
+            </form>
+          </section>
+
+          <div class="actions">
+            <button type="button" class="secondary" id="resetBtn">Очистити</button>
+            <button type="button" id="saveBtn">Зберегти картку</button>
+          </div>
+          <p class="saved-state" id="savedState"></p>
+        </div>
+      </main>
     </div>
 
-    <section class="header">
-      <h1 id="pageTitle">Флеш-картка</h1>
-      <p id="pageSubtitle">Новий досвід дозволить укріпити<br>Здорову дорослу частину</p>
-      <div class="template-picker">
-        <label>Тип терапевтичної картки</label>
-        <div class="template-tabs" id="templateTabs" role="tablist" aria-label="Тип терапевтичної картки">
-          <button type="button" class="template-tab is-active" data-template="schema" role="tab" aria-selected="true">Флеш-картка</button>
-          <button type="button" class="template-tab" data-template="thought" role="tab" aria-selected="false">Картка думок</button>
-          <button type="button" class="template-tab" data-template="note" role="tab" aria-selected="false">Нотатки</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="form-shell">
-      <form id="schemaForm" class="form-page">
-        <div class="field">
-          <div class="field-label-row">
-            <label for="feelings">Зараз я відчуваю (емоції та фізичні відчуття)</label>
-            <button type="button" class="link-button" id="openFeelingsEmotionListBtn">Список емоцій</button>
-          </div>
-          <textarea id="feelings" name="feelings" rows="2"></textarea>
-        </div>
-
-        <div class="field">
-          <label for="trigger">Тому що (опишіть ситуацію/тригер)</label>
-          <textarea id="trigger" name="trigger" rows="2"></textarea>
-        </div>
-
-        <div class="field">
-          <div class="field-label-row">
-            <label for="schema">Активувалася моя схема</label>
-            <button type="button" class="link-button" id="openSchemaListBtn">Список схем</button>
-          </div>
-          <textarea id="schema" name="schema" rows="2"></textarea>
-        </div>
-
-        <div class="field">
-          <label for="past">яка йде з мого минулого, коли</label>
-          <textarea id="past" name="past" rows="2"></textarea>
-        </div>
-
-        <div class="field">
-          <label for="distortion">Тому зараз я сприймаю ситуацію перебільшено, думаючи що</label>
-          <textarea id="distortion" name="distortion" rows="2"></textarea>
-        </div>
-
-        <div class="field">
-          <label for="healthyAdult">З погляду Здорового дорослого я знаю, що</label>
-          <textarea id="healthyAdult" name="healthyAdult" rows="2"></textarea>
-        </div>
-
-        <div class="field">
-          <label for="hardMoment">Навіть коли схема змушує мене</label>
-          <textarea id="hardMoment" name="hardMoment" rows="2"></textarea>
-        </div>
-
-        <div class="field">
-          <label for="choice">Я обираю</label>
-          <textarea id="choice" name="choice" rows="2"></textarea>
-        </div>
-      </form>
-
-      <form id="thoughtForm" class="form-page hidden">
-        <div class="field">
-          <label for="situation">Ситуація</label>
-          <textarea id="situation" name="situation" rows="2"></textarea>
-        </div>
-        <div class="field">
-          <label for="thought">Думка</label>
-          <textarea id="thought" name="thought" rows="2"></textarea>
-        </div>
-        <div class="field">
-          <div class="field-label-row">
-            <label for="emotion">Емоція</label>
-            <button type="button" class="link-button" id="openEmotionListBtn">Список емоцій</button>
-          </div>
-          <textarea id="emotion" name="emotion" rows="2"></textarea>
-        </div>
-        <div class="field">
-          <label for="behavior">Поведінка</label>
-          <textarea id="behavior" name="behavior" rows="2"></textarea>
-        </div>
-        <div class="field">
-          <label for="consequences">Наслідки</label>
-          <textarea id="consequences" name="consequences" rows="2"></textarea>
-        </div>
-        <div class="field field-optional">
-          <label for="unrealisticScenario">Нереалістичний сценарій</label>
-          <textarea id="unrealisticScenario" name="unrealisticScenario" rows="2"></textarea>
-        </div>
-        <div class="field field-optional">
-          <label for="realisticScenario">Реалістичний сценарій</label>
-          <textarea id="realisticScenario" name="realisticScenario" rows="2"></textarea>
-        </div>
-      </form>
-
-      <form id="noteForm" class="form-page hidden">
-        <div class="field">
-          <label for="noteText">Нотатка</label>
-          <textarea id="noteText" name="noteText" rows="4"></textarea>
-        </div>
-      </form>
-    </section>
-
-    <div class="actions">
-      <button type="button" class="secondary" id="resetBtn">Очистити</button>
-      <button type="button" id="saveBtn">Зберегти картку</button>
-    </div>
-
-    <p class="saved-state" id="savedState"></p>
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-    <section class="history">
-      <h2>Історія заповнених карток</h2>
-      <div class="export-selection-bar hidden" id="exportSelectionBar">
-        <p id="exportSelectionStatus">Оберіть картки для TXT</p>
-        <div class="export-selection-actions">
-          <button type="button" id="exportSelectedBtn">Витягнути вибрані</button>
-          <button type="button" class="secondary" id="cancelExportSelectionBtn">Скасувати</button>
-        </div>
-      </div>
-      <div class="history-list" id="historyList"></div>
-      <p class="history-empty" id="historyEmpty">Поки що немає збережених картинок.</p>
-      <div class="history-pagination hidden" id="historyPagination">
-        <p class="history-pagination-status" id="historyPaginationStatus"></p>
-        <div class="history-pagination-actions">
-          <button type="button" class="secondary" id="historyPrevPageBtn">Назад</button>
-          <button type="button" class="secondary" id="historyNextPageBtn">Далі</button>
-        </div>
-      </div>
-    </section>
-  </main>
+    <nav class="mobile-nav" aria-label="Основна навігація">
+      <button type="button" id="mobileComposeBtn" class="is-active">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M4 20h4l10.5-10.5-4-4L4 16v4Zm14.7-13.3c.4-.4.4-1 0-1.4l-2-2a1 1 0 0 0-1.4 0l-1.8 1.8 4 4 1.2-1.4Z"/>
+        </svg>
+        Написати
+      </button>
+      <button type="button" id="mobileHistoryBtn">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M5 5h14v2H5V5Zm0 6h14v2H5v-2Zm0 6h10v2H5v-2Z"/>
+        </svg>
+        Історія
+      </button>
+      <button type="button" id="mobileAccountBtn">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.4 0-8 2.4-8 5.3 0 .4.3.7.7.7h14.6c.4 0 .7-.3.7-.7 0-2.9-3.6-5.3-8-5.3Z"/>
+        </svg>
+        Акаунт
+      </button>
+    </nav>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <div class="modal-overlay hidden" id="deleteModalOverlay" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
@@ -1591,6 +1832,11 @@
     const resetBtn = document.getElementById('resetBtn');
     const savedState = document.getElementById('savedState');
     const toast = document.getElementById('toast');
+    const composer = document.getElementById('composer');
+    const newCardBtn = document.getElementById('newCardBtn');
+    const mobileComposeBtn = document.getElementById('mobileComposeBtn');
+    const mobileHistoryBtn = document.getElementById('mobileHistoryBtn');
+    const mobileAccountBtn = document.getElementById('mobileAccountBtn');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
     const historyPagination = document.getElementById('historyPagination');
@@ -2289,6 +2535,7 @@
         clearDraft();
         savedState.textContent = `"${getActiveTemplate().name}" додано в історію. PNG можна скачати з історії.`;
         showToast('Картку збережено');
+        setAppView('history');
       } finally {
         setSaveButtonLoading(false);
       }
@@ -2580,12 +2827,22 @@
       updateSaveButtonState();
     }
 
+    function setAppView(view) {
+      const nextView = view === 'history' ? 'history' : 'compose';
+      document.body.dataset.view = nextView;
+      mobileComposeBtn.classList.toggle('is-active', nextView === 'compose');
+      mobileHistoryBtn.classList.toggle('is-active', nextView === 'history');
+      mobileComposeBtn.setAttribute('aria-current', nextView === 'compose' ? 'page' : 'false');
+      mobileHistoryBtn.setAttribute('aria-current', nextView === 'history' ? 'page' : 'false');
+    }
+
     function startEditItem(item) {
       setActiveTemplate(item.templateId);
       fillFormValues(getActiveForm(), item.textValues || {});
       setEditingItem(item);
       savedState.textContent = `Редагуємо "${getFirstFieldValue(item)}".`;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setAppView('compose');
+      composer.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function triggerImageDownload(imageData, createdAt, templateId = 'card') {
@@ -2682,6 +2939,7 @@
       }
 
       closeTabSettingsDropdown();
+      setAppView('history');
       isExportSelectionMode = true;
       selectedExportIds.clear();
       renderHistory(renderedHistory);
@@ -3570,6 +3828,19 @@
       updateExportSelectionUi();
       setActiveTemplate(tab.dataset.template);
     });
+    newCardBtn.addEventListener('click', () => {
+      clearDraft();
+      setAppView('compose');
+      composer.scrollTo({ top: 0, behavior: 'smooth' });
+      const firstField = getActiveForm().querySelector('textarea');
+      if (firstField) firstField.focus();
+    });
+    mobileComposeBtn.addEventListener('click', () => setAppView('compose'));
+    mobileHistoryBtn.addEventListener('click', () => setAppView('history'));
+    mobileAccountBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleAuthDropdown();
+    });
     openEmotionListBtn.addEventListener('click', () => openEmotionModal(thoughtForm.elements.emotion));
     openFeelingsEmotionListBtn.addEventListener('click', () => openEmotionModal(schemaForm.elements.feelings));
     closeEmotionModalBtn.addEventListener('click', closeEmotionModal);
@@ -3727,6 +3998,7 @@
     window.addEventListener('scroll', repositionActiveHistoryMenu, true);
 
     bindAutoResize();
+    setAppView('compose');
     setActiveTemplate(activeTemplateId, { skipHistoryRefresh: true });
     initializeAuth();
     openSharedCardFromUrl();
