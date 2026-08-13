@@ -2521,7 +2521,7 @@
           if (!isUpdated) return;
           setEditingItem(null);
           clearDraft();
-          savedState.textContent = `"${getFirstFieldValue(updatedItem)}" оновлено.`;
+          savedState.textContent = 'Запис оновлено.';
           showToast('Запис оновлено');
           return;
         }
@@ -2852,7 +2852,7 @@
       setActiveTemplate(item.templateId);
       fillFormValues(getActiveForm(), item.textValues || {});
       setEditingItem(item);
-      savedState.textContent = `Редагуємо "${getFirstFieldValue(item)}".`;
+      savedState.textContent = '';
       setAppView('compose');
       composer.scrollTo({ top: 0, behavior: 'smooth' });
     }
