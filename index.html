@@ -487,6 +487,16 @@
       border: 1px solid var(--color-border);
       margin-top: 24px;
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .form-page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
     }
 
     .field {
@@ -565,6 +575,19 @@
       overflow-wrap: anywhere;
       word-break: break-word;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #noteForm .field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      margin-bottom: 0;
+    }
+
+    #noteText {
+      flex: 1;
+      min-height: min(42vh, 420px);
     }
 
     input,
@@ -1419,6 +1442,10 @@
         font-size: 16px;
       }
 
+      #noteText {
+        min-height: min(38vh, 360px);
+      }
+
       .actions {
         margin-top: 14px;
         gap: 8px;
@@ -1649,7 +1676,7 @@
             <form id="noteForm" class="form-page hidden">
               <div class="field">
                 <label for="noteText">Ситуація для психолога</label>
-                <textarea id="noteText" name="noteText" rows="6"></textarea>
+                <textarea id="noteText" name="noteText" rows="10"></textarea>
               </div>
             </form>
           </section>
@@ -1666,8 +1693,9 @@
     <nav class="mobile-nav" aria-label="Основна навігація">
       <div class="mobile-nav-dock">
         <button type="button" id="mobileComposeBtn" class="is-active">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M4 20h4l10.5-10.5-4-4L4 16v4Zm14.7-13.3c.4-.4.4-1 0-1.4l-2-2a1 1 0 0 0-1.4 0l-1.8 1.8 4 4 1.2-1.4Z"/>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           Запис
         </button>
@@ -2106,9 +2134,23 @@
       button.setAttribute('aria-label', button.title);
     }
 
+    function isTextareaLaidOut(textarea) {
+      return Boolean(textarea && textarea.getClientRects().length);
+    }
+
     function autoResize(textarea) {
+      if (!isTextareaLaidOut(textarea)) return;
+      const minHeight = parseFloat(window.getComputedStyle(textarea).minHeight) || 0;
       textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
+      textarea.style.height = `${Math.max(textarea.scrollHeight, minHeight)}px`;
+    }
+
+    function resizeActiveTextareas() {
+      getActiveTextareas().forEach(autoResize);
+    }
+
+    function afterLayout(callback) {
+      requestAnimationFrame(() => requestAnimationFrame(callback));
     }
 
     function bindAutoResize() {
@@ -2184,8 +2226,11 @@
       const template = getActiveTemplate();
       pageTitle.textContent = template.name;
       pageSubtitle.innerHTML = template.subtitle;
-      loadDraft();
+      if (!options.skipDraft) {
+        loadDraft();
+      }
       updateSaveButtonState();
+      afterLayout(resizeActiveTextareas);
       if (!options.skipHistoryRefresh) {
         currentHistoryPage = 1;
         refreshHistory();
@@ -2841,6 +2886,7 @@
         }
       });
       Array.from(form.querySelectorAll('textarea')).forEach((textarea) => autoResize(textarea));
+      afterLayout(resizeActiveTextareas);
       updateSaveButtonState();
     }
 
@@ -2859,12 +2905,15 @@
         showToast('Цей тип запису більше не редагується');
         return;
       }
-      setActiveTemplate(item.templateId);
+      setAppView('compose');
+      setActiveTemplate(item.templateId, { skipDraft: true, skipHistoryRefresh: true });
       fillFormValues(getActiveForm(), item.textValues || {});
       setEditingItem(item);
       savedState.textContent = '';
-      setAppView('compose');
-      composer.scrollTo({ top: 0, behavior: 'smooth' });
+      afterLayout(() => {
+        resizeActiveTextareas();
+        composer.scrollTo({ top: 0, behavior: 'smooth' });
+      });
     }
 
     function triggerImageDownload(imageData, createdAt, templateId = 'card') {
@@ -4006,7 +4055,10 @@
       if (event.key === 'Escape' && !emotionModalOverlay.classList.contains('hidden')) closeEmotionModal();
     });
     window.addEventListener('hashchange', openSharedCardFromUrl);
-    window.addEventListener('resize', repositionActiveHistoryMenu);
+    window.addEventListener('resize', () => {
+      repositionActiveHistoryMenu();
+      resizeActiveTextareas();
+    });
     window.addEventListener('scroll', repositionActiveHistoryMenu, true);
 
     bindAutoResize();
