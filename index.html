@@ -826,7 +826,7 @@
       gap: 10px;
       align-items: start;
       transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
-      cursor: grab;
+      cursor: pointer;
       user-select: none;
       box-shadow: 0 1px 2px rgba(24, 24, 27, 0.04);
     }
@@ -937,11 +937,6 @@
     .history-item.is-expanded .history-body {
       max-height: none;
       overflow: visible;
-    }
-
-    .history-item.is-truncated,
-    .history-item.is-expanded {
-      cursor: pointer;
     }
 
     .history-item.is-truncated:not(.is-expanded) .history-body::after {
@@ -1591,8 +1586,8 @@
           <section class="tab-settings" aria-label="Налаштування відображення вкладок">
             <p class="tab-settings-title">Типи записів</p>
             <div class="tab-settings-options">
-              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="thought">Запис думок: увімкнено</button>
               <button type="button" class="tab-toggle is-enabled" data-tab-toggle="note">Ситуація для психолога: увімкнено</button>
+              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="thought">Запис думок: увімкнено</button>
             </div>
           </section>
         </div>
@@ -1605,8 +1600,8 @@
           <div class="template-picker">
             <label>Тип запису</label>
             <div class="template-tabs" id="templateTabs" role="tablist" aria-label="Тип запису">
-              <button type="button" class="template-tab is-active" data-template="thought" role="tab" aria-selected="true">Запис думок</button>
-              <button type="button" class="template-tab" data-template="note" role="tab" aria-selected="false">Ситуація для психолога</button>
+              <button type="button" class="template-tab is-active" data-template="note" role="tab" aria-selected="true">Ситуація для психолога</button>
+              <button type="button" class="template-tab" data-template="thought" role="tab" aria-selected="false">Запис думок</button>
             </div>
           </div>
         </div>
@@ -1634,12 +1629,12 @@
       <main class="composer" id="composer" tabindex="-1">
         <div class="composer-inner">
           <section class="header">
-            <h1 id="pageTitle">Запис думок</h1>
-            <p id="pageSubtitle">Аналіз ситуації, думок, емоцій та наслідків</p>
+            <h1 id="pageTitle">Ситуація для психолога</h1>
+            <p id="pageSubtitle">Опис ситуації, яким можна поділитися з психологом</p>
           </section>
 
           <section class="form-shell">
-            <form id="thoughtForm" class="form-page">
+            <form id="thoughtForm" class="form-page hidden">
               <div class="field">
                 <label for="situation">Ситуація</label>
                 <textarea id="situation" name="situation" rows="2"></textarea>
@@ -1673,7 +1668,7 @@
               </div>
             </form>
 
-            <form id="noteForm" class="form-page hidden">
+            <form id="noteForm" class="form-page">
               <div class="field">
                 <label for="noteText">Ситуація для психолога</label>
                 <textarea id="noteText" name="noteText" rows="10"></textarea>
@@ -1700,8 +1695,9 @@
           Запис
         </button>
         <button type="button" id="mobileHistoryBtn">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M7 3h10a1.5 1.5 0 0 1 1.5 1.5V21l-6.5-3.4L5.5 21V4.5A1.5 1.5 0 0 1 7 3Z"/>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="4" y="7" width="12" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 7V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
           Збережені
         </button>
@@ -1963,11 +1959,12 @@
 
     let pendingDeleteId = null;
     let pendingUnreadItem = null;
-    let activeTemplateId = 'thought';
+    let activeTemplateId = 'note';
     let currentEmotionField = null;
     let currentUser = null;
     let currentPreviewItem = null;
     let editingItem = null;
+    let lastOpenedHistoryId = null;
     let renderedHistory = [];
     let draggedHistoryItemId = null;
     let currentHistoryPage = 1;
@@ -1981,7 +1978,7 @@
     const selectedExportIds = new Set();
     const expandedHistoryIds = new Set();
 
-    const creatableTemplateIds = ['thought', 'note'];
+    const creatableTemplateIds = ['note', 'thought'];
     const templates = {
       schema: {
         name: 'Попередній запис',
@@ -2242,7 +2239,9 @@
         const parsed = JSON.parse(localStorage.getItem(visibleTabsKey));
         if (Array.isArray(parsed) && parsed.length) {
           const visible = parsed.filter((templateId) => creatableTemplateIds.includes(templateId) && templates[templateId]);
-          if (visible.length) return visible;
+          if (visible.length) {
+            return creatableTemplateIds.filter((templateId) => visible.includes(templateId));
+          }
         }
       } catch (error) {
         // Ignore invalid settings and fall back to all tabs.
@@ -2259,7 +2258,7 @@
     }
 
     function getFirstVisibleTemplateId() {
-      return getVisibleTemplates()[0] || 'thought';
+      return getVisibleTemplates()[0] || 'note';
     }
 
     function updateTabSettingsButtons() {
@@ -2574,10 +2573,13 @@
           };
           const isUpdated = await updateHistoryItem(updatedItem);
           if (!isUpdated) return;
+          expandedHistoryIds.add(currentEditingItem.id);
+          lastOpenedHistoryId = currentEditingItem.id;
           setEditingItem(null);
           clearDraft();
           savedState.textContent = 'Запис оновлено.';
           showToast('Запис оновлено');
+          setAppView('history');
           return;
         }
 
@@ -2594,6 +2596,8 @@
         };
         const isSaved = await saveHistoryItem(item);
         if (!isSaved) return;
+        expandedHistoryIds.add(item.id);
+        lastOpenedHistoryId = item.id;
         clearDraft();
         savedState.textContent = `«${getActiveTemplate().name}» збережено. PNG можна завантажити зі збережених записів.`;
         showToast('Запис збережено');
@@ -2898,6 +2902,21 @@
       mobileAccountBtn.classList.remove('is-active');
       mobileComposeBtn.setAttribute('aria-current', nextView === 'compose' ? 'page' : 'false');
       mobileHistoryBtn.setAttribute('aria-current', nextView === 'history' ? 'page' : 'false');
+      if (nextView === 'history') {
+        afterLayout(() => {
+          updateHistoryCardOverflow();
+          const focusId = lastOpenedHistoryId || editingItem?.id;
+          if (!focusId) return;
+          const card = historyList.querySelector(`[data-id="${CSS.escape(focusId)}"]`);
+          if (!card) return;
+          card.classList.add('is-expanded');
+          card.setAttribute('aria-expanded', 'true');
+          expandedHistoryIds.add(focusId);
+          card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        });
+        return;
+      }
+      afterLayout(resizeActiveTextareas);
     }
 
     function startEditItem(item) {
@@ -2905,6 +2924,8 @@
         showToast('Цей тип запису більше не редагується');
         return;
       }
+      expandedHistoryIds.add(item.id);
+      lastOpenedHistoryId = item.id;
       setAppView('compose');
       setActiveTemplate(item.templateId, { skipDraft: true, skipHistoryRefresh: true });
       fillFormValues(getActiveForm(), item.textValues || {});
@@ -3534,7 +3555,6 @@
         });
         card.addEventListener('click', (event) => {
           if (event.target.closest('button') || event.target.closest('input') || draggedHistoryItemId) return;
-          if (!card.classList.contains('is-truncated') && !card.classList.contains('is-expanded')) return;
           const willExpand = !card.classList.contains('is-expanded');
           card.classList.toggle('is-expanded', willExpand);
           card.setAttribute('aria-expanded', String(willExpand));
@@ -3708,21 +3728,25 @@
         historyList.appendChild(card);
       });
 
-      requestAnimationFrame(() => {
-        historyList.querySelectorAll('.history-item').forEach((card) => {
-          const body = card.querySelector('.history-body');
-          if (!body) return;
-          const wasExpanded = card.classList.contains('is-expanded');
-          card.classList.remove('is-expanded');
-          if (body.scrollHeight > body.clientHeight + 2) {
-            card.classList.add('is-truncated');
-            card.title = 'Натисніть, щоб відкрити повний запис';
-          }
-          if (wasExpanded) {
-            card.classList.add('is-expanded');
-            card.title = 'Натисніть, щоб згорнути';
-          }
-        });
+      afterLayout(updateHistoryCardOverflow);
+    }
+
+    function updateHistoryCardOverflow() {
+      historyList.querySelectorAll('.history-item').forEach((card) => {
+        const body = card.querySelector('.history-body');
+        if (!body || !body.getClientRects().length) return;
+        const wasExpanded = card.classList.contains('is-expanded') || expandedHistoryIds.has(card.dataset.id);
+        card.classList.remove('is-expanded');
+        const isOverflowing = body.scrollHeight > body.clientHeight + 2;
+        card.classList.toggle('is-truncated', isOverflowing);
+        if (wasExpanded) {
+          card.classList.add('is-expanded');
+          card.setAttribute('aria-expanded', 'true');
+          card.title = 'Натисніть, щоб згорнути';
+          return;
+        }
+        card.setAttribute('aria-expanded', 'false');
+        card.title = 'Натисніть, щоб відкрити повний запис';
       });
     }
 
@@ -4058,6 +4082,7 @@
     window.addEventListener('resize', () => {
       repositionActiveHistoryMenu();
       resizeActiveTextareas();
+      updateHistoryCardOverflow();
     });
     window.addEventListener('scroll', repositionActiveHistoryMenu, true);
 
