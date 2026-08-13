@@ -211,7 +211,7 @@ async function handleMe(env, request) {
 
 async function handleListCards(env, request, user) {
   const url = new URL(request.url);
-  const templateId = url.searchParams.get('template_id') || 'schema';
+  const templateId = url.searchParams.get('template_id') || 'thought';
   const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
   const pageSize = Math.min(50, Math.max(1, Number(url.searchParams.get('page_size')) || 12));
   const offset = (page - 1) * pageSize;
@@ -238,7 +238,7 @@ function cardPayload(body, fallbackId) {
   return {
     id: String(body.id || fallbackId || crypto.randomUUID()),
     created_at: String(body.created_at || body.createdAt || new Date().toISOString()),
-    template_id: String(body.template_id || body.templateId || 'schema'),
+    template_id: String(body.template_id || body.templateId || 'thought'),
     template_name: String(body.template_name || body.templateName || 'Картка'),
     text_values: JSON.stringify(textValues),
     is_read: body.is_read || body.isRead ? 1 : 0,
@@ -328,7 +328,7 @@ async function handleCreateShare(env, request) {
   ).bind(
     slug,
     new Date().toISOString(),
-    String(body.template_id || body.templateId || 'schema'),
+    String(body.template_id || body.templateId || 'thought'),
     String(body.template_name || body.templateName || 'Картка'),
     String(body.description || '').slice(0, 160),
     textValues,

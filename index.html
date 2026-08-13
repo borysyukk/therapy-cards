@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Терапевтичні картки | Флеш-картка та картка думок</title>
-  <meta name="description" content="Онлайн терапевтичні картки: схема-картка та картка думок. Заповнюйте поля, зберігайте результат у PNG та переглядайте історію локально.">
-  <meta property="og:title" content="Терапевтичні картки | Флеш-картка та картка думок">
-  <meta property="og:description" content="Зручний інструмент для заповнення терапевтичних карток із локальним збереженням історії та експортом у PNG.">
+  <title>Терапевтичні картки | Картка думок та нотатки</title>
+  <meta name="description" content="Онлайн терапевтичні картки: картка думок і нотатки. Заповнюйте поля, зберігайте результат у PNG та переглядайте історію.">
+  <meta property="og:title" content="Терапевтичні картки | Картка думок та нотатки">
+  <meta property="og:description" content="Зручний інструмент для заповнення терапевтичних карток із збереженням історії та експортом у PNG.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="uk_UA">
   <meta property="og:image" content="https://dummyimage.com/1200x630/f6f1ff/4c1d95.png&text=%D0%A2%D0%B5%D1%80%D0%B0%D0%BF%D0%B5%D0%B2%D1%82%D0%B8%D1%87%D0%BD%D1%96+%D0%BA%D0%B0%D1%80%D1%82%D0%BA%D0%B8">
@@ -1441,7 +1441,6 @@
           <section class="tab-settings" aria-label="Налаштування відображення вкладок">
             <p class="tab-settings-title">Відображення вкладок</p>
             <div class="tab-settings-options">
-              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="schema">Флеш-картка: увімкнено</button>
               <button type="button" class="tab-toggle is-enabled" data-tab-toggle="thought">Картка думок: увімкнено</button>
               <button type="button" class="tab-toggle is-enabled" data-tab-toggle="note">Нотатки: увімкнено</button>
             </div>
@@ -1456,8 +1455,7 @@
           <div class="template-picker">
             <label>Тип картки</label>
             <div class="template-tabs" id="templateTabs" role="tablist" aria-label="Тип терапевтичної картки">
-              <button type="button" class="template-tab is-active" data-template="schema" role="tab" aria-selected="true">Флеш-картка</button>
-              <button type="button" class="template-tab" data-template="thought" role="tab" aria-selected="false">Картка думок</button>
+              <button type="button" class="template-tab is-active" data-template="thought" role="tab" aria-selected="true">Картка думок</button>
               <button type="button" class="template-tab" data-template="note" role="tab" aria-selected="false">Нотатки</button>
             </div>
           </div>
@@ -1486,60 +1484,12 @@
       <main class="composer" id="composer" tabindex="-1">
         <div class="composer-inner">
           <section class="header">
-            <h1 id="pageTitle">Флеш-картка</h1>
-            <p id="pageSubtitle">Новий досвід дозволить укріпити<br>Здорову дорослу частину</p>
+            <h1 id="pageTitle">Картка думок</h1>
+            <p id="pageSubtitle">Аналіз ситуації, думок, емоцій та наслідків</p>
           </section>
 
           <section class="form-shell">
-            <form id="schemaForm" class="form-page">
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="feelings">Зараз я відчуваю (емоції та фізичні відчуття)</label>
-                  <button type="button" class="link-button" id="openFeelingsEmotionListBtn">Список емоцій</button>
-                </div>
-                <textarea id="feelings" name="feelings" rows="2"></textarea>
-              </div>
-
-              <div class="field">
-                <label for="trigger">Тому що (опишіть ситуацію/тригер)</label>
-                <textarea id="trigger" name="trigger" rows="2"></textarea>
-              </div>
-
-              <div class="field">
-                <div class="field-label-row">
-                  <label for="schema">Активувалася моя схема</label>
-                  <button type="button" class="link-button" id="openSchemaListBtn">Список схем</button>
-                </div>
-                <textarea id="schema" name="schema" rows="2"></textarea>
-              </div>
-
-              <div class="field">
-                <label for="past">яка йде з мого минулого, коли</label>
-                <textarea id="past" name="past" rows="2"></textarea>
-              </div>
-
-              <div class="field">
-                <label for="distortion">Тому зараз я сприймаю ситуацію перебільшено, думаючи що</label>
-                <textarea id="distortion" name="distortion" rows="2"></textarea>
-              </div>
-
-              <div class="field">
-                <label for="healthyAdult">З погляду Здорового дорослого я знаю, що</label>
-                <textarea id="healthyAdult" name="healthyAdult" rows="2"></textarea>
-              </div>
-
-              <div class="field">
-                <label for="hardMoment">Навіть коли схема змушує мене</label>
-                <textarea id="hardMoment" name="hardMoment" rows="2"></textarea>
-              </div>
-
-              <div class="field">
-                <label for="choice">Я обираю</label>
-                <textarea id="choice" name="choice" rows="2"></textarea>
-              </div>
-            </form>
-
-            <form id="thoughtForm" class="form-page hidden">
+            <form id="thoughtForm" class="form-page">
               <div class="field">
                 <label for="situation">Ситуація</label>
                 <textarea id="situation" name="situation" rows="2"></textarea>
@@ -1766,68 +1716,13 @@
     </div>
   </div>
 
-  <div class="modal-overlay hidden" id="schemaModalOverlay" aria-hidden="true">
-    <div class="modal emotion-modal" role="dialog" aria-modal="true" aria-labelledby="schemaModalTitle">
-      <p id="schemaModalTitle">Оберіть схему</p>
-      <div class="emotion-groups">
-        <section class="emotion-group">
-          <h3>Розрив зв'язку</h3>
-          <div class="emotion-buttons">
-            <button type="button" class="emotion-chip schema-chip" data-schema="покинутість/нестабільність">Покинутість/нестабільність</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="недовіра/зловживання">Недовіра/зловживання</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="емоційна депривація">Емоційна депривація</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="дефектність/сором">Дефектність/сором</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="соціальна ізоляція">Соціальна ізоляція</button>
-          </div>
-        </section>
-        <section class="emotion-group">
-          <h3>Порушена автономія</h3>
-          <div class="emotion-buttons">
-            <button type="button" class="emotion-chip schema-chip" data-schema="залежність/безпорадність">Залежність/безпорадність</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="вразливість до небезпеки">Вразливість до небезпеки</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="злитість/нерозвинена ідентичність">Злитість/нерозвинена ідентичність</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="невдача">Невдача</button>
-          </div>
-        </section>
-        <section class="emotion-group">
-          <h3>Порушені межі</h3>
-          <div class="emotion-buttons">
-            <button type="button" class="emotion-chip schema-chip" data-schema="привілейованість/грандіозність">Привілейованість/грандіозність</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="недостатній самоконтроль">Недостатній самоконтроль</button>
-          </div>
-        </section>
-        <section class="emotion-group">
-          <h3>Орієнтація на інших</h3>
-          <div class="emotion-buttons">
-            <button type="button" class="emotion-chip schema-chip" data-schema="підкорення">Підкорення</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="самопожертва">Самопожертва</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="пошук схвалення">Пошук схвалення</button>
-          </div>
-        </section>
-        <section class="emotion-group">
-          <h3>Надмірна пильність</h3>
-          <div class="emotion-buttons">
-            <button type="button" class="emotion-chip schema-chip" data-schema="негативізм/песимізм">Негативізм/песимізм</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="емоційна загальмованість">Емоційна загальмованість</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="жорсткі стандарти">Жорсткі стандарти</button>
-            <button type="button" class="emotion-chip schema-chip" data-schema="покарання">Покарання</button>
-          </div>
-        </section>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="secondary" id="closeSchemaModalBtn">Закрити</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     const pageTitle = document.getElementById('pageTitle');
     const pageSubtitle = document.getElementById('pageSubtitle');
     const templateTabs = document.getElementById('templateTabs');
-    const schemaForm = document.getElementById('schemaForm');
     const thoughtForm = document.getElementById('thoughtForm');
     const noteForm = document.getElementById('noteForm');
-    const allForms = { schema: schemaForm, thought: thoughtForm, note: noteForm };
+    const allForms = { thought: thoughtForm, note: noteForm };
     const saveBtn = document.getElementById('saveBtn');
     const resetBtn = document.getElementById('resetBtn');
     const savedState = document.getElementById('savedState');
@@ -1848,7 +1743,6 @@
     const previewModalOverlay = document.getElementById('previewModalOverlay');
     const authModalOverlay = document.getElementById('authModalOverlay');
     const emotionModalOverlay = document.getElementById('emotionModalOverlay');
-    const schemaModalOverlay = document.getElementById('schemaModalOverlay');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     const cancelUnreadBtn = document.getElementById('cancelUnreadBtn');
@@ -1859,10 +1753,7 @@
     const editPreviewBtn = document.getElementById('editPreviewBtn');
     const closePreviewModalBtn = document.getElementById('closePreviewModalBtn');
     const openEmotionListBtn = document.getElementById('openEmotionListBtn');
-    const openFeelingsEmotionListBtn = document.getElementById('openFeelingsEmotionListBtn');
     const closeEmotionModalBtn = document.getElementById('closeEmotionModalBtn');
-    const openSchemaListBtn = document.getElementById('openSchemaListBtn');
-    const closeSchemaModalBtn = document.getElementById('closeSchemaModalBtn');
     const tabSettingsMenuBtn = document.getElementById('tabSettingsMenuBtn');
     const tabSettingsDropdown = document.getElementById('tabSettingsDropdown');
     const exportUnreadBtn = document.getElementById('exportUnreadBtn');
@@ -1920,7 +1811,7 @@
 
     let pendingDeleteId = null;
     let pendingUnreadItem = null;
-    let activeTemplateId = 'schema';
+    let activeTemplateId = 'thought';
     let currentEmotionField = null;
     let currentUser = null;
     let currentPreviewItem = null;
@@ -1938,6 +1829,7 @@
     const selectedExportIds = new Set();
     const expandedNoteIds = new Set();
 
+    const creatableTemplateIds = ['thought', 'note'];
     const templates = {
       schema: {
         name: 'Флеш-картка',
@@ -1994,7 +1886,7 @@
     }
 
     function getTemplateById(templateId) {
-      return templates[templateId] || templates.schema;
+      return templates[templateId] || templates.thought;
     }
 
     function getFirstFieldValue(item) {
@@ -2180,12 +2072,13 @@
       try {
         const parsed = JSON.parse(localStorage.getItem(visibleTabsKey));
         if (Array.isArray(parsed) && parsed.length) {
-          return parsed.filter((templateId) => templates[templateId]);
+          const visible = parsed.filter((templateId) => creatableTemplateIds.includes(templateId) && templates[templateId]);
+          if (visible.length) return visible;
         }
       } catch (error) {
         // Ignore invalid settings and fall back to all tabs.
       }
-      return Object.keys(templates);
+      return [...creatableTemplateIds];
     }
 
     function saveVisibleTemplates(templateIds) {
@@ -2197,7 +2090,7 @@
     }
 
     function getFirstVisibleTemplateId() {
-      return getVisibleTemplates()[0] || 'schema';
+      return getVisibleTemplates()[0] || 'thought';
     }
 
     function updateTabSettingsButtons() {
@@ -2544,7 +2437,7 @@
     function renderTextPreview(item) {
       previewContent.innerHTML = '';
       previewMeta.innerHTML = '';
-      const template = templates[item.templateId] || templates.schema;
+      const template = getTemplateById(item.templateId);
       previewModalTitle.textContent = item.templateName || template.name;
 
       const dateLabel = document.createElement('p');
@@ -2791,7 +2684,7 @@
     function openCardPreview(item) {
       currentPreviewItem = item;
       renderTextPreview(item);
-      editPreviewBtn.hidden = item.isShared || !hasEditableTextValues(item);
+      editPreviewBtn.hidden = item.isShared || !hasEditableTextValues(item) || !allForms[item.templateId];
       editPreviewBtn.disabled = Boolean(item.isRead);
       editPreviewBtn.textContent = item.isRead ? 'Картка прочитана' : 'Редагувати картку';
       previewModalOverlay.classList.remove('hidden');
@@ -2837,6 +2730,10 @@
     }
 
     function startEditItem(item) {
+      if (!allForms[item.templateId]) {
+        showToast('Цей тип картки більше не редагується');
+        return;
+      }
       setActiveTemplate(item.templateId);
       fillFormValues(getActiveForm(), item.textValues || {});
       setEditingItem(item);
@@ -3388,17 +3285,6 @@
       currentEmotionField = null;
     }
 
-    function openSchemaModal() {
-      syncSchemaChipsState();
-      schemaModalOverlay.classList.remove('hidden');
-      schemaModalOverlay.setAttribute('aria-hidden', 'false');
-    }
-
-    function closeSchemaModal() {
-      schemaModalOverlay.classList.add('hidden');
-      schemaModalOverlay.setAttribute('aria-hidden', 'true');
-    }
-
     function parseEmotionValue() {
       const emotionField = currentEmotionField || thoughtForm.elements.emotion;
       return emotionField.value
@@ -3422,29 +3308,6 @@
       });
     }
 
-    function parseSchemaValue() {
-      const schemaField = schemaForm.elements.schema;
-      return schemaField.value
-        .split(',')
-        .map((item) => item.trim())
-        .filter(Boolean);
-    }
-
-    function setSchemaValue(schemas) {
-      const schemaField = schemaForm.elements.schema;
-      schemaField.value = schemas.join(', ');
-      autoResize(schemaField);
-      updateSaveButtonState();
-    }
-
-    function syncSchemaChipsState() {
-      const selected = new Set(parseSchemaValue().map((schema) => schema.toLowerCase()));
-      schemaModalOverlay.querySelectorAll('.schema-chip').forEach((chip) => {
-        const schemaValue = (chip.dataset.schema || chip.textContent.trim()).toLowerCase();
-        chip.classList.toggle('is-selected', selected.has(schemaValue));
-      });
-    }
-
     function formatDisplayDateTime(isoString) {
       const date = new Date(isoString);
       if (Number.isNaN(date.getTime())) return 'невідомо';
@@ -3458,9 +3321,7 @@
     }
 
     function getHistoryTemplateName(item) {
-      if (item.templateName) return item.templateName;
-      if (item.templateId && templates[item.templateId]) return templates[item.templateId].name;
-      return 'Флеш-картка';
+      return item.templateName || templates[item.templateId]?.name || 'Картка';
     }
 
     function renderHistory(history = getActiveTemplateHistory(getLocalHistory())) {
@@ -3842,15 +3703,9 @@
       toggleAuthDropdown();
     });
     openEmotionListBtn.addEventListener('click', () => openEmotionModal(thoughtForm.elements.emotion));
-    openFeelingsEmotionListBtn.addEventListener('click', () => openEmotionModal(schemaForm.elements.feelings));
     closeEmotionModalBtn.addEventListener('click', closeEmotionModal);
-    openSchemaListBtn.addEventListener('click', openSchemaModal);
-    closeSchemaModalBtn.addEventListener('click', closeSchemaModal);
     emotionModalOverlay.addEventListener('click', (event) => {
       if (event.target === emotionModalOverlay) closeEmotionModal();
-    });
-    schemaModalOverlay.addEventListener('click', (event) => {
-      if (event.target === schemaModalOverlay) closeSchemaModal();
     });
     emotionModalOverlay.querySelectorAll('.emotion-chip').forEach((chip) => {
       chip.addEventListener('click', () => {
@@ -3866,22 +3721,6 @@
 
         setEmotionValue(emotions);
         syncEmotionChipsState();
-      });
-    });
-    schemaModalOverlay.querySelectorAll('.schema-chip').forEach((chip) => {
-      chip.addEventListener('click', () => {
-        const schemaValue = chip.dataset.schema || chip.textContent.trim();
-        const schemas = parseSchemaValue();
-        const index = schemas.findIndex((item) => item.toLowerCase() === schemaValue.toLowerCase());
-
-        if (index >= 0) {
-          schemas.splice(index, 1);
-        } else {
-          schemas.push(schemaValue);
-        }
-
-        setSchemaValue(schemas);
-        syncSchemaChipsState();
       });
     });
     historyList.addEventListener('dragover', (event) => {
@@ -3974,7 +3813,7 @@
       }
     });
     editPreviewBtn.addEventListener('click', () => {
-      if (!currentPreviewItem || currentPreviewItem.isShared || currentPreviewItem.isRead) return;
+      if (!currentPreviewItem || currentPreviewItem.isShared || currentPreviewItem.isRead || !allForms[currentPreviewItem.templateId]) return;
       const itemToEdit = currentPreviewItem;
       closeImagePreview();
       startEditItem(itemToEdit);
@@ -3991,7 +3830,6 @@
       if (event.key === 'Escape' && !tabSettingsDropdown.classList.contains('hidden')) closeTabSettingsDropdown();
       if (event.key === 'Escape') closeHistoryMenus();
       if (event.key === 'Escape' && !emotionModalOverlay.classList.contains('hidden')) closeEmotionModal();
-      if (event.key === 'Escape' && !schemaModalOverlay.classList.contains('hidden')) closeSchemaModal();
     });
     window.addEventListener('hashchange', openSharedCardFromUrl);
     window.addEventListener('resize', repositionActiveHistoryMenu);
