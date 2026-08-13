@@ -3,19 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Терапевтичний журнал | Запис думок і примітки</title>
+  <title>Терапевтичний журнал | Запис думок і ситуація для психолога</title>
+  <meta name="description" content="Особистий терапевтичний журнал: запис думок і ситуація для психолога.">
   <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="googlebot" content="noindex, nofollow, noarchive">
-  <meta property="og:title" content="Терапевтичний журнал | Запис думок і примітки">
-  <meta property="og:description" content="Інструмент для ведення терапевтичних записів зі збереженням архіву та експортом у PNG.">
+  <meta property="og:title" content="Терапевтичний журнал | Запис думок і ситуація для психолога">
+  <meta property="og:description" content="Інструмент для ведення терапевтичних записів зі збереженням і експортом у PNG.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="uk_UA">
-  <meta property="og:image" content="https://dummyimage.com/1200x630/f6f1ff/4c1d95.png&text=%D0%A2%D0%B5%D1%80%D0%B0%D0%BF%D0%B5%D0%B2%D1%82%D0%B8%D1%87%D0%BD%D1%96+%D0%BA%D0%B0%D1%80%D1%82%D0%BA%D0%B8">
-  <meta property="og:image:alt" content="Терапевтичний журнал: запис думок і примітки">
+  <meta property="og:image" content="https://dummyimage.com/1200x630/18181b/ffffff.png&text=%D0%A2%D0%B5%D1%80%D0%B0%D0%BF%D0%B5%D0%B2%D1%82%D0%B8%D1%87%D0%BD%D0%B8%D0%B9+%D0%B6%D1%83%D1%80%D0%BD%D0%B0%D0%BB">
+  <meta property="og:image:alt" content="Терапевтичний журнал: запис думок і ситуація для психолога">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2318181B'/%3E%3Cpath fill='%23ffffff' d='M20 14h16l12 12v26a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4zm16 2.8V28h11.2L36 16.8zM24 36h16v3.2H24V36zm0 8h16V47.2H24V44z'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2318181B'/%3E%3Cpath fill='%23ffffff' fill-rule='evenodd' d='M14 14h36a6 6 0 0 1 6 6v20a6 6 0 0 1-6 6H37.2L25.6 55.2c-1.5 1.3-3.8.2-3.8-1.8V46H14a6 6 0 0 1-6-6V20a6 6 0 0 1 6-6zm18 26.4 6.6-6a5 5 0 1 0-6.6-7.5 5 5 0 1 0-6.6 7.5l6.6 6z'/%3E%3C/svg%3E">
   <style>
     :root {
       --color-primary: #18181b;
@@ -118,14 +119,20 @@
     }
 
     .brand-mark {
-      width: 36px;
-      height: 36px;
-      flex: 0 0 36px;
-      border-radius: 10px;
+      width: 40px;
+      height: 40px;
+      flex: 0 0 40px;
+      border-radius: 12px;
       background: var(--color-primary);
       color: var(--color-on-primary);
       display: grid;
       place-items: center;
+    }
+
+    .brand-mark svg {
+      width: 22px;
+      height: 22px;
+      display: block;
     }
 
     .brand-copy {
@@ -354,9 +361,10 @@
       color: var(--color-foreground);
       padding: 10px 12px;
       font-size: 14px;
-      line-height: 1.2;
+      line-height: 1.25;
       font-weight: 600;
       text-align: left;
+      white-space: normal;
     }
 
     .template-tab:hover:not(:disabled):not(.is-active) {
@@ -1356,8 +1364,10 @@
         flex: 1;
         justify-content: center;
         text-align: center;
-        font-size: 13px;
-        padding: 10px 6px;
+        font-size: 12px;
+        line-height: 1.25;
+        padding: 8px 6px;
+        min-height: 48px;
       }
 
       body[data-view="compose"] .history {
@@ -1512,8 +1522,8 @@
     <header class="topbar">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <path fill="currentColor" d="M7 3h8l5 5v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm8 1.8V9h4.2L15 4.8ZM8 12h8v1.5H8V12Zm0 3.5h8V17H8v-1.5Z"/>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" fill-rule="evenodd" d="M5 4h14a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-5.15L9.2 21.4c-.62.52-1.55.08-1.55-.7V18H5a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3Zm7 11.15 2.85-2.58a2.05 2.05 0 0 0-2.85-2.95 2.05 2.05 0 0 0-2.85 2.95L12 15.15Z"/>
           </svg>
         </span>
         <div class="brand-copy">
@@ -1555,7 +1565,7 @@
             <p class="tab-settings-title">Типи записів</p>
             <div class="tab-settings-options">
               <button type="button" class="tab-toggle is-enabled" data-tab-toggle="thought">Запис думок: увімкнено</button>
-              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="note">Примітки: увімкнено</button>
+              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="note">Ситуація для психолога: увімкнено</button>
             </div>
           </section>
         </div>
@@ -1569,12 +1579,12 @@
             <label>Тип запису</label>
             <div class="template-tabs" id="templateTabs" role="tablist" aria-label="Тип запису">
               <button type="button" class="template-tab is-active" data-template="thought" role="tab" aria-selected="true">Запис думок</button>
-              <button type="button" class="template-tab" data-template="note" role="tab" aria-selected="false">Примітки</button>
+              <button type="button" class="template-tab" data-template="note" role="tab" aria-selected="false">Ситуація для психолога</button>
             </div>
           </div>
         </div>
         <section class="history">
-          <h2>Архів</h2>
+          <h2>Збережені записи</h2>
           <div class="export-selection-bar hidden" id="exportSelectionBar">
             <p id="exportSelectionStatus">Оберіть записи для TXT</p>
             <div class="export-selection-actions">
@@ -1638,8 +1648,8 @@
 
             <form id="noteForm" class="form-page hidden">
               <div class="field">
-                <label for="noteText">Примітка</label>
-                <textarea id="noteText" name="noteText" rows="4"></textarea>
+                <label for="noteText">Ситуація для психолога</label>
+                <textarea id="noteText" name="noteText" rows="6"></textarea>
               </div>
             </form>
           </section>
@@ -1663,9 +1673,9 @@
         </button>
         <button type="button" id="mobileHistoryBtn">
           <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M5 5h14v2H5V5Zm0 6h14v2H5v-2Zm0 6h10v2H5v-2Z"/>
+            <path fill="currentColor" d="M7 3h10a1.5 1.5 0 0 1 1.5 1.5V21l-6.5-3.4L5.5 21V4.5A1.5 1.5 0 0 1 7 3Z"/>
           </svg>
-          Архів
+          Збережені
         </button>
         <button type="button" id="mobileAccountBtn">
           <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1680,7 +1690,7 @@
 
   <div class="modal-overlay hidden" id="deleteModalOverlay" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
-      <p id="deleteModalTitle">Видалити цей запис з архіву?</p>
+      <p id="deleteModalTitle">Видалити цей запис зі збережених?</p>
       <div class="modal-actions">
         <button type="button" class="secondary" id="cancelDeleteBtn">Скасувати</button>
         <button type="button" id="confirmDeleteBtn">Видалити</button>
@@ -1946,7 +1956,7 @@
     const creatableTemplateIds = ['thought', 'note'];
     const templates = {
       schema: {
-        name: 'Архівний запис',
+        name: 'Попередній запис',
         subtitle: 'Новий досвід дозволить укріпити<br>Здорову дорослу частину',
         draftKey: 'flashCardDraft_schema',
         requiredFields: ['feelings', 'trigger', 'schema', 'past', 'distortion', 'healthyAdult', 'hardMoment', 'choice'],
@@ -1977,12 +1987,12 @@
         ],
       },
       note: {
-        name: 'Примітки',
-        subtitle: 'Короткі робочі примітки',
+        name: 'Ситуація для психолога',
+        subtitle: 'Опис ситуації, яким можна поділитися з психологом',
         draftKey: 'flashCardDraft_note',
         requiredFields: ['noteText'],
         fields: [
-          { label: 'Примітка', key: 'noteText' },
+          { label: 'Ситуація для психолога', key: 'noteText' },
         ],
       },
     };
@@ -2540,7 +2550,7 @@
         const isSaved = await saveHistoryItem(item);
         if (!isSaved) return;
         clearDraft();
-        savedState.textContent = `«${getActiveTemplate().name}» додано до архіву. PNG можна завантажити з архіву.`;
+        savedState.textContent = `«${getActiveTemplate().name}» збережено. PNG можна завантажити зі збережених записів.`;
         showToast('Запис збережено');
         setAppView('history');
       } finally {
@@ -2569,7 +2579,7 @@
       if (!item.textValues) {
         const emptyText = document.createElement('p');
         emptyText.className = 'preview-empty';
-        emptyText.textContent = 'Текстовий перегляд доступний для нових записів. Цей архівний запис можна завантажити як PNG.';
+        emptyText.textContent = 'Текстовий перегляд доступний для нових записів. Цей запис можна завантажити як PNG.';
         previewContent.appendChild(emptyText);
         return;
       }
@@ -3140,7 +3150,7 @@
         totalHistoryItems = Number(data.total) || 0;
         return sortHistory((data.items || []).filter(isValidHistoryItem).map(normalizeHistoryItem));
       } catch (error) {
-        savedState.textContent = `Не вдалося завантажити хмарний архів: ${error.message}`;
+        savedState.textContent = `Не вдалося завантажити збережені записи: ${error.message}`;
         totalHistoryItems = 0;
         return [];
       }
@@ -3731,7 +3741,7 @@
         openAuthFromMenuBtn.classList.add('hidden');
         authUser.textContent = currentUser.email;
         accountStatus.textContent = `Ви увійшли як ${currentUser.email}`;
-        setAuthStatus('Ви увійшли. Архів записів синхронізується між пристроями.');
+        setAuthStatus('Ви увійшли. Збережені записи синхронізуються між пристроями.');
         closeAuthModal();
       } else {
         authForm.classList.remove('hidden');
@@ -3797,7 +3807,7 @@
       currentUser = null;
       updateAuthUi();
       await refreshHistory({ resetPage: true });
-      savedState.textContent = 'Ви вийшли з профілю. Показано локальний архів цього браузера.';
+      savedState.textContent = 'Ви вийшли з профілю. Показано локальні записи цього браузера.';
     }
 
     async function migrateLocalHistoryToCloud() {
@@ -3825,7 +3835,7 @@
         setAuthStatus('Локальні записи перенесено в профіль.');
         await refreshHistory({ resetPage: true });
       } catch (error) {
-        setAuthStatus(`Не вдалося перенести локальний архів: ${error.message}`);
+        setAuthStatus(`Не вдалося перенести локальні записи: ${error.message}`);
       }
     }
 
