@@ -467,6 +467,7 @@
     .composer {
       min-height: 0;
       overflow: auto;
+      overflow-anchor: none;
       display: flex;
       flex-direction: column;
     }
@@ -574,7 +575,8 @@
       white-space: pre-wrap;
       overflow-wrap: anywhere;
       word-break: break-word;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      overflow-anchor: none;
+      transition: border-color 0.2s ease;
     }
 
     #noteForm .field {
@@ -596,9 +598,11 @@
       font-size: 16px;
     }
 
-    textarea:focus {
-      border-color: var(--color-ring);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    textarea:focus,
+    textarea:focus-visible {
+      border-color: var(--color-border);
+      box-shadow: none;
+      outline: none;
     }
 
     textarea::placeholder {
@@ -635,7 +639,6 @@
     }
 
     button:focus-visible,
-    textarea:focus-visible,
     input:focus-visible,
     .template-tab:focus-visible,
     .emotion-chip:focus-visible {
@@ -1640,7 +1643,7 @@
           </section>
 
           <section class="form-shell">
-            <form id="thoughtForm" class="form-page hidden">
+            <form id="thoughtForm" class="form-page hidden" autocomplete="off">
               <div class="field">
                 <label for="situation">Ситуація</label>
                 <textarea id="situation" name="situation" rows="2"></textarea>
@@ -1674,7 +1677,7 @@
               </div>
             </form>
 
-            <form id="noteForm" class="form-page">
+            <form id="noteForm" class="form-page" autocomplete="off">
               <div class="field">
                 <label for="noteText">Ситуація для психолога</label>
                 <textarea id="noteText" name="noteText" rows="10"></textarea>
@@ -1979,6 +1982,7 @@
     let activeHistoryMenu = null;
     let activeHistoryMenuToggle = null;
     let isExportSelectionMode = false;
+    let suppressComposerAutofocus = false;
     const selectedExportIds = new Set();
     const expandedHistoryIds = new Set();
 
@@ -2152,6 +2156,24 @@
 
     function afterLayout(callback) {
       requestAnimationFrame(() => requestAnimationFrame(callback));
+    }
+
+    function blurComposerFields() {
+      const active = document.activeElement;
+      if (active && composer.contains(active) && active !== composer && typeof active.blur === 'function') {
+        active.blur();
+      }
+    }
+
+    function keepComposerFromAutofocus(callback) {
+      suppressComposerAutofocus = true;
+      blurComposerFields();
+      if (typeof callback === 'function') callback();
+      afterLayout(() => {
+        blurComposerFields();
+        composer.scrollTop = 0;
+        suppressComposerAutofocus = false;
+      });
     }
 
     function bindAutoResize() {
@@ -2900,6 +2922,10 @@
 
     function setAppView(view) {
       const nextView = view === 'history' ? 'history' : 'compose';
+      if (nextView === 'compose') {
+        suppressComposerAutofocus = true;
+        blurComposerFields();
+      }
       document.body.dataset.view = nextView;
       mobileComposeBtn.classList.toggle('is-active', nextView === 'compose');
       mobileHistoryBtn.classList.toggle('is-active', nextView === 'history');
@@ -2907,6 +2933,7 @@
       mobileComposeBtn.setAttribute('aria-current', nextView === 'compose' ? 'page' : 'false');
       mobileHistoryBtn.setAttribute('aria-current', nextView === 'history' ? 'page' : 'false');
       if (nextView === 'history') {
+        blurComposerFields();
         afterLayout(() => {
           updateHistoryCardOverflow();
           const focusId = lastOpenedHistoryId || editingItem?.id;
@@ -2920,7 +2947,7 @@
         });
         return;
       }
-      afterLayout(resizeActiveTextareas);
+      keepComposerFromAutofocus(resizeActiveTextareas);
     }
 
     function startEditItem(item) {
@@ -2935,10 +2962,7 @@
       fillFormValues(getActiveForm(), item.textValues || {});
       setEditingItem(item);
       savedState.textContent = '';
-      afterLayout(() => {
-        resizeActiveTextareas();
-        composer.scrollTo({ top: 0, behavior: 'smooth' });
-      });
+      keepComposerFromAutofocus(resizeActiveTextareas);
     }
 
     function triggerImageDownload(imageData, createdAt, templateId = 'card') {
@@ -4082,7 +4106,7 @@
       if (event.key === 'Escape') closeHistoryMenus();
       if (event.key === 'Escape' && !emotionModalOverlay.classList.contains('hidden')) closeEmotionModal();
     });
-    window.addEventListener('hashchange', openSharedCardFromUrl);
+    window.addEventListener('pageshow', () => keepComposerFromAutofocus());
     window.addEventListener('resize', () => {
       repositionActiveHistoryMenu();
       resizeActiveTextareas();
@@ -4091,8 +4115,13 @@
     window.addEventListener('scroll', repositionActiveHistoryMenu, true);
 
     bindAutoResize();
+    composer.addEventListener('focusin', (event) => {
+      if (!suppressComposerAutofocus) return;
+      if (event.target.matches('textarea, input')) event.target.blur();
+    });
     setAppView('compose');
     setActiveTemplate(activeTemplateId, { skipHistoryRefresh: true });
+    keepComposerFromAutofocus();
     initializeAuth();
     openSharedCardFromUrl();
   </script>
