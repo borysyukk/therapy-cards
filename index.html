@@ -1264,7 +1264,7 @@
     <div class="modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
       <p id="authModalTitle">Вхід в акаунт</p>
       <section class="auth-panel" aria-label="Вхід в акаунт">
-        <p class="auth-status" id="authStatus">Підключення акаунта...</p>
+        <p class="auth-status" id="authStatus">Увійдіть, щоб синхронізувати картки.</p>
         <form class="auth-form" id="authForm">
           <input id="authEmail" name="email" type="email" autocomplete="email" placeholder="Email">
           <input id="authPassword" name="password" type="password" autocomplete="current-password" placeholder="Пароль">
@@ -1426,7 +1426,6 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const pageTitle = document.getElementById('pageTitle');
     const pageSubtitle = document.getElementById('pageSubtitle');
@@ -1493,8 +1492,6 @@
     const sharedCardPathPrefix = 'card/';
     const historyPageSize = 12;
     const pngDataUrlPrefix = 'data:image/png;base64,';
-    const supabaseUrl = 'https://hghelibiofeoylmxvhcq.supabase.co';
-    const supabaseAnonKey = 'sb_publishable_KPk2PLJX6dPaPk9hhHhN-Q_qG2IMt1d';
     const iconSvg = {
       download: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v8.6l2.3-2.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4l2.3 2.3V4a1 1 0 0 1 1-1ZM5 19a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Z"/></svg>',
       preview: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5C6.5 5 2.1 8.1.2 12c1.9 3.9 6.3 7 11.8 7s9.9-3.1 11.8-7c-1.9-3.9-6.3-7-11.8-7Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-2.2a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"/></svg>',
@@ -1505,15 +1502,23 @@
       up: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5a1 1 0 0 1 .7.3l6 6a1 1 0 0 1-1.4 1.4L13 8.4V19a1 1 0 1 1-2 0V8.4l-4.3 4.3a1 1 0 0 1-1.4-1.4l6-6A1 1 0 0 1 12 5Z"/></svg>',
       down: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 19a1 1 0 0 1-.7-.3l-6-6a1 1 0 1 1 1.4-1.4L11 15.6V5a1 1 0 1 1 2 0v10.6l4.3-4.3a1 1 0 0 1 1.4 1.4l-6 6a1 1 0 0 1-.7.3Z"/></svg>',
     };
-    const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey && window.supabase);
-    const supabaseClient = isSupabaseConfigured
-      ? window.supabase.createClient(supabaseUrl, supabaseAnonKey, {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
         },
-      })
-      : null;
+        method: options.method || 'GET',
+        body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || `Помилка сервера (${response.status})`);
+      }
+      return data;
+    }
+
     let pendingDeleteId = null;
     let pendingUnreadItem = null;
     let activeTemplateId = 'schema';
@@ -2091,16 +2096,18 @@
 
       try {
         const values = saveDraft();
-        const createdAt = new Date().toISOString();
-        const canvas = buildFlashCardImage(values, createdAt);
-        const imageData = canvas.toDataURL('image/png');
+        const createdAt = editingItem?.createdAt || new Date().toISOString();
+        const needsLocalImage = !currentUser;
+        const imageData = needsLocalImage
+          ? buildFlashCardImage(values, createdAt).toDataURL('image/png')
+          : '';
         if (editingItem) {
           const currentEditingItem = editingItem;
           const updatedItem = {
             ...currentEditingItem,
             templateId: activeTemplateId,
             templateName: getActiveTemplate().name,
-            imageData,
+            imageData: imageData || currentEditingItem.imageData,
             textValues: withPriorityMetadata(values, getItemPriority(currentEditingItem)),
             isPriority: getItemPriority(currentEditingItem),
           };
@@ -2114,7 +2121,7 @@
         }
 
         const item = {
-          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           createdAt,
           templateId: activeTemplateId,
           templateName: getActiveTemplate().name,
@@ -2286,27 +2293,25 @@
     }
 
     async function buildShareUrl(item) {
-      if (!supabaseClient) return buildLegacyShareUrl(item);
-
       const slug = generateShareSlug(item);
-      const { error } = await supabaseClient
-        .from('shared_cards')
-        .insert({
-          slug,
-          template_id: item.templateId,
-          template_name: item.templateName || getHistoryTemplateName(item),
-          description: truncateText(getShareDescription(item), 160),
-          text_values: getShareableTextValues(item),
+      try {
+        await api('/api/share', {
+          method: 'POST',
+          body: {
+            slug,
+            template_id: item.templateId,
+            template_name: item.templateName || getHistoryTemplateName(item),
+            description: truncateText(getShareDescription(item), 160),
+            text_values: getShareableTextValues(item),
+          },
         });
-
-      if (error) {
-        throw new Error(error.message);
+        const url = new URL(window.location.href);
+        url.search = '';
+        url.hash = `${sharedCardPathPrefix}${slug}`;
+        return url.toString();
+      } catch (error) {
+        return buildLegacyShareUrl(item);
       }
-
-      const url = new URL(window.location.href);
-      url.search = '';
-      url.hash = `${sharedCardPathPrefix}${slug}`;
-      return url.toString();
     }
 
     async function shareCard(item) {
@@ -2332,33 +2337,23 @@
     }
 
     async function openShortSharedCard(slug) {
-      if (!supabaseClient) {
-        savedState.textContent = 'Не вдалося відкрити короткий лінк: Supabase не налаштовано.';
-        return;
-      }
-
-      const { data, error } = await supabaseClient
-        .from('shared_cards')
-        .select('slug, created_at, template_id, template_name, text_values')
-        .eq('slug', slug)
-        .single();
-
-      if (error) {
+      try {
+        const data = await api(`/api/share/${encodeURIComponent(slug)}`);
+        const item = data.item || {};
+        const template = getTemplateById(item.template_id);
+        openCardPreview({
+          id: item.id || slug,
+          createdAt: item.created_at || new Date().toISOString(),
+          templateId: item.template_id || 'schema',
+          templateName: item.template_name || template.name,
+          textValues: item.text_values || {},
+          isRead: false,
+          isPriority: false,
+          isShared: true,
+        });
+      } catch (error) {
         savedState.textContent = 'Не вдалося відкрити поширену картку. Можливо, лінк неправильний.';
-        return;
       }
-
-      const template = getTemplateById(data.template_id);
-      openCardPreview({
-        id: data.slug,
-        createdAt: data.created_at || new Date().toISOString(),
-        templateId: data.template_id || 'schema',
-        templateName: data.template_name || template.name,
-        textValues: data.text_values || {},
-        isRead: false,
-        isPriority: false,
-        isShared: true,
-      });
     }
 
     function openLegacySharedCard(value) {
@@ -2446,6 +2441,15 @@
       link.download = `${templateId}-${stamp}.png`;
       link.href = imageData;
       link.click();
+    }
+
+    function downloadHistoryPng(item) {
+      if (item.imageData && item.imageData.startsWith(pngDataUrlPrefix)) {
+        triggerImageDownload(item.imageData, item.createdAt, item.templateId || 'card');
+        return;
+      }
+      const canvas = buildFlashCardImage(item.textValues || {}, item.createdAt);
+      triggerImageDownload(canvas.toDataURL('image/png'), item.createdAt, item.templateId || 'card');
     }
 
     function isExportableHistoryItem(item) {
@@ -2562,13 +2566,13 @@
     }
 
     function isValidHistoryItem(item) {
-      return (
-        item
-        && typeof item.id === 'string'
-        && typeof (item.createdAt || item.created_at) === 'string'
-        && typeof (item.imageData || item.image_data) === 'string'
-        && (item.imageData || item.image_data).startsWith(pngDataUrlPrefix)
-      );
+      if (!item || typeof item.id !== 'string') return false;
+      const createdAt = item.createdAt || item.created_at;
+      if (typeof createdAt !== 'string') return false;
+      const imageData = item.imageData || item.image_data;
+      const textValues = item.textValues || item.text_values;
+      if (typeof imageData === 'string' && imageData.startsWith(pngDataUrlPrefix)) return true;
+      return Boolean(textValues && typeof textValues === 'object');
     }
 
     function getActiveTemplateHistory(history) {
@@ -2707,25 +2711,16 @@
     }
 
     async function getCloudHistory() {
-      if (!supabaseClient || !currentUser) return [];
-      const from = getHistoryPageStart();
-      const to = from + historyPageSize - 1;
-      const { data, error, count } = await supabaseClient
-        .from('cards')
-        .select('id, created_at, template_id, template_name, image_data, text_values, is_read, sort_order', { count: 'exact' })
-        .eq('template_id', activeTemplateId)
-        .order('sort_order', { ascending: true, nullsFirst: false })
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
-      if (error) {
+      if (!currentUser) return [];
+      try {
+        const data = await api(`/api/cards?template_id=${encodeURIComponent(activeTemplateId)}&page=${currentHistoryPage}&page_size=${historyPageSize}`);
+        totalHistoryItems = Number(data.total) || 0;
+        return sortHistory((data.items || []).filter(isValidHistoryItem).map(normalizeHistoryItem));
+      } catch (error) {
         savedState.textContent = `Не вдалося завантажити хмарну історію: ${error.message}`;
         totalHistoryItems = 0;
         return [];
       }
-
-      totalHistoryItems = Number.isFinite(count) ? count : (data || []).length;
-      return sortHistory((data || []).filter(isValidHistoryItem).map(normalizeHistoryItem));
     }
 
     async function refreshHistory(options = {}) {
@@ -2747,32 +2742,31 @@
     }
 
     async function saveHistoryItem(item) {
-      if (!item.imageData || !item.imageData.startsWith(pngDataUrlPrefix)) {
-        savedState.textContent = 'Не вдалося зберегти картинку: некоректний формат.';
-        return;
-      }
-
-      if (supabaseClient && currentUser) {
-        const { error } = await supabaseClient
-          .from('cards')
-          .insert({
-            user_id: currentUser.id,
-            created_at: item.createdAt,
-            template_id: item.templateId,
-            template_name: item.templateName,
-            image_data: item.imageData,
-            text_values: withPriorityMetadata(item.textValues, getItemPriority(item)),
-            is_read: false,
-            sort_order: item.sortOrder,
+      if (currentUser) {
+        try {
+          await api('/api/cards', {
+            method: 'POST',
+            body: {
+              id: item.id,
+              created_at: item.createdAt,
+              template_id: item.templateId,
+              template_name: item.templateName,
+              text_values: withPriorityMetadata(item.textValues, getItemPriority(item)),
+              is_read: false,
+              sort_order: item.sortOrder,
+            },
           });
-
-        if (error) {
+          await refreshHistory({ resetPage: true });
+          return true;
+        } catch (error) {
           savedState.textContent = `Не вдалося зберегти в акаунт: ${error.message}`;
           return false;
         }
+      }
 
-        await refreshHistory({ resetPage: true });
-        return true;
+      if (!item.imageData || !item.imageData.startsWith(pngDataUrlPrefix)) {
+        savedState.textContent = 'Не вдалося зберегти картинку: некоректний формат.';
+        return;
       }
 
       const history = getLocalHistory();
@@ -2783,25 +2777,23 @@
     }
 
     async function updateHistoryItem(item) {
-      if (supabaseClient && currentUser) {
-        const { error } = await supabaseClient
-          .from('cards')
-          .update({
-            template_id: item.templateId,
-            template_name: item.templateName,
-            image_data: item.imageData,
-            text_values: withPriorityMetadata(item.textValues, getItemPriority(item)),
-            sort_order: item.sortOrder,
-          })
-          .eq('id', item.id);
-
-        if (error) {
+      if (currentUser) {
+        try {
+          await api(`/api/cards/${encodeURIComponent(item.id)}`, {
+            method: 'PATCH',
+            body: {
+              template_id: item.templateId,
+              template_name: item.templateName,
+              text_values: withPriorityMetadata(item.textValues, getItemPriority(item)),
+              sort_order: item.sortOrder,
+            },
+          });
+          await refreshHistory();
+          return true;
+        } catch (error) {
           savedState.textContent = `Не вдалося оновити картку: ${error.message}`;
           return false;
         }
-
-        await refreshHistory();
-        return true;
       }
 
       const history = getLocalHistory().map((historyItem) => (
@@ -2815,18 +2807,16 @@
     async function toggleReadStatus(item) {
       const nextValue = !item.isRead;
 
-      if (supabaseClient && currentUser) {
-        const { error } = await supabaseClient
-          .from('cards')
-          .update({ is_read: nextValue })
-          .eq('id', item.id);
-
-        if (error) {
+      if (currentUser) {
+        try {
+          await api(`/api/cards/${encodeURIComponent(item.id)}`, {
+            method: 'PATCH',
+            body: { is_read: nextValue },
+          });
+          await refreshHistory();
+        } catch (error) {
           savedState.textContent = `Не вдалося оновити статус: ${error.message}`;
-          return;
         }
-
-        await refreshHistory();
         return;
       }
 
@@ -2846,21 +2836,19 @@
         sortOrder: getSortValue(item),
       };
 
-      if (supabaseClient && currentUser) {
-        const { error } = await supabaseClient
-          .from('cards')
-          .update({
-            text_values: updatedItem.textValues,
-            sort_order: updatedItem.sortOrder,
-          })
-          .eq('id', item.id);
-
-        if (error) {
+      if (currentUser) {
+        try {
+          await api(`/api/cards/${encodeURIComponent(item.id)}`, {
+            method: 'PATCH',
+            body: {
+              text_values: updatedItem.textValues,
+              sort_order: updatedItem.sortOrder,
+            },
+          });
+          await refreshHistory();
+        } catch (error) {
           savedState.textContent = `Не вдалося оновити пріоритет: ${error.message}`;
-          return;
         }
-
-        await refreshHistory();
         return;
       }
 
@@ -2872,12 +2860,13 @@
     }
 
     async function persistSortOrder(items) {
-      if (supabaseClient && currentUser) {
-        const updates = await Promise.all(items.map((item) => (
-          supabaseClient.from('cards').update({ sort_order: item.sortOrder }).eq('id', item.id)
-        )));
-        const failedUpdate = updates.find((update) => update.error);
-        if (failedUpdate) throw failedUpdate.error;
+      if (currentUser) {
+        await api('/api/cards/reorder', {
+          method: 'POST',
+          body: {
+            items: items.map((item) => ({ id: item.id, sort_order: item.sortOrder })),
+          },
+        });
         return;
       }
 
@@ -2936,18 +2925,13 @@
     }
 
     async function deleteHistoryItem(id) {
-      if (supabaseClient && currentUser) {
-        const { error } = await supabaseClient
-          .from('cards')
-          .delete()
-          .eq('id', id);
-
-        if (error) {
+      if (currentUser) {
+        try {
+          await api(`/api/cards/${encodeURIComponent(id)}`, { method: 'DELETE' });
+          await refreshHistory();
+        } catch (error) {
           savedState.textContent = `Не вдалося видалити картку: ${error.message}`;
-          return;
         }
-
-        await refreshHistory();
         return;
       }
 
@@ -3204,7 +3188,7 @@
           return button;
         }
 
-        addMenuAction('Скачати PNG', () => triggerImageDownload(item.imageData, item.createdAt, item.templateId || 'card'), { disableWhenRead: true });
+        addMenuAction('Скачати PNG', () => downloadHistoryPng(item), { disableWhenRead: true });
         if (item.templateId !== 'note') {
           addMenuAction('Відкрити', () => openCardPreview(item), { disableWhenRead: true });
         }
@@ -3298,15 +3282,6 @@
     }
 
     function updateAuthUi() {
-      if (!isSupabaseConfigured) {
-        authForm.classList.add('hidden');
-        authActions.classList.add('hidden');
-        accountStatus.textContent = 'Supabase ще не налаштовано.';
-        setAuthStatus('Supabase ще не налаштовано. Після додавання URL і anon key тут буде вхід по email і паролю.');
-        updateMigrationButton();
-        return;
-      }
-
       if (currentUser) {
         authForm.classList.add('hidden');
         authActions.classList.remove('hidden');
@@ -3329,7 +3304,6 @@
     }
 
     async function signInWithPassword() {
-      if (!supabaseClient) return;
       const email = authEmail.value.trim();
       const password = authPassword.value;
       if (!email || !password) {
@@ -3338,17 +3312,18 @@
       }
 
       setAuthStatus('Входимо...');
-      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) {
+      try {
+        const data = await api('/api/auth/signin', { method: 'POST', body: { email, password } });
+        currentUser = data.user;
+        authPassword.value = '';
+        updateAuthUi();
+        await refreshHistory({ resetPage: true });
+      } catch (error) {
         setAuthStatus(`Не вдалося увійти: ${error.message}`);
-        return;
       }
-
-      authPassword.value = '';
     }
 
     async function signUpWithPassword() {
-      if (!supabaseClient) return;
       const email = authEmail.value.trim();
       const password = authPassword.value;
       if (!email || !password) {
@@ -3357,76 +3332,69 @@
       }
 
       setAuthStatus('Створюємо акаунт...');
-      const { error } = await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin,
-        },
-      });
-      if (error) {
+      try {
+        const data = await api('/api/auth/signup', { method: 'POST', body: { email, password } });
+        currentUser = data.user;
+        authPassword.value = '';
+        updateAuthUi();
+        await refreshHistory({ resetPage: true });
+        setAuthStatus('Акаунт створено. Картки зберігатимуться в хмарі.');
+      } catch (error) {
         setAuthStatus(`Не вдалося зареєструватися: ${error.message}`);
-        return;
       }
-
-      authPassword.value = '';
-      setAuthStatus('Акаунт створено. Якщо Supabase просить підтвердження, перевірте пошту.');
     }
 
     async function signOut() {
-      if (!supabaseClient) return;
       closeAuthDropdown();
-      await supabaseClient.auth.signOut();
+      try {
+        await api('/api/auth/signout', { method: 'POST' });
+      } catch (error) {
+        // Local sign-out still proceeds if the session is already gone.
+      }
+      currentUser = null;
+      updateAuthUi();
+      await refreshHistory({ resetPage: true });
       savedState.textContent = 'Ви вийшли з акаунта. Показана локальна історія цього браузера.';
     }
 
     async function migrateLocalHistoryToCloud() {
-      if (!supabaseClient || !currentUser) return;
+      if (!currentUser) return;
       const localHistory = getLocalHistory();
       if (!localHistory.length) return;
 
       setAuthStatus('Переносимо локальні картки в акаунт...');
-      const rows = localHistory.map((item) => ({
-        user_id: currentUser.id,
-        created_at: item.createdAt,
-        template_id: item.templateId || 'card',
-        template_name: getHistoryTemplateName(item),
-        image_data: item.imageData,
-        text_values: withPriorityMetadata(item.textValues, getItemPriority(item)),
-        is_read: item.isRead || false,
-        sort_order: Number.isFinite(item.sortOrder) ? item.sortOrder : getSortValue(item),
-      }));
-      const { error } = await supabaseClient.from('cards').insert(rows);
-      if (error) {
+      try {
+        await api('/api/cards/batch', {
+          method: 'POST',
+          body: {
+            items: localHistory.map((item) => ({
+              id: item.id,
+              created_at: item.createdAt,
+              template_id: item.templateId || 'card',
+              template_name: getHistoryTemplateName(item),
+              text_values: withPriorityMetadata(item.textValues, getItemPriority(item)),
+              is_read: item.isRead || false,
+              sort_order: Number.isFinite(item.sortOrder) ? item.sortOrder : getSortValue(item),
+            })),
+          },
+        });
+        localStorage.removeItem(historyKey);
+        setAuthStatus('Локальні картки перенесено в акаунт.');
+        await refreshHistory({ resetPage: true });
+      } catch (error) {
         setAuthStatus(`Не вдалося перенести локальну історію: ${error.message}`);
-        return;
       }
-
-      localStorage.removeItem(historyKey);
-      setAuthStatus('Локальні картки перенесено в акаунт.');
-      await refreshHistory();
     }
 
     async function initializeAuth() {
-      if (!supabaseClient) {
-        updateAuthUi();
-        await refreshHistory();
-        return;
+      try {
+        const data = await api('/api/auth/me');
+        currentUser = data.user || null;
+      } catch (error) {
+        currentUser = null;
       }
-
-      const { data, error } = await supabaseClient.auth.getSession();
-      if (error) {
-        setAuthStatus(`Не вдалося перевірити сесію: ${error.message}`);
-      }
-      currentUser = data.session ? data.session.user : null;
       updateAuthUi();
       await refreshHistory();
-
-      supabaseClient.auth.onAuthStateChange((_event, session) => {
-        currentUser = session ? session.user : null;
-        updateAuthUi();
-        refreshHistory();
-      });
     }
 
     function clearDraft() {

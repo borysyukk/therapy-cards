@@ -1,0 +1,16 @@
+{
+  "name": "therapy-cards",
+  "compatibility_date": "2026-08-13",
+  "pages_build_output_dir": ".",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "therapy-cards",
+      "database_id": "fabdec32-0374-45db-9667-56d4b979c97b",
+      "preview_database_id": "DB"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
