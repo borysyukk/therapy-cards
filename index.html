@@ -49,7 +49,7 @@
       --space-3: 24px;
       --space-4: 32px;
       --topbar-height: 64px;
-      --mobile-nav-height: 64px;
+      --mobile-nav-height: 92px;
     }
 
     * {
@@ -795,24 +795,38 @@
 
     .history-item {
       position: relative;
-      background: var(--color-muted);
-      border: 1px solid transparent;
-      border-radius: var(--radius-md);
-      padding: 12px;
+      background: var(--color-surface-strong);
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      padding: 14px 12px 14px 16px;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 8px;
-      align-items: center;
-      transition: background-color 0.18s ease, border-color 0.18s ease;
+      grid-template-columns: minmax(0, 1fr) 44px;
+      gap: 10px;
+      align-items: start;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
       cursor: grab;
       user-select: none;
-      box-shadow: none;
+      box-shadow: 0 1px 2px rgba(24, 24, 27, 0.04);
+    }
+
+    .history-item::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 12px;
+      bottom: 12px;
+      width: 4px;
+      border-radius: 999px;
+      background: var(--color-accent);
+    }
+
+    .history-item[data-template="note"]::before {
+      background: #71717a;
     }
 
     .history-item:hover {
-      background: #ececee;
-      box-shadow: none;
-      transform: none;
+      border-color: #d4d4d8;
+      box-shadow: var(--shadow-card);
     }
 
     .history-item.is-export-selectable {
@@ -846,29 +860,61 @@
     }
 
     .history-item.is-read {
-      border-color: #6ee7b7;
-      box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.12);
-      background: #ecfdf5;
+      background: #f0fdf4;
+    }
+
+    .history-item.is-read::before {
+      background: var(--color-read);
     }
 
     .history-item.is-priority {
-      border-color: #fbbf24;
       background: #fffbeb;
-      box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1);
+    }
+
+    .history-item.is-priority::before {
+      background: #d97706;
     }
 
     .history-summary {
       min-width: 0;
     }
 
+    .history-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .history-type {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--color-accent-soft);
+      color: #1d4ed8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .history-item[data-template="note"] .history-type {
+      background: var(--color-muted);
+      color: var(--color-secondary);
+    }
+
     .history-title {
       margin: 0;
       color: var(--color-foreground);
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 600;
+      line-height: 1.45;
       overflow-wrap: anywhere;
       display: -webkit-box;
-      -webkit-line-clamp: 3;
+      -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -912,9 +958,45 @@
     }
 
     .history-date {
-      margin-top: 8px;
+      margin: 0;
       font-size: 12px;
+      font-weight: 600;
       color: #71717a;
+      white-space: nowrap;
+    }
+
+    .history-flags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .history-flag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--color-muted);
+      color: var(--color-foreground-soft);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .history-flag.is-priority {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .history-flag.is-read {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .history-flag.is-incomplete {
+      background: #fee2e2;
+      color: #991b1b;
     }
 
     .history-actions button {
@@ -931,10 +1013,14 @@
 
     .history-menu-toggle {
       width: 44px;
-      font-size: 22px;
-      letter-spacing: 1px;
       background: var(--color-muted);
       color: var(--color-foreground);
+    }
+
+    .history-menu-toggle svg {
+      width: 20px;
+      height: 20px;
+      display: block;
     }
 
     .history-menu-toggle:hover:not(:disabled) {
@@ -1327,12 +1413,11 @@
       }
 
       .history-item {
-        grid-template-columns: 1fr;
+        align-items: start;
       }
 
       .history-actions {
-        justify-content: flex-start;
-        gap: 5px;
+        justify-content: flex-end;
       }
 
       .auth-form {
@@ -1348,19 +1433,28 @@
       }
 
       .mobile-nav {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        min-height: var(--mobile-nav-height);
-        padding-bottom: env(safe-area-inset-bottom);
-        background: var(--color-surface);
+        display: block;
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+        background: rgba(255, 255, 255, 0.94);
         border-top: 1px solid var(--color-border);
+        backdrop-filter: blur(16px);
+      }
+
+      .mobile-nav-dock {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 4px;
+        padding: 4px;
+        border-radius: 20px;
+        background: var(--color-muted);
       }
 
       .mobile-nav button {
-        border-radius: 0;
+        border-radius: 16px;
         background: transparent;
         color: var(--color-foreground-soft);
-        min-height: 64px;
+        min-height: 58px;
+        padding: 8px 6px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -1372,12 +1466,18 @@
       }
 
       .mobile-nav button:hover:not(:disabled) {
-        background: var(--color-muted);
+        background: #e4e4e7;
+        color: var(--color-foreground);
       }
 
       .mobile-nav button.is-active {
-        color: var(--color-foreground);
-        background: transparent;
+        background: var(--color-primary);
+        color: var(--color-on-primary);
+      }
+
+      .mobile-nav button.is-active:hover:not(:disabled) {
+        background: var(--color-primary-strong);
+        color: var(--color-on-primary);
       }
 
       .mobile-nav svg {
@@ -1552,24 +1652,26 @@
     </div>
 
     <nav class="mobile-nav" aria-label="Основна навігація">
-      <button type="button" id="mobileComposeBtn" class="is-active">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path fill="currentColor" d="M4 20h4l10.5-10.5-4-4L4 16v4Zm14.7-13.3c.4-.4.4-1 0-1.4l-2-2a1 1 0 0 0-1.4 0l-1.8 1.8 4 4 1.2-1.4Z"/>
-        </svg>
-        Написати
-      </button>
-      <button type="button" id="mobileHistoryBtn">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path fill="currentColor" d="M5 5h14v2H5V5Zm0 6h14v2H5v-2Zm0 6h10v2H5v-2Z"/>
-        </svg>
-        Історія
-      </button>
-      <button type="button" id="mobileAccountBtn">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.4 0-8 2.4-8 5.3 0 .4.3.7.7.7h14.6c.4 0 .7-.3.7-.7 0-2.9-3.6-5.3-8-5.3Z"/>
-        </svg>
-        Акаунт
-      </button>
+      <div class="mobile-nav-dock">
+        <button type="button" id="mobileComposeBtn" class="is-active">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M4 20h4l10.5-10.5-4-4L4 16v4Zm14.7-13.3c.4-.4.4-1 0-1.4l-2-2a1 1 0 0 0-1.4 0l-1.8 1.8 4 4 1.2-1.4Z"/>
+          </svg>
+          Написати
+        </button>
+        <button type="button" id="mobileHistoryBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M5 5h14v2H5V5Zm0 6h14v2H5v-2Zm0 6h10v2H5v-2Z"/>
+          </svg>
+          Історія
+        </button>
+        <button type="button" id="mobileAccountBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.4 0-8 2.4-8 5.3 0 .4.3.7.7.7h14.6c.4 0 .7-.3.7-.7 0-2.9-3.6-5.3-8-5.3Z"/>
+          </svg>
+          Акаунт
+        </button>
+      </div>
     </nav>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -2736,6 +2838,7 @@
       document.body.dataset.view = nextView;
       mobileComposeBtn.classList.toggle('is-active', nextView === 'compose');
       mobileHistoryBtn.classList.toggle('is-active', nextView === 'history');
+      mobileAccountBtn.classList.remove('is-active');
       mobileComposeBtn.setAttribute('aria-current', nextView === 'compose' ? 'page' : 'false');
       mobileHistoryBtn.setAttribute('aria-current', nextView === 'history' ? 'page' : 'false');
     }
@@ -3347,6 +3450,7 @@
         const card = document.createElement('article');
         card.className = 'history-item';
         card.dataset.id = item.id;
+        card.dataset.template = item.templateId || '';
         card.dataset.priority = String(getItemPriority(item));
         card.draggable = true;
         card.classList.toggle('is-read', item.isRead);
@@ -3391,6 +3495,20 @@
         const summary = document.createElement('div');
         summary.className = 'history-summary';
 
+        const cardTop = document.createElement('div');
+        cardTop.className = 'history-card-top';
+
+        const typeLabel = document.createElement('span');
+        typeLabel.className = 'history-type';
+        typeLabel.textContent = templateName;
+        cardTop.appendChild(typeLabel);
+
+        const dateLabel = document.createElement('p');
+        dateLabel.className = 'history-date';
+        dateLabel.textContent = formatDisplayDateTime(item.createdAt);
+        cardTop.appendChild(dateLabel);
+        summary.appendChild(cardTop);
+
         const title = document.createElement('p');
         title.className = 'history-title';
         title.classList.toggle('is-note', item.templateId === 'note');
@@ -3412,30 +3530,20 @@
           summary.appendChild(noteExpandBtn);
         }
 
-        const dateLabel = document.createElement('p');
-        dateLabel.className = 'history-date';
-        dateLabel.textContent = formatDisplayDateTime(item.createdAt);
-        summary.appendChild(dateLabel);
-
-        if (isHistoryItemIncomplete(item)) {
-          const incompleteBadge = document.createElement('p');
-          incompleteBadge.className = 'incomplete-badge';
-          incompleteBadge.textContent = '⚠ Не всі поля заповнені';
-          summary.appendChild(incompleteBadge);
-        }
-
-        if (getItemPriority(item)) {
-          const priorityBadge = document.createElement('p');
-          priorityBadge.className = 'priority-badge';
-          priorityBadge.textContent = '★ У пріоритеті';
-          summary.appendChild(priorityBadge);
-        }
-
-        if (item.isRead) {
-          const readBadge = document.createElement('p');
-          readBadge.className = 'read-badge';
-          readBadge.textContent = '✓ Прочитано';
-          summary.appendChild(readBadge);
+        const flags = [];
+        if (getItemPriority(item)) flags.push(['is-priority', 'Пріоритет']);
+        if (item.isRead) flags.push(['is-read', 'Прочитано']);
+        if (isHistoryItemIncomplete(item)) flags.push(['is-incomplete', 'Незаповнена']);
+        if (flags.length) {
+          const flagsRow = document.createElement('div');
+          flagsRow.className = 'history-flags';
+          flags.forEach(([className, label]) => {
+            const flag = document.createElement('span');
+            flag.className = `history-flag ${className}`;
+            flag.textContent = label;
+            flagsRow.appendChild(flag);
+          });
+          summary.appendChild(flagsRow);
         }
         card.appendChild(summary);
 
@@ -3446,7 +3554,7 @@
         const menuToggle = document.createElement('button');
         menuToggle.type = 'button';
         menuToggle.className = 'history-menu-toggle';
-        menuToggle.textContent = '⋯';
+        menuToggle.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 7a1.75 1.75 0 1 0 0-3.5A1.75 1.75 0 0 0 12 7Zm0 6.75a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5ZM12 20.5a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5Z"/></svg>';
         menuToggle.title = 'Дії з карткою';
         menuToggle.setAttribute('aria-label', 'Дії з карткою');
         menuToggle.setAttribute('aria-expanded', 'false');
@@ -3527,6 +3635,10 @@
     function closeAuthDropdown() {
       authDropdown.classList.add('hidden');
       authMenuBtn.setAttribute('aria-expanded', 'false');
+      mobileAccountBtn.classList.remove('is-active');
+      const view = document.body.dataset.view;
+      mobileComposeBtn.classList.toggle('is-active', view !== 'history');
+      mobileHistoryBtn.classList.toggle('is-active', view === 'history');
     }
 
     function closeTabSettingsDropdown() {
@@ -3539,6 +3651,15 @@
       closeTabSettingsDropdown();
       authDropdown.classList.toggle('hidden', isOpen);
       authMenuBtn.setAttribute('aria-expanded', String(!isOpen));
+      mobileAccountBtn.classList.toggle('is-active', !isOpen);
+      if (!isOpen) {
+        mobileComposeBtn.classList.remove('is-active');
+        mobileHistoryBtn.classList.remove('is-active');
+      } else {
+        const view = document.body.dataset.view;
+        mobileComposeBtn.classList.toggle('is-active', view !== 'history');
+        mobileHistoryBtn.classList.toggle('is-active', view === 'history');
+      }
     }
 
     function toggleTabSettingsDropdown() {
