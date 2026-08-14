@@ -285,6 +285,7 @@
       display: flex;
       flex-direction: column;
       min-height: 0;
+      overflow: auto;
       background: var(--color-surface);
       border-right: 1px solid var(--color-border);
     }
@@ -376,6 +377,11 @@
       background: var(--color-primary);
       color: var(--color-on-primary);
       box-shadow: none;
+    }
+
+    .template-tab[hidden],
+    .sidebar-types[hidden] {
+      display: none !important;
     }
 
     .auth-panel {
@@ -731,11 +737,11 @@
 
     .history {
       min-height: 0;
-      flex: 1;
+      flex: 1 0 auto;
       display: flex;
       flex-direction: column;
-      padding: 16px 16px 0;
-      overflow: hidden;
+      padding: 16px;
+      overflow: visible;
     }
 
     .history h2 {
@@ -750,9 +756,9 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      flex: 1;
+      flex: 0 0 auto;
       min-height: 0;
-      overflow: auto;
+      overflow: visible;
       padding-bottom: 12px;
     }
 
@@ -762,11 +768,10 @@
       gap: 10px;
       align-items: center;
       justify-content: space-between;
-      margin-top: auto;
-      flex-shrink: 0;
-      padding: 12px 0 16px;
+      margin-top: 4px;
+      padding: 12px 0 8px;
       border-top: 1px solid var(--color-border);
-      background: var(--color-surface);
+      background: transparent;
     }
 
     .history-pagination.hidden {
@@ -1398,6 +1403,10 @@
       }
 
       body[data-view="compose"] .history {
+        display: none;
+      }
+
+      body[data-view="compose"] .sidebar:has(.sidebar-types[hidden]) {
         display: none;
       }
 
@@ -2234,6 +2243,8 @@
         tab.classList.toggle('is-active', isActive);
         tab.setAttribute('aria-selected', String(isActive));
       });
+      const typesBar = templateTabs.closest('.sidebar-types');
+      if (typesBar) typesBar.hidden = visibleTemplates.length < 2;
     }
 
     function setActiveTemplate(templateId, options = {}) {
