@@ -251,6 +251,8 @@
       font-size: 13px;
       font-weight: 600;
       line-height: 1.3;
+      display: flex;
+      align-items: center;
       justify-content: flex-start;
     }
 
@@ -1498,12 +1500,18 @@
       }
 
       .workspace {
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+        min-height: 0;
         grid-template-columns: 1fr;
-        grid-template-rows: auto minmax(0, 1fr);
+        grid-template-rows: none;
       }
 
       .sidebar {
         display: flex;
+        flex: 0 0 auto;
+        overflow: visible;
         border-right: 0;
         border-bottom: 1px solid var(--color-border);
       }
@@ -1530,17 +1538,20 @@
         display: none;
       }
 
-      body[data-view="history"] .composer {
-        display: none;
+      body[data-view="compose"] .composer {
+        flex: 1 0 auto;
+        overflow: visible;
+        min-height: auto;
       }
 
-      body[data-view="history"] .workspace {
-        grid-template-rows: minmax(0, 1fr);
+      body[data-view="history"] .composer {
+        display: none;
       }
 
       body[data-view="history"] .sidebar {
         border-bottom: 0;
         min-height: 0;
+        flex: 1 0 auto;
       }
 
       .composer-inner {
