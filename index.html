@@ -1514,8 +1514,9 @@
       .workspace {
         display: flex;
         flex-direction: column;
-        overflow: auto;
-        min-height: 0;
+        overflow: visible;
+        flex: 1 0 auto;
+        min-height: auto;
         grid-template-columns: 1fr;
         grid-template-rows: none;
       }
