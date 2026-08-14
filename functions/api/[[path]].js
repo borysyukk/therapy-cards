@@ -233,6 +233,17 @@ async function handleListCards(env, request, user) {
   });
 }
 
+async function handleCardCounts(env, user) {
+  const rows = await env.DB.prepare(
+    'SELECT template_id, COUNT(*) AS total FROM cards WHERE user_id = ? GROUP BY template_id',
+  ).bind(user.id).all();
+  const counts = {};
+  (rows.results || []).forEach((row) => {
+    counts[row.template_id] = Number(row.total) || 0;
+  });
+  return json({ counts });
+}
+
 function cardPayload(body, fallbackId) {
   const textValues = body.text_values || body.textValues || {};
   return {
@@ -362,6 +373,7 @@ export async function onRequest(context) {
 
     if (parts[0] === 'cards') {
       const user = await requireUser(env, request);
+      if (parts[1] === 'counts' && method === 'GET') return handleCardCounts(env, user);
       if (parts.length === 1 && method === 'GET') return handleListCards(env, request, user);
       if (parts.length === 1 && method === 'POST') return handleCreateCard(env, request, user);
       if (parts[1] === 'batch' && method === 'POST') return handleCreateCardsBatch(env, request, user);

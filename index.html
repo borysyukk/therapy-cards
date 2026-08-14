@@ -361,7 +361,7 @@
       justify-content: flex-start;
       border-radius: var(--radius-md);
       background: transparent;
-      color: var(--color-foreground);
+      color: var(--color-primary-strong);
       padding: 10px 12px;
       font-size: 14px;
       line-height: 1.25;
@@ -371,8 +371,8 @@
     }
 
     .template-tab:hover:not(:disabled):not(.is-active) {
-      background: var(--color-muted);
-      color: var(--color-foreground);
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
     }
 
     .template-tab.is-active {
@@ -1996,6 +1996,7 @@
     let suppressComposerAutofocus = false;
     const selectedExportIds = new Set();
     const expandedHistoryIds = new Set();
+    let historyCountsByTemplate = {};
 
     const creatableTemplateIds = ['note', 'thought'];
     const templates = {
@@ -2236,7 +2237,7 @@
     }
 
     function updateTemplateTabs() {
-      const visibleTemplates = getVisibleTemplates();
+      const visibleTemplates = getTabsForCurrentContext();
       templateTabs.style.setProperty('--visible-tabs', visibleTemplates.length);
       templateTabs.querySelectorAll('.template-tab').forEach((tab) => {
         const isActive = tab.dataset.template === activeTemplateId;
@@ -2250,8 +2251,9 @@
     }
 
     function setActiveTemplate(templateId, options = {}) {
-      if (!isTemplateVisible(templateId)) {
-        templateId = getFirstVisibleTemplateId();
+      const allowedTemplates = options.allowHidden ? creatableTemplateIds : getTabsForCurrentContext();
+      if (!allowedTemplates.includes(templateId)) {
+        templateId = allowedTemplates[0] || getEnabledTemplates()[0] || 'note';
       }
       activeTemplateId = templateId;
       Object.entries(allForms).forEach(([id, form]) => {
@@ -2273,7 +2275,7 @@
       }
     }
 
-    function getVisibleTemplates() {
+    function getEnabledTemplates() {
       try {
         const parsed = JSON.parse(localStorage.getItem(visibleTabsKey));
         if (Array.isArray(parsed) && parsed.length) {
@@ -2288,43 +2290,67 @@
       return [...creatableTemplateIds];
     }
 
+    function getTemplatesWithRecords() {
+      return creatableTemplateIds.filter((templateId) => Number(historyCountsByTemplate[templateId] || 0) > 0);
+    }
+
+    function getHistoryTemplates() {
+      const withRecords = getTemplatesWithRecords();
+      return withRecords.length ? withRecords : getEnabledTemplates();
+    }
+
+    function getTabsForCurrentContext() {
+      const enabled = getEnabledTemplates();
+      const withRecords = getTemplatesWithRecords();
+      const isMobile = window.matchMedia('(max-width: 860px)').matches;
+      const isHistory = document.body.dataset.view === 'history';
+
+      if (isMobile && !isHistory) return enabled;
+      if (isMobile && isHistory) return getHistoryTemplates();
+      return creatableTemplateIds.filter((templateId) => enabled.includes(templateId) || withRecords.includes(templateId));
+    }
+
     function saveVisibleTemplates(templateIds) {
       localStorage.setItem(visibleTabsKey, JSON.stringify(templateIds));
     }
 
-    function isTemplateVisible(templateId) {
-      return getVisibleTemplates().includes(templateId);
+    function isTemplateEnabled(templateId) {
+      return getEnabledTemplates().includes(templateId);
     }
 
-    function getFirstVisibleTemplateId() {
-      return getVisibleTemplates()[0] || 'note';
+    function getFirstEnabledTemplateId() {
+      return getEnabledTemplates()[0] || 'note';
     }
 
     function updateTabSettingsButtons() {
-      const visibleTemplates = getVisibleTemplates();
+      const enabledTemplates = getEnabledTemplates();
       tabSettingsDropdown.querySelectorAll('[data-tab-toggle]').forEach((button) => {
         const templateId = button.dataset.tabToggle;
-        const isEnabled = visibleTemplates.includes(templateId);
+        const isEnabled = enabledTemplates.includes(templateId);
         button.classList.toggle('is-enabled', isEnabled);
         button.textContent = `${templates[templateId].name}: ${isEnabled ? 'увімкнено' : 'вимкнено'}`;
       });
     }
 
     function toggleTemplateVisibility(templateId) {
-      const visibleTemplates = getVisibleTemplates();
-      const isEnabled = visibleTemplates.includes(templateId);
-      let nextVisibleTemplates = isEnabled
-        ? visibleTemplates.filter((id) => id !== templateId)
-        : [...visibleTemplates, templateId];
+      const enabledTemplates = getEnabledTemplates();
+      const isEnabled = enabledTemplates.includes(templateId);
+      let nextEnabledTemplates = isEnabled
+        ? enabledTemplates.filter((id) => id !== templateId)
+        : [...enabledTemplates, templateId];
 
-      if (!nextVisibleTemplates.length) {
-        nextVisibleTemplates = [templateId];
+      if (!nextEnabledTemplates.length) {
+        nextEnabledTemplates = [templateId];
         showToast('Має лишитися хоча б один тип запису');
       }
 
-      saveVisibleTemplates(nextVisibleTemplates);
+      saveVisibleTemplates(nextEnabledTemplates);
       updateTabSettingsButtons();
-      setActiveTemplate(isTemplateVisible(activeTemplateId) ? activeTemplateId : getFirstVisibleTemplateId());
+      const allowedTemplates = getTabsForCurrentContext();
+      setActiveTemplate(allowedTemplates.includes(activeTemplateId) ? activeTemplateId : (allowedTemplates[0] || getFirstEnabledTemplateId()), {
+        skipHistoryRefresh: true,
+      });
+      updateTemplateTabs();
     }
 
     function serializeFormValues(form) {
@@ -2947,6 +2973,11 @@
       mobileHistoryBtn.setAttribute('aria-current', nextView === 'history' ? 'page' : 'false');
       if (nextView === 'history') {
         blurComposerFields();
+        updateTemplateTabs();
+        if (!getTabsForCurrentContext().includes(activeTemplateId)) {
+          setActiveTemplate(getTabsForCurrentContext()[0] || getFirstEnabledTemplateId(), { skipHistoryRefresh: true });
+          refreshHistory();
+        }
         afterLayout(() => {
           updateHistoryCardOverflow();
           const focusId = lastOpenedHistoryId || editingItem?.id;
@@ -2960,6 +2991,10 @@
         });
         return;
       }
+      updateTemplateTabs();
+      if (!editingItem && !getEnabledTemplates().includes(activeTemplateId)) {
+        setActiveTemplate(getFirstEnabledTemplateId(), { skipHistoryRefresh: true });
+      }
       keepComposerFromAutofocus(resizeActiveTextareas);
     }
 
@@ -2970,10 +3005,10 @@
       }
       expandedHistoryIds.add(item.id);
       lastOpenedHistoryId = item.id;
-      setAppView('compose');
-      setActiveTemplate(item.templateId, { skipDraft: true, skipHistoryRefresh: true });
-      fillFormValues(getActiveForm(), item.textValues || {});
       setEditingItem(item);
+      setAppView('compose');
+      setActiveTemplate(item.templateId, { skipDraft: true, skipHistoryRefresh: true, allowHidden: true });
+      fillFormValues(getActiveForm(), item.textValues || {});
       savedState.textContent = '';
       keepComposerFromAutofocus(resizeActiveTextareas);
     }
@@ -3267,6 +3302,28 @@
       }
     }
 
+    function getLocalTemplateCounts() {
+      const counts = Object.fromEntries(creatableTemplateIds.map((templateId) => [templateId, 0]));
+      getLocalHistory().forEach((item) => {
+        if (!item.templateId) return;
+        counts[item.templateId] = (counts[item.templateId] || 0) + 1;
+      });
+      return counts;
+    }
+
+    async function refreshTemplateCounts() {
+      if (!currentUser) {
+        historyCountsByTemplate = getLocalTemplateCounts();
+        return;
+      }
+      try {
+        const data = await api('/api/cards/counts');
+        historyCountsByTemplate = data.counts || {};
+      } catch (error) {
+        historyCountsByTemplate = {};
+      }
+    }
+
     async function refreshHistory(options = {}) {
       if (options.resetPage) currentHistoryPage = 1;
       const refreshToken = ++historyRefreshToken;
@@ -3280,6 +3337,22 @@
         return;
       }
 
+      await refreshTemplateCounts();
+      if (refreshToken !== historyRefreshToken) return;
+      const allowedTemplates = getTabsForCurrentContext();
+      if (!allowedTemplates.includes(activeTemplateId) && allowedTemplates[0]) {
+        activeTemplateId = allowedTemplates[0];
+        Object.entries(allForms).forEach(([id, form]) => {
+          form.classList.toggle('hidden', id !== activeTemplateId);
+        });
+        const template = getActiveTemplate();
+        pageTitle.textContent = template.name;
+        pageSubtitle.innerHTML = template.subtitle;
+        updateTemplateTabs();
+        await refreshHistory();
+        return;
+      }
+      updateTemplateTabs();
       renderHistory(history);
       updateHistoryPaginationUi();
       updateMigrationButton();
@@ -4124,6 +4197,7 @@
       repositionActiveHistoryMenu();
       resizeActiveTextareas();
       updateHistoryCardOverflow();
+      updateTemplateTabs();
     });
     window.addEventListener('scroll', repositionActiveHistoryMenu, true);
 
