@@ -584,7 +584,8 @@
       color: #1d4ed8;
     }
 
-    textarea {
+    textarea,
+    .rich-editor {
       width: 100%;
       min-height: 76px;
       resize: none;
@@ -605,6 +606,79 @@
       transition: border-color 0.2s ease;
     }
 
+    .rich-wrap {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      flex: 1;
+    }
+
+    .rich-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .rich-toolbar button {
+      min-width: 36px;
+      min-height: 36px;
+      padding: 0 10px;
+      border-radius: 10px;
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .rich-toolbar button:hover:not(:disabled) {
+      background: var(--color-primary-muted);
+      color: var(--color-primary-strong);
+    }
+
+    .rich-toolbar button.is-active {
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+    }
+
+    .rich-b { font-weight: 800; }
+    .rich-i { font-style: italic; font-family: Georgia, serif; font-weight: 600; }
+    .rich-u { text-decoration: underline; }
+
+    .rich-editor {
+      white-space: pre-wrap;
+    }
+
+    .rich-editor ul,
+    .rich-editor ol,
+    .history-field-value.rich-content ul,
+    .history-field-value.rich-content ol,
+    .preview-content .rich-content ul,
+    .preview-content .rich-content ol {
+      margin: 0.15em 0 0.15em 1.3em;
+      padding: 0;
+      white-space: normal;
+    }
+
+    .rich-editor li,
+    .history-field-value.rich-content li,
+    .preview-content .rich-content li {
+      margin: 0.12em 0;
+    }
+
+    .history-field-value.rich-content,
+    .preview-content .rich-content {
+      white-space: normal;
+    }
+
+    .rich-editor.is-empty::before {
+      content: attr(data-placeholder);
+      color: #71717a;
+      pointer-events: none;
+    }
+
     #noteForm .field,
     #memoForm .field {
       flex: 1;
@@ -622,12 +696,15 @@
 
     input,
     select,
-    textarea {
+    textarea,
+    .rich-editor {
       font-size: 16px;
     }
 
     textarea:focus,
-    textarea:focus-visible {
+    textarea:focus-visible,
+    .rich-editor:focus,
+    .rich-editor:focus-visible {
       border-color: var(--color-border);
       box-shadow: none;
       outline: none;
@@ -1316,7 +1393,7 @@
       line-height: 1.35;
     }
 
-    .preview-field span,
+    .preview-field > div,
     .preview-note-body {
       display: block;
       color: var(--color-foreground);
@@ -1485,7 +1562,8 @@
         font-size: 15px;
       }
 
-      textarea {
+      textarea,
+      .rich-editor {
         min-height: 58px;
         padding: 10px 12px;
         font-size: 16px;
@@ -2118,7 +2196,11 @@
     }
 
     function getActiveTextareas() {
-      return Array.from(getActiveForm().querySelectorAll('textarea'));
+      const form = getActiveForm();
+      return [
+        ...form.querySelectorAll('.rich-editor'),
+        ...form.querySelectorAll('textarea:not(.rich-source)'),
+      ];
     }
 
     function getTemplateById(templateId) {
@@ -2128,13 +2210,13 @@
     function getFirstFieldValue(item) {
       const template = getTemplateById(item.templateId);
       const firstField = template.fields[0];
-      const value = firstField && item.textValues ? item.textValues[firstField.key] : '';
-      return value && value.trim() ? value.trim() : getHistoryTemplateName(item);
+      const value = firstField && item.textValues ? htmlToPlainText(item.textValues[firstField.key] || '') : '';
+      return value || getHistoryTemplateName(item);
     }
 
     function hasEditableTextValues(item) {
       const template = getTemplateById(item.templateId);
-      return Boolean(item.textValues && template.fields.some((field) => String(item.textValues[field.key] || '').trim()));
+      return Boolean(item.textValues && template.fields.some((field) => htmlToPlainText(item.textValues[field.key] || '').trim()));
     }
 
     function getItemPriority(item) {
@@ -2153,7 +2235,7 @@
       const template = getTemplateById(item.templateId);
       if (!hasEditableTextValues(item) || !Array.isArray(template.requiredFields)) return false;
 
-      return template.requiredFields.some((fieldKey) => !String(item.textValues[fieldKey] || '').trim());
+      return template.requiredFields.some((fieldKey) => !htmlToPlainText(item.textValues[fieldKey] || '').trim());
     }
 
     function getSortValue(item) {
@@ -2256,9 +2338,217 @@
       });
     }
 
-    function bindAutoResize() {
+    function looksLikeRichHtml(value) {
+      return /<(?:b|strong|i|em|u|ul|ol|li|p|div|br|span)\b/i.test(String(value || ''));
+    }
+
+    function sanitizeRichHtml(html) {
+      const template = document.createElement('template');
+      template.innerHTML = String(html || '');
+      const allowed = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'UL', 'OL', 'LI', 'P', 'BR', 'DIV', 'SPAN']);
+      function clean(node) {
+        [...node.childNodes].forEach((child) => {
+          if (child.nodeType === Node.COMMENT_NODE) {
+            child.remove();
+            return;
+          }
+          if (child.nodeType !== Node.ELEMENT_NODE) return;
+          if (!allowed.has(child.tagName)) {
+            const parent = child.parentNode;
+            while (child.firstChild) parent.insertBefore(child.firstChild, child);
+            child.remove();
+            return;
+          }
+          [...child.attributes].forEach((attr) => child.removeAttribute(attr.name));
+          clean(child);
+        });
+      }
+      clean(template.content);
+      return template.innerHTML;
+    }
+
+    function htmlToPlainText(value) {
+      const text = String(value || '');
+      if (!looksLikeRichHtml(text)) return text.replace(/\u00a0/g, ' ').trim();
+      const root = document.createElement('div');
+      root.innerHTML = sanitizeRichHtml(text);
+      root.querySelectorAll('br').forEach((node) => node.replaceWith('\n'));
+      root.querySelectorAll('ol').forEach((list) => {
+        [...list.children].forEach((item, index) => {
+          if (item.tagName === 'LI') item.prepend(`${index + 1}. `);
+        });
+      });
+      root.querySelectorAll('ul > li').forEach((item) => item.prepend('- '));
+      root.querySelectorAll('p, div, li').forEach((block) => {
+        block.append('\n');
+      });
+      return root.textContent.replace(/\u00a0/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+    }
+
+    function applyFormattedContent(element, value) {
+      const text = String(value || '');
+      if (looksLikeRichHtml(text)) {
+        element.classList.add('rich-content');
+        element.innerHTML = sanitizeRichHtml(text);
+        return;
+      }
+      element.textContent = text;
+    }
+
+    function isRichEmpty(editor) {
+      return !htmlToPlainText(editor.innerHTML).trim();
+    }
+
+    function syncRichSource(editor) {
+      const source = editor.parentElement?.querySelector('textarea.rich-source');
+      if (source) source.value = isRichEmpty(editor) ? '' : sanitizeRichHtml(editor.innerHTML);
+      editor.classList.toggle('is-empty', isRichEmpty(editor) && Boolean(editor.dataset.placeholder));
+    }
+
+    function setRichEditorValue(editor, value) {
+      const text = String(value || '');
+      if (!text) editor.innerHTML = '';
+      else if (looksLikeRichHtml(text)) editor.innerHTML = sanitizeRichHtml(text);
+      else editor.innerHTML = text.split('\n').map((line) => `<div>${line ? line.replace(/&/g, '&amp;').replace(/</g, '&lt;') : '<br>'}</div>`).join('');
+      syncRichSource(editor);
+      autoResize(editor);
+    }
+
+    function resetRichEditors(form) {
+      form.querySelectorAll('.rich-editor').forEach((editor) => setRichEditorValue(editor, ''));
+    }
+
+    function getClosestEditorBlock(node, editor) {
+      let element = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+      while (element && element !== editor) {
+        if (['DIV', 'P', 'LI'].includes(element.tagName)) return element;
+        element = element.parentElement;
+      }
+      return editor;
+    }
+
+    function getPrefixBeforeCaret(editor) {
+      const selection = window.getSelection();
+      if (!selection.rangeCount || !selection.isCollapsed) return '';
+      const range = selection.getRangeAt(0);
+      if (!editor.contains(range.startContainer)) return '';
+      const block = getClosestEditorBlock(range.startContainer, editor);
+      const prefixRange = document.createRange();
+      prefixRange.selectNodeContents(block);
+      prefixRange.setEnd(range.startContainer, range.startOffset);
+      return prefixRange.toString();
+    }
+
+    function deletePrefixBeforeCaret(editor) {
+      const selection = window.getSelection();
+      const range = selection.getRangeAt(0);
+      const block = getClosestEditorBlock(range.startContainer, editor);
+      const prefixRange = document.createRange();
+      prefixRange.selectNodeContents(block);
+      prefixRange.setEnd(range.startContainer, range.startOffset);
+      prefixRange.deleteContents();
+    }
+
+    function tryConvertListShortcut(event, editor) {
+      if (event.key !== ' ' || event.metaKey || event.ctrlKey || event.altKey) return false;
+      const prefix = getPrefixBeforeCaret(editor);
+      const bullet = prefix === '-' || prefix === '*' || prefix === '–' || prefix === '—';
+      const numbered = /^\d{1,2}\.?$/.test(prefix);
+      if (!bullet && !numbered) return false;
+      const block = getClosestEditorBlock(window.getSelection().getRangeAt(0).startContainer, editor);
+      if (block.closest('li')) return false;
+      event.preventDefault();
+      deletePrefixBeforeCaret(editor);
+      document.execCommand(bullet ? 'insertUnorderedList' : 'insertOrderedList');
+      syncRichSource(editor);
+      autoResize(editor);
+      updateSaveButtonState();
+      return true;
+    }
+
+    function updateRichToolbarState(editor) {
+      const toolbar = editor.parentElement?.querySelector('.rich-toolbar');
+      if (!toolbar) return;
+      toolbar.querySelectorAll('[data-rich]').forEach((button) => {
+        let active = false;
+        try {
+          active = document.queryCommandState(button.dataset.rich);
+        } catch (error) {
+          active = false;
+        }
+        button.classList.toggle('is-active', Boolean(active));
+      });
+    }
+
+    function upgradeTextareasToRich() {
+      try { document.execCommand('defaultParagraphSeparator', false, 'div'); } catch (error) { /* ignore */ }
+      const toolbarHtml = `
+        <div class="rich-toolbar" role="toolbar" aria-label="Форматування">
+          <button type="button" data-rich="bold" title="Жирний" aria-label="Жирний"><span class="rich-b">B</span></button>
+          <button type="button" data-rich="italic" title="Курсив" aria-label="Курсив"><span class="rich-i">I</span></button>
+          <button type="button" data-rich="underline" title="Підкреслення" aria-label="Підкреслення"><span class="rich-u">U</span></button>
+          <button type="button" data-rich="insertUnorderedList" title="Маркований список" aria-label="Маркований список">•</button>
+          <button type="button" data-rich="insertOrderedList" title="Нумерований список" aria-label="Нумерований список">1.</button>
+        </div>
+      `;
       Object.values(allForms).forEach((form) => {
         form.querySelectorAll('textarea').forEach((textarea) => {
+          if (textarea.id === 'emotion' || textarea.classList.contains('rich-source')) return;
+          const wrap = document.createElement('div');
+          wrap.className = 'rich-wrap';
+          wrap.innerHTML = toolbarHtml;
+          const editor = document.createElement('div');
+          editor.className = 'rich-editor';
+          editor.id = textarea.id;
+          editor.dataset.name = textarea.name;
+          editor.contentEditable = 'true';
+          editor.setAttribute('role', 'textbox');
+          editor.setAttribute('aria-multiline', 'true');
+          editor.setAttribute('aria-label', form.querySelector(`label[for="${textarea.id}"]`)?.textContent || textarea.name);
+          if (textarea.placeholder) editor.dataset.placeholder = textarea.placeholder;
+          textarea.classList.add('rich-source');
+          textarea.hidden = true;
+          textarea.removeAttribute('id');
+          textarea.parentNode.insertBefore(wrap, textarea);
+          wrap.appendChild(editor);
+          wrap.appendChild(textarea);
+          syncRichSource(editor);
+
+          wrap.querySelector('.rich-toolbar').addEventListener('mousedown', (event) => {
+            const button = event.target.closest('[data-rich]');
+            if (!button) return;
+            event.preventDefault();
+            editor.focus();
+            document.execCommand(button.dataset.rich);
+            syncRichSource(editor);
+            autoResize(editor);
+            updateSaveButtonState();
+            updateRichToolbarState(editor);
+          });
+          editor.addEventListener('keydown', (event) => {
+            if (tryConvertListShortcut(event, editor)) return;
+            const key = event.key.toLowerCase();
+            if ((event.metaKey || event.ctrlKey) && ['b', 'i', 'u'].includes(key)) {
+              event.preventDefault();
+              document.execCommand({ b: 'bold', i: 'italic', u: 'underline' }[key]);
+              updateRichToolbarState(editor);
+            }
+          });
+          editor.addEventListener('input', () => {
+            syncRichSource(editor);
+            autoResize(editor);
+            updateSaveButtonState();
+          });
+          editor.addEventListener('keyup', () => updateRichToolbarState(editor));
+          editor.addEventListener('mouseup', () => updateRichToolbarState(editor));
+        });
+      });
+    }
+
+    function bindAutoResize() {
+      upgradeTextareasToRich();
+      Object.values(allForms).forEach((form) => {
+        form.querySelectorAll('textarea:not(.rich-source)').forEach((textarea) => {
           autoResize(textarea);
           textarea.addEventListener('input', () => {
             autoResize(textarea);
@@ -2269,7 +2559,10 @@
     }
 
     function hasAnyFilledField() {
-      return getActiveTextareas().some((textarea) => textarea.value.trim().length > 0);
+      return getActiveTextareas().some((field) => {
+        if (field.classList.contains('rich-editor')) return !isRichEmpty(field);
+        return field.value.trim().length > 0;
+      });
     }
 
     function updateSaveButtonState() {
@@ -2453,7 +2746,14 @@
     }
 
     function serializeFormValues(form) {
-      return Object.fromEntries(new FormData(form).entries());
+      const values = {};
+      form.querySelectorAll('.rich-editor[data-name]').forEach((editor) => {
+        values[editor.dataset.name] = isRichEmpty(editor) ? '' : sanitizeRichHtml(editor.innerHTML);
+      });
+      new FormData(form).forEach((value, name) => {
+        if (values[name] === undefined) values[name] = value;
+      });
+      return values;
     }
 
     function loadDraft() {
@@ -2462,7 +2762,8 @@
       const raw = localStorage.getItem(template.draftKey);
 
       form.reset();
-      getActiveTextareas().forEach((textarea) => autoResize(textarea));
+      resetRichEditors(form);
+      getActiveTextareas().forEach(autoResize);
 
       if (!raw) {
         return;
@@ -2470,6 +2771,12 @@
 
       const values = JSON.parse(raw);
       Object.entries(values).forEach(([name, value]) => {
+        if (name.startsWith('__')) return;
+        const editor = form.querySelector(`.rich-editor[data-name="${CSS.escape(name)}"]`);
+        if (editor) {
+          setRichEditorValue(editor, value);
+          return;
+        }
         if (form.elements[name]) {
           form.elements[name].value = value;
           autoResize(form.elements[name]);
@@ -2631,7 +2938,7 @@
       const preparedParagraphs = template.fields.map((field) => ({
         lines: wrapRichText(ctx, [
           { text: `${field.label}: `, font: fieldLabelFont },
-          { text: values[field.key] || '', font: fieldValueFont },
+          { text: htmlToPlainText(values[field.key] || ''), font: fieldValueFont },
         ], textWidth),
       }));
       ctx.font = 'bold 72px Arial';
@@ -2797,10 +3104,10 @@
         return;
       }
 
-      if (item.templateId === 'note') {
-        const noteBody = document.createElement('p');
+      if (isPlainTextTemplate(item.templateId)) {
+        const noteBody = document.createElement('div');
         noteBody.className = 'preview-note-body';
-        noteBody.textContent = item.textValues.noteText || '—';
+        applyFormattedContent(noteBody, item.textValues[item.templateId === 'memo' ? 'memoText' : 'noteText'] || '—');
         previewContent.appendChild(noteBody);
         return;
       }
@@ -2808,14 +3115,14 @@
       const fieldsWrapper = document.createElement('div');
       fieldsWrapper.className = 'preview-fields';
       template.fields.forEach((field) => {
-        const wrapper = document.createElement('p');
+        const wrapper = document.createElement('div');
         wrapper.className = 'preview-field';
 
         const label = document.createElement('strong');
         label.textContent = field.label;
 
-        const value = document.createElement('span');
-        value.textContent = item.textValues[field.key] || '—';
+        const value = document.createElement('div');
+        applyFormattedContent(value, item.textValues[field.key] || '—');
 
         wrapper.appendChild(label);
         wrapper.appendChild(value);
@@ -2839,7 +3146,7 @@
 
       template.fields.forEach((field) => {
         lines.push(`${field.label}:`);
-        lines.push(item.textValues[field.key] || '—');
+        lines.push(htmlToPlainText(item.textValues[field.key] || '—'));
         lines.push('');
       });
 
@@ -3048,12 +3355,19 @@
 
     function fillFormValues(form, values = {}) {
       form.reset();
+      resetRichEditors(form);
       Object.entries(values).forEach(([name, value]) => {
+        if (name.startsWith('__')) return;
+        const editor = form.querySelector(`.rich-editor[data-name="${CSS.escape(name)}"]`);
+        if (editor) {
+          setRichEditorValue(editor, value);
+          return;
+        }
         if (form.elements[name]) {
           form.elements[name].value = value;
         }
       });
-      Array.from(form.querySelectorAll('textarea')).forEach((textarea) => autoResize(textarea));
+      Array.from(form.querySelectorAll('textarea:not(.rich-source), .rich-editor')).forEach((field) => autoResize(field));
       afterLayout(resizeActiveTextareas);
       updateSaveButtonState();
     }
@@ -3142,7 +3456,7 @@
       ];
 
       template.fields.forEach((field) => {
-        const value = String(item.textValues?.[field.key] || '').trim();
+        const value = htmlToPlainText(item.textValues?.[field.key] || '');
         if (!value) return;
         lines.push('', `${field.label}:`, value);
       });
@@ -3883,8 +4197,8 @@
           ? [{ label: '', key: template.fields[0]?.key || 'noteText' }]
           : template.fields;
         fields.forEach((field) => {
-          const value = String(values[field.key] || '').trim();
-          if (!value) return;
+          const rawValue = String(values[field.key] || '');
+          if (!htmlToPlainText(rawValue)) return;
           const fieldBlock = document.createElement('div');
           fieldBlock.className = 'history-field';
           if (field.label) {
@@ -3893,9 +4207,9 @@
             fieldLabel.textContent = field.label;
             fieldBlock.appendChild(fieldLabel);
           }
-          const fieldValue = document.createElement('p');
+          const fieldValue = document.createElement('div');
           fieldValue.className = 'history-field-value';
-          fieldValue.textContent = value;
+          applyFormattedContent(fieldValue, rawValue);
           fieldBlock.appendChild(fieldValue);
           body.appendChild(fieldBlock);
         });
@@ -4265,7 +4579,8 @@
       const template = getActiveTemplate();
       const form = getActiveForm();
       form.reset();
-      getActiveTextareas().forEach((textarea) => autoResize(textarea));
+      resetRichEditors(form);
+      getActiveTextareas().forEach(autoResize);
       localStorage.removeItem(template.draftKey);
       setEditingItem(null);
       savedState.textContent = `Форму "${template.name}" очищено.`;
@@ -4488,7 +4803,7 @@
     bindAutoResize();
     composer.addEventListener('focusin', (event) => {
       if (!suppressComposerAutofocus) return;
-      if (event.target.matches('textarea, input')) event.target.blur();
+      if (event.target.matches('textarea, input, [contenteditable="true"]')) event.target.blur();
     });
     ensureMemoTabMigrated();
     if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
