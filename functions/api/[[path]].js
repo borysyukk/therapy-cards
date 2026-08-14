@@ -211,6 +211,17 @@ async function handleMe(env, request) {
 
 async function handleListCards(env, request, user) {
   const url = new URL(request.url);
+  if (url.searchParams.get('all') === '1') {
+    const rows = await env.DB.prepare(
+      `SELECT id, created_at, template_id, template_name, text_values, is_read, sort_order
+       FROM cards
+       WHERE user_id = ?
+       ORDER BY created_at DESC`,
+    ).bind(user.id).all();
+    const items = (rows.results || []).map(parseCardRow);
+    return json({ total: items.length, items });
+  }
+
   const templateId = url.searchParams.get('template_id') || 'thought';
   const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
   const pageSize = Math.min(50, Math.max(1, Number(url.searchParams.get('page_size')) || 12));

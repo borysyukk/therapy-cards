@@ -188,8 +188,14 @@
       box-shadow: none;
     }
 
-    .account-button:hover:not(:disabled),
-    .settings-button:hover:not(:disabled) {
+    .account-button.is-open,
+    .settings-button.is-open {
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+    }
+
+    .account-button:hover:not(:disabled):not(.is-open),
+    .settings-button:hover:not(:disabled):not(.is-open) {
       background: var(--color-primary-muted);
     }
 
@@ -212,21 +218,23 @@
       position: absolute;
       top: calc(100% + 10px);
       right: 0;
-      width: min(82vw, 300px);
+      width: min(86vw, 320px);
       background: var(--color-surface-strong);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-card);
+      border: 0;
+      border-radius: 20px;
+      box-shadow: 0 18px 40px rgba(15, 118, 110, 0.16);
       padding: 14px;
       text-align: left;
+      display: grid;
+      gap: 16px;
     }
 
     .settings-dropdown {
-      width: min(82vw, 320px);
+      width: min(86vw, 340px);
     }
 
     .account-status {
-      margin: 0 0 10px;
+      margin: 0;
       color: var(--color-foreground-soft);
       font-size: 14px;
       line-height: 1.45;
@@ -236,14 +244,22 @@
     .account-dropdown button,
     .settings-dropdown button {
       width: 100%;
-      margin-top: 8px;
+      margin-top: 0;
+      border-radius: 999px;
+    }
+
+    .settings-dropdown .secondary {
+      background: var(--color-primary-soft);
+      color: var(--color-primary-strong);
     }
 
     .export-settings,
     .tab-settings {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--color-border);
+      margin: 0;
+      padding: 0;
+      border: 0;
+      display: grid;
+      gap: 8px;
     }
 
     .settings-dropdown .tab-settings {
@@ -269,12 +285,14 @@
     .tab-toggle {
       width: 100%;
       justify-content: space-between;
-      background: var(--color-secondary);
+      background: #f4f4f5;
+      color: #3f3f46;
       text-align: left;
     }
 
     .tab-toggle.is-enabled {
       background: var(--color-primary);
+      color: var(--color-on-primary);
     }
 
     .workspace {
@@ -587,7 +605,8 @@
       transition: border-color 0.2s ease;
     }
 
-    #noteForm .field {
+    #noteForm .field,
+    #memoForm .field {
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -595,7 +614,8 @@
       margin-bottom: 0;
     }
 
-    #noteText {
+    #noteText,
+    #memoText {
       flex: 1;
       min-height: min(42vh, 420px);
     }
@@ -835,6 +855,7 @@
       transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
       cursor: pointer;
       user-select: none;
+      touch-action: pan-y;
       box-shadow: 0 1px 2px rgba(24, 24, 27, 0.04);
     }
 
@@ -851,6 +872,10 @@
 
     .history-item[data-template="note"]::before {
       background: #71717a;
+    }
+
+    .history-item[data-template="memo"]::before {
+      background: var(--color-primary);
     }
 
     .history-item:hover {
@@ -886,6 +911,7 @@
       cursor: grabbing;
       box-shadow: var(--shadow-soft);
       transform: scale(0.99);
+      touch-action: none;
     }
 
     .history-item.is-read {
@@ -933,6 +959,11 @@
     .history-item[data-template="note"] .history-type {
       background: var(--color-muted);
       color: var(--color-secondary);
+    }
+
+    .history-item[data-template="memo"] .history-type {
+      background: var(--color-primary-soft);
+      color: var(--color-primary-strong);
     }
 
     .history-body {
@@ -1050,8 +1081,8 @@
 
     .history-menu-toggle {
       width: 44px;
-      background: var(--color-muted);
-      color: var(--color-foreground);
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
     }
 
     .history-menu-toggle svg {
@@ -1060,22 +1091,23 @@
       display: block;
     }
 
-    .history-menu-toggle:hover:not(:disabled) {
-      background: var(--color-muted-2);
-      color: var(--color-foreground);
+    .history-menu-toggle:hover:not(:disabled),
+    .history-menu-toggle.is-open {
+      background: var(--color-primary);
+      color: var(--color-on-primary);
     }
 
     .history-menu {
       position: fixed;
       z-index: 80;
-      width: min(72vw, 240px);
+      width: min(82vw, 280px);
       display: grid;
-      gap: 4px;
-      padding: 8px;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
+      gap: 2px;
+      padding: 10px;
+      border: 0;
+      border-radius: 18px;
       background: var(--color-surface-strong);
-      box-shadow: var(--shadow-card);
+      box-shadow: 0 18px 40px rgba(15, 118, 110, 0.18);
     }
 
     .history-menu.hidden {
@@ -1086,17 +1118,19 @@
       width: 100%;
       min-height: 44px;
       justify-content: flex-start;
-      padding: 9px 10px;
-      border-radius: 10px;
+      padding: 11px 12px;
+      border-radius: 12px;
       background: transparent;
       color: var(--color-foreground);
       font-size: 14px;
+      font-weight: 600;
       line-height: 1.25;
       text-align: left;
     }
 
     .history-menu button:hover:not(:disabled) {
-      background: var(--color-muted);
+      background: var(--color-primary-soft);
+      color: var(--color-primary-strong);
     }
 
     .history-menu button.is-danger {
@@ -1457,7 +1491,8 @@
         font-size: 16px;
       }
 
-      #noteText {
+      #noteText,
+      #memoText {
         min-height: min(38vh, 360px);
       }
 
@@ -1600,6 +1635,9 @@
         <div class="settings-dropdown hidden" id="tabSettingsDropdown">
           <section class="export-settings" aria-label="Експорт записів">
             <p class="tab-settings-title">Експорт записів</p>
+            <button type="button" id="downloadAllBackupBtn">Завантажити копію всіх записів</button>
+            <button type="button" class="secondary" id="importBackupBtn">Відновити з файлу</button>
+            <input id="importBackupInput" type="file" accept="application/json,.json" hidden>
             <button type="button" id="exportUnreadBtn">Експортувати непрочитані</button>
             <button type="button" class="secondary" id="startExportSelectionBtn">Обрати для експорту</button>
           </section>
@@ -1608,6 +1646,7 @@
             <div class="tab-settings-options">
               <button type="button" class="tab-toggle is-enabled" data-tab-toggle="note">Ситуація для психолога: увімкнено</button>
               <button type="button" class="tab-toggle is-enabled" data-tab-toggle="thought">Запис думок: увімкнено</button>
+              <button type="button" class="tab-toggle is-enabled" data-tab-toggle="memo">Нотатки: увімкнено</button>
             </div>
           </section>
         </div>
@@ -1622,6 +1661,7 @@
             <div class="template-tabs" id="templateTabs" role="tablist" aria-label="Тип запису">
               <button type="button" class="template-tab is-active" data-template="note" role="tab" aria-selected="true">Ситуація для психолога</button>
               <button type="button" class="template-tab" data-template="thought" role="tab" aria-selected="false">Запис думок</button>
+              <button type="button" class="template-tab" data-template="memo" role="tab" aria-selected="false">Нотатки</button>
             </div>
           </div>
         </div>
@@ -1694,6 +1734,13 @@
                 <textarea id="noteText" name="noteText" rows="10"></textarea>
               </div>
             </form>
+
+            <form id="memoForm" class="form-page hidden" autocomplete="off">
+              <div class="field">
+                <label for="memoText">Нотатка</label>
+                <textarea id="memoText" name="memoText" rows="10" placeholder="Короткі нотатки, думки, спостереження"></textarea>
+              </div>
+            </form>
           </section>
 
           <div class="actions">
@@ -1719,11 +1766,11 @@
           </svg>
           Збережені
         </button>
-        <button type="button" id="mobileAccountBtn">
+        <button type="button" id="mobileMemoBtn">
           <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.4 0-8 2.4-8 5.3 0 .4.3.7.7.7h14.6c.4 0 .7-.3.7-.7 0-2.9-3.6-5.3-8-5.3Z"/>
+            <path fill="currentColor" fill-rule="evenodd" d="M6.5 3A2.5 2.5 0 0 0 4 5.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.2L15.8 3H6.5ZM8 8h8v2H8V8Zm0 4h8v2H8v-2Zm0 4h5v2H8v-2Z"/>
           </svg>
-          Профіль
+          Нотатки
         </button>
       </div>
     </nav>
@@ -1889,7 +1936,8 @@
     const templateTabs = document.getElementById('templateTabs');
     const thoughtForm = document.getElementById('thoughtForm');
     const noteForm = document.getElementById('noteForm');
-    const allForms = { thought: thoughtForm, note: noteForm };
+    const memoForm = document.getElementById('memoForm');
+    const allForms = { thought: thoughtForm, note: noteForm, memo: memoForm };
     const saveBtn = document.getElementById('saveBtn');
     const resetBtn = document.getElementById('resetBtn');
     const savedState = document.getElementById('savedState');
@@ -1897,7 +1945,7 @@
     const composer = document.getElementById('composer');
     const mobileComposeBtn = document.getElementById('mobileComposeBtn');
     const mobileHistoryBtn = document.getElementById('mobileHistoryBtn');
-    const mobileAccountBtn = document.getElementById('mobileAccountBtn');
+    const mobileMemoBtn = document.getElementById('mobileMemoBtn');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
     const historyPagination = document.getElementById('historyPagination');
@@ -1923,6 +1971,9 @@
     const tabSettingsMenuBtn = document.getElementById('tabSettingsMenuBtn');
     const tabSettingsDropdown = document.getElementById('tabSettingsDropdown');
     const exportUnreadBtn = document.getElementById('exportUnreadBtn');
+    const downloadAllBackupBtn = document.getElementById('downloadAllBackupBtn');
+    const importBackupBtn = document.getElementById('importBackupBtn');
+    const importBackupInput = document.getElementById('importBackupInput');
     const startExportSelectionBtn = document.getElementById('startExportSelectionBtn');
     const exportSelectionBar = document.getElementById('exportSelectionBar');
     const exportSelectionStatus = document.getElementById('exportSelectionStatus');
@@ -1943,6 +1994,7 @@
     const authUser = document.getElementById('authUser');
     const migrateLocalBtn = document.getElementById('migrateLocalBtn');
     const historyKey = 'flashCardHistory';
+    const durableBackupKey = 'therapyJournalDurableBackup';
     const visibleTabsKey = 'flashCardVisibleTabs';
     const sharedCardHashKey = 'card';
     const sharedCardPathPrefix = 'card/';
@@ -1985,6 +2037,8 @@
     let lastOpenedHistoryId = null;
     let renderedHistory = [];
     let draggedHistoryItemId = null;
+    let suppressHistoryClickUntil = 0;
+    let pointerDragState = null;
     let currentHistoryPage = 1;
     let totalHistoryItems = 0;
     let historyRefreshToken = 0;
@@ -1998,7 +2052,7 @@
     const expandedHistoryIds = new Set();
     let historyCountsByTemplate = {};
 
-    const creatableTemplateIds = ['note', 'thought'];
+    const creatableTemplateIds = ['note', 'thought', 'memo'];
     const templates = {
       schema: {
         name: 'Попередній запис',
@@ -2040,7 +2094,20 @@
           { label: 'Ситуація для психолога', key: 'noteText' },
         ],
       },
+      memo: {
+        name: 'Нотатки',
+        subtitle: 'Короткі нотатки, які зберігаються разом з іншими записами',
+        draftKey: 'flashCardDraft_memo',
+        requiredFields: ['memoText'],
+        fields: [
+          { label: 'Нотатка', key: 'memoText' },
+        ],
+      },
     };
+
+    function isPlainTextTemplate(templateId) {
+      return templateId === 'note' || templateId === 'memo';
+    }
 
     function getActiveTemplate() {
       return templates[activeTemplateId];
@@ -2114,6 +2181,7 @@
       });
       historyList.querySelectorAll('.history-menu-toggle').forEach((toggle) => {
         toggle.setAttribute('aria-expanded', 'false');
+        toggle.classList.remove('is-open');
       });
       historyList.querySelectorAll('.history-item.is-menu-open').forEach((item) => {
         item.classList.remove('is-menu-open');
@@ -2273,6 +2341,7 @@
         currentHistoryPage = 1;
         refreshHistory();
       }
+      updateMobileNav();
     }
 
     function getEnabledTemplates() {
@@ -2320,6 +2389,36 @@
 
     function getFirstEnabledTemplateId() {
       return getEnabledTemplates()[0] || 'note';
+    }
+
+    function getComposeTemplateId() {
+      const enabled = getEnabledTemplates();
+      return enabled.find((templateId) => templateId !== 'memo') || enabled[0] || 'note';
+    }
+
+    function ensureMemoTabMigrated() {
+      if (localStorage.getItem('flashCardMemoTabMigrated')) return;
+      try {
+        const parsed = JSON.parse(localStorage.getItem(visibleTabsKey) || '[]');
+        if (Array.isArray(parsed) && parsed.length && !parsed.includes('memo')) {
+          saveVisibleTemplates([...parsed, 'memo']);
+        }
+      } catch (error) {
+        // Keep existing tab settings if they cannot be parsed.
+      }
+      localStorage.setItem('flashCardMemoTabMigrated', '1');
+    }
+
+    function updateMobileNav() {
+      const isHistory = document.body.dataset.view === 'history';
+      const isMemo = !isHistory && activeTemplateId === 'memo';
+      const isCompose = !isHistory && !isMemo;
+      mobileComposeBtn.classList.toggle('is-active', isCompose);
+      mobileHistoryBtn.classList.toggle('is-active', isHistory);
+      mobileMemoBtn.classList.toggle('is-active', isMemo);
+      mobileComposeBtn.setAttribute('aria-current', isCompose ? 'page' : 'false');
+      mobileHistoryBtn.setAttribute('aria-current', isHistory ? 'page' : 'false');
+      mobileMemoBtn.setAttribute('aria-current', isMemo ? 'page' : 'false');
     }
 
     function updateTabSettingsButtons() {
@@ -2622,7 +2721,7 @@
       try {
         const values = saveDraft();
         const createdAt = editingItem?.createdAt || new Date().toISOString();
-        const needsLocalImage = !currentUser;
+        const needsLocalImage = !currentUser && !isPlainTextTemplate(activeTemplateId);
         const imageData = needsLocalImage
           ? buildFlashCardImage(values, createdAt).toDataURL('image/png')
           : '';
@@ -2664,7 +2763,7 @@
         expandedHistoryIds.add(item.id);
         lastOpenedHistoryId = item.id;
         clearDraft();
-        savedState.textContent = `«${getActiveTemplate().name}» збережено. PNG можна завантажити зі збережених записів.`;
+        savedState.textContent = `«${getActiveTemplate().name}» збережено.`;
         showToast('Запис збережено');
         setAppView('history');
       } finally {
@@ -2966,11 +3065,7 @@
         blurComposerFields();
       }
       document.body.dataset.view = nextView;
-      mobileComposeBtn.classList.toggle('is-active', nextView === 'compose');
-      mobileHistoryBtn.classList.toggle('is-active', nextView === 'history');
-      mobileAccountBtn.classList.remove('is-active');
-      mobileComposeBtn.setAttribute('aria-current', nextView === 'compose' ? 'page' : 'false');
-      mobileHistoryBtn.setAttribute('aria-current', nextView === 'history' ? 'page' : 'false');
+      updateMobileNav();
       if (nextView === 'history') {
         blurComposerFields();
         updateTemplateTabs();
@@ -2992,8 +3087,8 @@
         return;
       }
       updateTemplateTabs();
-      if (!editingItem && !getEnabledTemplates().includes(activeTemplateId)) {
-        setActiveTemplate(getFirstEnabledTemplateId(), { skipHistoryRefresh: true });
+      if (!editingItem && activeTemplateId !== 'memo' && !getEnabledTemplates().includes(activeTemplateId)) {
+        setActiveTemplate(getComposeTemplateId(), { skipHistoryRefresh: true });
       }
       keepComposerFromAutofocus(resizeActiveTextareas);
     }
@@ -3193,21 +3288,90 @@
     }
 
     function getLocalHistory() {
-      const raw = localStorage.getItem(historyKey);
-      if (!raw) return [];
+      let fromStore = [];
       try {
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed)) return [];
-        const sanitized = parsed.filter(isValidHistoryItem).map(normalizeHistoryItem);
-        if (sanitized.length !== parsed.length) saveLocalHistory(sanitized);
-        return sanitized;
+        const parsed = JSON.parse(localStorage.getItem(historyKey) || '[]');
+        if (Array.isArray(parsed)) fromStore = parsed.filter(isValidHistoryItem).map(normalizeHistoryItem);
+      } catch (error) {
+        fromStore = [];
+      }
+      const durable = getDurableBackup();
+      const byId = new Map();
+      [...fromStore, ...durable].forEach((item) => {
+        if (!item?.id) return;
+        if (!byId.has(item.id)) byId.set(item.id, item);
+      });
+      return [...byId.values()];
+    }
+
+    function saveLocalHistory(history) {
+      localStorage.setItem(historyKey, JSON.stringify(history));
+      upsertDurableItems(history);
+    }
+
+    function toBackupItem(item) {
+      return {
+        id: item.id,
+        createdAt: item.createdAt,
+        templateId: item.templateId,
+        templateName: item.templateName || getHistoryTemplateName(item),
+        textValues: item.textValues || {},
+        isRead: Boolean(item.isRead),
+        isPriority: getItemPriority(item),
+        sortOrder: Number.isFinite(item.sortOrder) ? item.sortOrder : getSortValue(item),
+      };
+    }
+
+    function getDurableBackup() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(durableBackupKey) || '[]');
+        return Array.isArray(parsed) ? parsed.filter(isValidHistoryItem).map(normalizeHistoryItem) : [];
       } catch (error) {
         return [];
       }
     }
 
-    function saveLocalHistory(history) {
-      localStorage.setItem(historyKey, JSON.stringify(history));
+    function saveDurableBackup(items) {
+      const compact = items.map(toBackupItem);
+      try {
+        localStorage.setItem(durableBackupKey, JSON.stringify(compact));
+      } catch (error) {
+        // Ignore quota errors; IndexedDB still keeps a copy.
+      }
+      writeDurableIndexedDb(compact);
+    }
+
+    function upsertDurableItems(items) {
+      const byId = new Map(getDurableBackup().map((item) => [item.id, item]));
+      items.forEach((item) => {
+        if (!item?.id) return;
+        byId.set(item.id, { ...byId.get(item.id), ...toBackupItem(item) });
+      });
+      saveDurableBackup([...byId.values()]);
+    }
+
+    function removeDurableItem(id) {
+      saveDurableBackup(getDurableBackup().filter((item) => item.id !== id));
+    }
+
+    function writeDurableIndexedDb(items) {
+      try {
+        const request = indexedDB.open('therapy-journal', 1);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains('records')) db.createObjectStore('records', { keyPath: 'id' });
+        };
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction('records', 'readwrite');
+          const store = tx.objectStore('records');
+          items.forEach((item) => store.put(item));
+          tx.oncomplete = () => db.close();
+          tx.onerror = () => db.close();
+        };
+      } catch (error) {
+        // Ignore browsers without IndexedDB.
+      }
     }
 
     function updateLocalHistoryItems(updatedItems) {
@@ -3359,6 +3523,7 @@
     }
 
     async function saveHistoryItem(item) {
+      upsertDurableItems([item]);
       if (currentUser) {
         try {
           await api('/api/cards', {
@@ -3373,17 +3538,16 @@
               sort_order: item.sortOrder,
             },
           });
+          const localHistory = getLocalHistory();
+          if (!localHistory.some((historyItem) => historyItem.id === item.id)) {
+            saveLocalHistory(normalizeStoredHistory([toBackupItem(item), ...localHistory]));
+          }
           await refreshHistory({ resetPage: true });
           return true;
         } catch (error) {
           savedState.textContent = `Не вдалося зберегти в профіль: ${error.message}`;
           return false;
         }
-      }
-
-      if (!item.imageData || !item.imageData.startsWith(pngDataUrlPrefix)) {
-        savedState.textContent = 'Не вдалося зберегти зображення: некоректний формат.';
-        return;
       }
 
       const history = getLocalHistory();
@@ -3406,6 +3570,7 @@
             },
           });
           await refreshHistory();
+          upsertDurableItems([item]);
           return true;
         } catch (error) {
           savedState.textContent = `Не вдалося оновити запис: ${error.message}`;
@@ -3545,6 +3710,7 @@
       if (currentUser) {
         try {
           await api(`/api/cards/${encodeURIComponent(id)}`, { method: 'DELETE' });
+          removeDurableItem(id);
           await refreshHistory();
         } catch (error) {
           savedState.textContent = `Не вдалося видалити запис: ${error.message}`;
@@ -3554,6 +3720,7 @@
 
       const filteredHistory = getLocalHistory().filter((item) => item.id !== id);
       saveLocalHistory(filteredHistory);
+      removeDurableItem(id);
       await refreshHistory();
     }
 
@@ -3668,7 +3835,7 @@
           draggedHistoryItemId = null;
         });
         card.addEventListener('click', (event) => {
-          if (event.target.closest('button') || event.target.closest('input') || draggedHistoryItemId) return;
+          if (event.target.closest('button') || event.target.closest('input') || draggedHistoryItemId || Date.now() < suppressHistoryClickUntil) return;
           const willExpand = !card.classList.contains('is-expanded');
           card.classList.toggle('is-expanded', willExpand);
           card.setAttribute('aria-expanded', String(willExpand));
@@ -3712,7 +3879,7 @@
         body.className = 'history-body';
         const template = getTemplateById(item.templateId);
         const values = item.textValues || {};
-        const fields = item.templateId === 'note'
+        const fields = isPlainTextTemplate(item.templateId)
           ? [{ label: '', key: template.fields[0]?.key || 'noteText' }]
           : template.fields;
         fields.forEach((field) => {
@@ -3795,7 +3962,7 @@
         }
 
         addMenuAction('Завантажити PNG', () => downloadHistoryPng(item), { disableWhenRead: true });
-        if (item.templateId !== 'note') {
+        if (!isPlainTextTemplate(item.templateId)) {
           addMenuAction('Відкрити', () => openCardPreview(item), { disableWhenRead: true });
         }
         addMenuAction('Надіслати посилання', () => shareCard(item), { disableWhenRead: true });
@@ -3831,6 +3998,7 @@
             positionHistoryMenu(menuToggle, menu);
             card.classList.add('is-menu-open');
             menuToggle.setAttribute('aria-expanded', 'true');
+            menuToggle.classList.add('is-open');
             activeHistoryMenu = menu;
             activeHistoryMenuToggle = menuToggle;
           }
@@ -3871,15 +4039,13 @@
     function closeAuthDropdown() {
       authDropdown.classList.add('hidden');
       authMenuBtn.setAttribute('aria-expanded', 'false');
-      mobileAccountBtn.classList.remove('is-active');
-      const view = document.body.dataset.view;
-      mobileComposeBtn.classList.toggle('is-active', view !== 'history');
-      mobileHistoryBtn.classList.toggle('is-active', view === 'history');
+      authMenuBtn.classList.remove('is-open');
     }
 
     function closeTabSettingsDropdown() {
       tabSettingsDropdown.classList.add('hidden');
       tabSettingsMenuBtn.setAttribute('aria-expanded', 'false');
+      tabSettingsMenuBtn.classList.remove('is-open');
     }
 
     function toggleAuthDropdown() {
@@ -3887,15 +4053,7 @@
       closeTabSettingsDropdown();
       authDropdown.classList.toggle('hidden', isOpen);
       authMenuBtn.setAttribute('aria-expanded', String(!isOpen));
-      mobileAccountBtn.classList.toggle('is-active', !isOpen);
-      if (!isOpen) {
-        mobileComposeBtn.classList.remove('is-active');
-        mobileHistoryBtn.classList.remove('is-active');
-      } else {
-        const view = document.body.dataset.view;
-        mobileComposeBtn.classList.toggle('is-active', view !== 'history');
-        mobileHistoryBtn.classList.toggle('is-active', view === 'history');
-      }
+      authMenuBtn.classList.toggle('is-open', !isOpen);
     }
 
     function toggleTabSettingsDropdown() {
@@ -3904,6 +4062,7 @@
       updateTabSettingsButtons();
       tabSettingsDropdown.classList.toggle('hidden', isOpen);
       tabSettingsMenuBtn.setAttribute('aria-expanded', String(!isOpen));
+      tabSettingsMenuBtn.classList.toggle('is-open', !isOpen);
     }
 
     function openAuthModal() {
@@ -4018,12 +4177,77 @@
             })),
           },
         });
-        localStorage.removeItem(historyKey);
-        setAuthStatus('Локальні записи перенесено в профіль.');
+        setAuthStatus('Локальні записи перенесено в профіль. Копія лишилась на цьому пристрої.');
         await refreshHistory({ resetPage: true });
       } catch (error) {
         setAuthStatus(`Не вдалося перенести локальні записи: ${error.message}`);
       }
+    }
+
+    async function collectAllRecords() {
+      const local = getLocalHistory();
+      if (!currentUser) return sortHistory(local);
+      try {
+        const data = await api('/api/cards?all=1');
+        const cloud = (data.items || []).filter(isValidHistoryItem).map(normalizeHistoryItem);
+        const byId = new Map();
+        [...cloud, ...local].forEach((item) => {
+          if (item?.id && !byId.has(item.id)) byId.set(item.id, item);
+        });
+        return sortHistory([...byId.values()]);
+      } catch (error) {
+        return sortHistory(local);
+      }
+    }
+
+    async function downloadAllBackup() {
+      const items = await collectAllRecords();
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        items: items.map(toBackupItem),
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `therapy-journal-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      showToast(`Завантажено копію: ${items.length} записів`);
+    }
+
+    async function importBackupFromFile(file) {
+      const parsed = JSON.parse(await file.text());
+      const rawItems = Array.isArray(parsed) ? parsed : parsed.items;
+      if (!Array.isArray(rawItems) || !rawItems.length) {
+        showToast('У файлі немає записів');
+        return;
+      }
+      const imported = rawItems.filter(isValidHistoryItem).map(normalizeHistoryItem);
+      const byId = new Map(getLocalHistory().map((item) => [item.id, item]));
+      imported.forEach((item) => {
+        byId.set(item.id, { ...byId.get(item.id), ...toBackupItem(item), textValues: item.textValues });
+      });
+      const merged = normalizeStoredHistory([...byId.values()]);
+      saveLocalHistory(merged);
+      if (currentUser) {
+        await api('/api/cards/batch', {
+          method: 'POST',
+          body: {
+            items: imported.map((item) => ({
+              id: item.id,
+              created_at: item.createdAt,
+              template_id: item.templateId || 'card',
+              template_name: getHistoryTemplateName(item),
+              text_values: withPriorityMetadata(item.textValues, getItemPriority(item)),
+              is_read: item.isRead || false,
+              sort_order: Number.isFinite(item.sortOrder) ? item.sortOrder : getSortValue(item),
+            })),
+          },
+        });
+      }
+      await refreshHistory({ resetPage: true });
+      showToast(`Відновлено ${imported.length} записів`);
     }
 
     async function initializeAuth() {
@@ -4057,11 +4281,14 @@
       updateExportSelectionUi();
       setActiveTemplate(tab.dataset.template);
     });
-    mobileComposeBtn.addEventListener('click', () => setAppView('compose'));
+    mobileComposeBtn.addEventListener('click', () => {
+      setAppView('compose');
+      setActiveTemplate(getComposeTemplateId(), { skipHistoryRefresh: true });
+    });
     mobileHistoryBtn.addEventListener('click', () => setAppView('history'));
-    mobileAccountBtn.addEventListener('click', (event) => {
-      event.stopPropagation();
-      toggleAuthDropdown();
+    mobileMemoBtn.addEventListener('click', () => {
+      setAppView('compose');
+      setActiveTemplate('memo', { allowHidden: true, skipHistoryRefresh: true });
     });
     openEmotionListBtn.addEventListener('click', () => openEmotionModal(thoughtForm.elements.emotion));
     closeEmotionModalBtn.addEventListener('click', closeEmotionModal);
@@ -4096,6 +4323,47 @@
       draggedHistoryItemId = null;
       persistDraggedHistoryOrder(previousHistory);
     });
+    historyList.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse') return;
+      const card = event.target.closest('.history-item');
+      if (!card || event.target.closest('button, input')) return;
+      pointerDragState = {
+        id: card.dataset.id,
+        startY: event.clientY,
+        pointerId: event.pointerId,
+        started: false,
+      };
+    });
+    historyList.addEventListener('pointermove', (event) => {
+      if (!pointerDragState || event.pointerId !== pointerDragState.pointerId) return;
+      const distance = Math.abs(event.clientY - pointerDragState.startY);
+      if (!pointerDragState.started && distance < 14) return;
+      const card = historyList.querySelector(`[data-id="${CSS.escape(pointerDragState.id)}"]`);
+      if (!card) return;
+      if (!pointerDragState.started) {
+        pointerDragState.started = true;
+        draggedHistoryItemId = pointerDragState.id;
+        card.classList.add('is-dragging');
+        try { card.setPointerCapture(event.pointerId); } catch (error) { /* ignore */ }
+      }
+      event.preventDefault();
+      moveDraggedElement(event.clientY);
+    }, { passive: false });
+    function endPointerHistoryDrag(event) {
+      if (!pointerDragState || event.pointerId !== pointerDragState.pointerId) return;
+      const started = pointerDragState.started;
+      const previousHistory = [...renderedHistory];
+      const card = historyList.querySelector('.history-item.is-dragging');
+      card?.classList.remove('is-dragging');
+      pointerDragState = null;
+      if (started) {
+        suppressHistoryClickUntil = Date.now() + 400;
+        persistDraggedHistoryOrder(previousHistory);
+      }
+      draggedHistoryItemId = null;
+    }
+    historyList.addEventListener('pointerup', endPointerHistoryDrag);
+    historyList.addEventListener('pointercancel', endPointerHistoryDrag);
     authMenuBtn.addEventListener('click', (event) => {
       event.stopPropagation();
       toggleAuthDropdown();
@@ -4149,6 +4417,22 @@
       refreshHistory();
     });
     migrateLocalBtn.addEventListener('click', migrateLocalHistoryToCloud);
+    downloadAllBackupBtn.addEventListener('click', () => {
+      closeTabSettingsDropdown();
+      downloadAllBackup();
+    });
+    importBackupBtn.addEventListener('click', () => importBackupInput.click());
+    importBackupInput.addEventListener('change', async () => {
+      const file = importBackupInput.files?.[0];
+      importBackupInput.value = '';
+      if (!file) return;
+      closeTabSettingsDropdown();
+      try {
+        await importBackupFromFile(file);
+      } catch (error) {
+        showToast(`Не вдалося відновити: ${error.message}`);
+      }
+    });
     saveBtn.addEventListener('click', downloadAsImage);
     resetBtn.addEventListener('click', clearDraft);
     cancelDeleteBtn.addEventListener('click', closeDeleteModal);
@@ -4206,6 +4490,8 @@
       if (!suppressComposerAutofocus) return;
       if (event.target.matches('textarea, input')) event.target.blur();
     });
+    ensureMemoTabMigrated();
+    if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
     setAppView('compose');
     setActiveTemplate(activeTemplateId, { skipHistoryRefresh: true });
     keepComposerFromAutofocus();
