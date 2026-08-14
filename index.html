@@ -99,6 +99,10 @@
       overflow: hidden;
     }
 
+    .app-scroll {
+      display: contents;
+    }
+
     .topbar {
       position: relative;
       z-index: 30;
@@ -1471,10 +1475,18 @@
       }
 
       .app {
-        grid-template-rows: auto minmax(0, 1fr) auto;
+        grid-template-rows: minmax(0, 1fr) auto;
+      }
+
+      .app-scroll {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: auto;
       }
 
       .topbar {
+        flex: 0 0 auto;
         padding: 8px 12px;
       }
 
@@ -1692,6 +1704,7 @@
 <body data-view="compose">
   <a class="skip-link" href="#composer">Перейти до форми</a>
   <div class="app">
+    <div class="app-scroll">
     <header class="topbar">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">
@@ -1846,6 +1859,7 @@
           <p class="saved-state" id="savedState"></p>
         </div>
       </main>
+    </div>
     </div>
 
     <nav class="mobile-nav" aria-label="Основна навігація">
