@@ -1610,7 +1610,7 @@
 
       .mobile-nav-dock {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 4px;
         padding: 4px;
         border-radius: 20px;
@@ -1844,12 +1844,6 @@
           </svg>
           Збережені
         </button>
-        <button type="button" id="mobileMemoBtn">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" fill-rule="evenodd" d="M6.5 3A2.5 2.5 0 0 0 4 5.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.2L15.8 3H6.5ZM8 8h8v2H8V8Zm0 4h8v2H8v-2Zm0 4h5v2H8v-2Z"/>
-          </svg>
-          Нотатки
-        </button>
       </div>
     </nav>
   </div>
@@ -2023,7 +2017,6 @@
     const composer = document.getElementById('composer');
     const mobileComposeBtn = document.getElementById('mobileComposeBtn');
     const mobileHistoryBtn = document.getElementById('mobileHistoryBtn');
-    const mobileMemoBtn = document.getElementById('mobileMemoBtn');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
     const historyPagination = document.getElementById('historyPagination');
@@ -2078,16 +2071,6 @@
     const sharedCardPathPrefix = 'card/';
     const historyPageSize = 12;
     const pngDataUrlPrefix = 'data:image/png;base64,';
-    const iconSvg = {
-      download: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v8.6l2.3-2.3a1 1 0 1 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4l2.3 2.3V4a1 1 0 0 1 1-1ZM5 19a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Z"/></svg>',
-      preview: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5C6.5 5 2.1 8.1.2 12c1.9 3.9 6.3 7 11.8 7s9.9-3.1 11.8-7c-1.9-3.9-6.3-7-11.8-7Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-2.2a1.8 1.8 0 1 0 0-3.6 1.8 1.8 0 0 0 0 3.6Z"/></svg>',
-      edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.7 2.3a2.6 2.6 0 0 0-3.7 0l-1.2 1.2 3.7 3.7 1.2-1.2a2.6 2.6 0 0 0 0-3.7ZM19.5 8.2 15.8 4.5 3.7 16.6a5.2 5.2 0 0 0-1.3 2.2l-.8 2.7a.75.75 0 0 0 .9.9l2.7-.8a5.2 5.2 0 0 0 2.2-1.3L19.5 8.2Z"/></svg>',
-      priority: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.8 1-6.1-4.4-4.3 6.1-.9L12 3Z"/></svg>',
-      read: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9.2 16.6 4.9 12.3a1 1 0 0 1 1.4-1.4l2.9 2.9 8.5-8.5a1 1 0 1 1 1.4 1.4l-9.2 9.9a1 1 0 0 1-.7.3Z"/></svg>',
-      remove: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12 19 6.4 17.6 5 12 10.6 6.4 5Z"/></svg>',
-      up: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 5a1 1 0 0 1 .7.3l6 6a1 1 0 0 1-1.4 1.4L13 8.4V19a1 1 0 1 1-2 0V8.4l-4.3 4.3a1 1 0 0 1-1.4-1.4l6-6A1 1 0 0 1 12 5Z"/></svg>',
-      down: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 19a1 1 0 0 1-.7-.3l-6-6a1 1 0 1 1 1.4-1.4L11 15.6V5a1 1 0 1 1 2 0v10.6l4.3-4.3a1 1 0 0 1 1.4 1.4l-6 6a1 1 0 0 1-.7.3Z"/></svg>',
-    };
     async function api(path, options = {}) {
       const response = await fetch(path, {
         credentials: 'include',
@@ -2249,10 +2232,6 @@
         if (priorityDelta) return priorityDelta;
         return getSortValue(firstItem) - getSortValue(secondItem);
       });
-    }
-
-    function setButtonIcon(button, iconName) {
-      button.innerHTML = iconSvg[iconName];
     }
 
     function closeHistoryMenus() {
@@ -2676,17 +2655,8 @@
       localStorage.setItem(visibleTabsKey, JSON.stringify(templateIds));
     }
 
-    function isTemplateEnabled(templateId) {
-      return getEnabledTemplates().includes(templateId);
-    }
-
     function getFirstEnabledTemplateId() {
       return getEnabledTemplates()[0] || 'note';
-    }
-
-    function getComposeTemplateId() {
-      const enabled = getEnabledTemplates();
-      return enabled.find((templateId) => templateId !== 'memo') || enabled[0] || 'note';
     }
 
     function ensureMemoTabMigrated() {
@@ -2704,14 +2674,10 @@
 
     function updateMobileNav() {
       const isHistory = document.body.dataset.view === 'history';
-      const isMemo = !isHistory && activeTemplateId === 'memo';
-      const isCompose = !isHistory && !isMemo;
-      mobileComposeBtn.classList.toggle('is-active', isCompose);
+      mobileComposeBtn.classList.toggle('is-active', !isHistory);
       mobileHistoryBtn.classList.toggle('is-active', isHistory);
-      mobileMemoBtn.classList.toggle('is-active', isMemo);
-      mobileComposeBtn.setAttribute('aria-current', isCompose ? 'page' : 'false');
+      mobileComposeBtn.setAttribute('aria-current', isHistory ? 'false' : 'page');
       mobileHistoryBtn.setAttribute('aria-current', isHistory ? 'page' : 'false');
-      mobileMemoBtn.setAttribute('aria-current', isMemo ? 'page' : 'false');
     }
 
     function updateTabSettingsButtons() {
@@ -3401,8 +3367,8 @@
         return;
       }
       updateTemplateTabs();
-      if (!editingItem && activeTemplateId !== 'memo' && !getEnabledTemplates().includes(activeTemplateId)) {
-        setActiveTemplate(getComposeTemplateId(), { skipHistoryRefresh: true });
+      if (!editingItem && !getEnabledTemplates().includes(activeTemplateId)) {
+        setActiveTemplate(getFirstEnabledTemplateId(), { skipHistoryRefresh: true });
       }
       keepComposerFromAutofocus(resizeActiveTextareas);
     }
@@ -4596,15 +4562,8 @@
       updateExportSelectionUi();
       setActiveTemplate(tab.dataset.template);
     });
-    mobileComposeBtn.addEventListener('click', () => {
-      setAppView('compose');
-      setActiveTemplate(getComposeTemplateId(), { skipHistoryRefresh: true });
-    });
+    mobileComposeBtn.addEventListener('click', () => setAppView('compose'));
     mobileHistoryBtn.addEventListener('click', () => setAppView('history'));
-    mobileMemoBtn.addEventListener('click', () => {
-      setAppView('compose');
-      setActiveTemplate('memo', { allowHidden: true, skipHistoryRefresh: true });
-    });
     openEmotionListBtn.addEventListener('click', () => openEmotionModal(thoughtForm.elements.emotion));
     closeEmotionModalBtn.addEventListener('click', closeEmotionModal);
     emotionModalOverlay.addEventListener('click', (event) => {
