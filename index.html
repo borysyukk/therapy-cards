@@ -752,13 +752,8 @@
       line-height: 1.4;
     }
 
-    .actions {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      margin-top: 20px;
-      flex-wrap: wrap;
-      padding: 14px 0 8px;
+    .actions .hidden {
+      display: none;
     }
 
     button {
@@ -2081,6 +2076,7 @@
           </section>
 
           <div class="actions">
+            <button type="button" class="secondary hidden" id="cancelEditBtn">Скасувати</button>
             <button type="button" class="secondary" id="resetBtn">Очистити</button>
             <button type="button" id="saveBtn">Зберегти запис</button>
           </div>
@@ -2290,6 +2286,7 @@
     const allForms = { thought: thoughtForm, note: noteForm, memo: memoForm };
     const saveBtn = document.getElementById('saveBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
     const savedState = document.getElementById('savedState');
     const toast = document.getElementById('toast');
     const composer = document.getElementById('composer');
@@ -2890,8 +2887,22 @@
 
     function setEditingItem(item) {
       editingItem = item;
+      cancelEditBtn.classList.toggle('hidden', !item);
+      resetBtn.classList.toggle('hidden', Boolean(item));
       if (!isSaving) saveBtn.textContent = getSaveButtonLabel();
       updateSaveButtonState();
+    }
+
+    function cancelCardEdit() {
+      if (!editingItem || isSaving) return;
+      const itemId = editingItem.id;
+      lastOpenedHistoryId = itemId;
+      expandedHistoryIds.add(itemId);
+      setEditingItem(null);
+      loadDraft();
+      savedState.textContent = '';
+      showToast('Зміни скасовано. Запис лишився як був.');
+      setAppView('history');
     }
 
     function updateTemplateTabs() {
@@ -5174,6 +5185,7 @@
     });
     saveBtn.addEventListener('click', downloadAsImage);
     resetBtn.addEventListener('click', clearDraft);
+    cancelEditBtn.addEventListener('click', cancelCardEdit);
     cancelDeleteBtn.addEventListener('click', closeDeleteModal);
     confirmDeleteBtn.addEventListener('click', () => {
       if (pendingDeleteId) deleteHistoryItem(pendingDeleteId);
