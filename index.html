@@ -1289,11 +1289,26 @@
       margin: 0 auto;
     }
 
-    .news-inner h1 {
-      margin: 0 0 8px;
+    .news-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .news-heading h1 {
+      margin: 0;
       font-family: var(--font-display);
       font-size: clamp(26px, 3vw, 36px);
       font-weight: 600;
+    }
+
+    .news-heading #newsRefreshBtn {
+      width: auto;
+      min-height: 36px;
+      padding: 8px 12px;
+      font-size: 13px;
     }
 
     .news-lead {
@@ -2004,8 +2019,11 @@
       </main>
       <section class="news-pane" id="newsPane">
         <div class="news-inner">
-          <h1>Новини з психології</h1>
-          <p class="news-lead">Українські матеріали про психологію та ментальне здоров’я. Стрічка оновлюється сама, коли з’являються нові статті.</p>
+          <div class="news-heading">
+            <h1>Новини з психології</h1>
+            <button type="button" class="secondary" id="newsRefreshBtn">Оновити</button>
+          </div>
+          <p class="news-lead">Матеріали українською з українських видань. Натисніть «Оновити», щоб підтягнути свіжі статті.</p>
           <div class="news-list" id="newsList"></div>
           <button type="button" class="secondary news-more hidden" id="newsMoreBtn">Показати ще</button>
           <p class="news-status" id="newsStatus">Завантажуємо новини…</p>
@@ -2212,6 +2230,7 @@
     const newsList = document.getElementById('newsList');
     const newsStatus = document.getElementById('newsStatus');
     const newsMoreBtn = document.getElementById('newsMoreBtn');
+    const newsRefreshBtn = document.getElementById('newsRefreshBtn');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
     const historyPagination = document.getElementById('historyPagination');
@@ -2310,7 +2329,6 @@
     let newsItemsCache = null;
     let newsCacheAt = 0;
     let newsVisibleCount = 0;
-    let newsLoadPromise = null;
     const newsPageSize = 8;
 
     const creatableTemplateIds = ['note', 'thought', 'memo'];
@@ -3609,38 +3627,25 @@
     }
 
     async function loadPsychologyNews({ reset = false } = {}) {
-      const cacheFresh = !reset && newsItemsCache && Date.now() - newsCacheAt < 10 * 60 * 1000;
-      if (cacheFresh) {
-        if (!newsVisibleCount) newsVisibleCount = newsPageSize;
-        renderNewsItems(newsItemsCache);
-        newsStatus.textContent = 'Стрічка оновлюється автоматично. Натисніть картку, щоб читати на сайті видання.';
-        return;
-      }
-      if (newsLoadPromise) {
-        newsStatus.textContent = 'Завантажуємо новини…';
-        return newsLoadPromise;
-      }
       newsStatus.textContent = 'Завантажуємо новини…';
       newsMoreBtn.classList.add('hidden');
-      newsLoadPromise = (async () => {
-        try {
-          const data = await api('/api/news');
-          newsItemsCache = Array.isArray(data.items) ? data.items : [];
-          newsCacheAt = Date.now();
-          newsVisibleCount = Math.min(newsPageSize, newsItemsCache.length);
-          if (!newsItemsCache.length) {
-            newsStatus.textContent = 'Зараз українських матеріалів немає. Спробуйте пізніше — стрічка оновлюється сама.';
-            return;
-          }
-          renderNewsItems(newsItemsCache);
-          newsStatus.textContent = 'Стрічка оновлюється автоматично. Натисніть картку, щоб читати на сайті видання.';
-        } catch (error) {
-          newsStatus.textContent = `Не вдалося завантажити новини: ${error.message}`;
-        } finally {
-          newsLoadPromise = null;
+      newsRefreshBtn.disabled = true;
+      try {
+        const data = await api(`/api/news?fresh=${reset ? Date.now() : '0'}`);
+        newsItemsCache = Array.isArray(data.items) ? data.items : [];
+        newsCacheAt = Date.now();
+        newsVisibleCount = Math.min(newsPageSize, newsItemsCache.length);
+        if (!newsItemsCache.length) {
+          newsStatus.textContent = 'Зараз свіжих українських матеріалів немає. Натисніть «Оновити» трохи пізніше.';
+          return;
         }
-      })();
-      return newsLoadPromise;
+        renderNewsItems(newsItemsCache);
+        newsStatus.textContent = `Оновлено ${new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}. Натисніть картку, щоб читати на сайті видання.`;
+      } catch (error) {
+        newsStatus.textContent = `Не вдалося завантажити новини: ${error.message}`;
+      } finally {
+        newsRefreshBtn.disabled = false;
+      }
     }
 
     function setAppView(view) {
@@ -3653,7 +3658,7 @@
       updateMobileNav();
       if (nextView === 'news') {
         blurComposerFields();
-        loadPsychologyNews();
+        loadPsychologyNews({ reset: true });
         return;
       }
       if (nextView === 'history') {
@@ -4920,6 +4925,7 @@
     document.addEventListener('pointerup', endPointerHistoryDrag);
     document.addEventListener('pointercancel', endPointerHistoryDrag);
     newsMoreBtn.addEventListener('click', showMoreNews);
+    newsRefreshBtn.addEventListener('click', () => loadPsychologyNews({ reset: true }));
     authMenuBtn.addEventListener('click', (event) => {
       event.stopPropagation();
       toggleAuthDropdown();

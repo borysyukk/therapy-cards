@@ -434,13 +434,13 @@ function parseFeedItems(xml, sourceName) {
 
 async function fetchFeed(feed) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
+  const timer = setTimeout(() => controller.abort(), 10000);
   try {
     const response = await fetch(feed.url, {
       signal: controller.signal,
       headers: {
         Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
-        'User-Agent': 'TherapyJournalNews/1.0',
+        'User-Agent': 'Mozilla/5.0 (compatible; TherapyJournal/1.0; +https://therapy-cards.pages.dev)',
       },
     });
     if (!response.ok) return [];
@@ -454,37 +454,47 @@ async function fetchFeed(feed) {
 }
 
 async function handleNews(request) {
+  const requestUrl = new URL(request.url);
+  const wantFresh = requestUrl.searchParams.has('fresh');
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
-  cacheUrl.searchParams.set('v', 'uk-2');
+  cacheUrl.searchParams.delete('fresh');
+  cacheUrl.searchParams.set('v', 'uk-3');
   const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
-  const cached = await cache.match(cacheRequest);
-  if (cached) return cached;
+  if (!wantFresh) {
+    const cached = await cache.match(cacheRequest);
+    if (cached) return cached;
+  }
 
   const feeds = [
     {
       name: 'Google News',
-      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+when:7d&hl=uk&gl=UA&ceid=UA:uk',
+      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+when:1d&hl=uk&gl=UA&ceid=UA:uk',
       requireTopic: false,
     },
     {
       name: 'Google News',
-      url: 'https://news.google.com/rss/search?q=%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22+OR+%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F+when:7d&hl=uk&gl=UA&ceid=UA:uk',
+      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+OR+%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22+when:7d&hl=uk&gl=UA&ceid=UA:uk',
       requireTopic: false,
     },
     {
-      name: 'Google News',
-      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+when:1y&hl=uk&gl=UA&ceid=UA:uk',
-      requireTopic: false,
+      name: 'Українська правда. Життя',
+      url: 'https://life.pravda.com.ua/rss/',
+      requireTopic: true,
     },
     {
-      name: 'BBC News Україна',
-      url: 'https://feeds.bbci.co.uk/ukrainian/rss.xml',
+      name: 'NV',
+      url: 'https://nv.ua/ukr/rss/all.xml',
+      requireTopic: true,
+    },
+    {
+      name: 'Суспільне',
+      url: 'https://suspilne.media/rss/all.rss',
       requireTopic: true,
     },
   ];
 
-  const topicPattern = /психолог|психотерап|ментальн|психічн|тривог|депрес|стрес|емоці|травм|вигоран|нейропсихол|самопочутт/i;
+  const topicPattern = /психолог|психотерап|ментальн|психічн|тривог|депрес|стрес|емоці|травм|вигоран|нейропсихол|самопочутт|птср|панічн|самооцін|медитац|психосомат/i;
 
   function isUkrainianText(text) {
     const cyrillic = (String(text).match(/[А-Яа-яІіЇїЄєҐґ]/g) || []).length;
@@ -492,11 +502,16 @@ async function handleNews(request) {
     return cyrillic >= 10 && cyrillic >= latin;
   }
 
+  function isUkrainianOutlet(item) {
+    const blob = `${item.url} ${item.source} ${item.title}`;
+    return /news\.google\.com|\.ua(?:[:/?]|$)|bbc\.com\/ukrainian|ukrainian|radiosvoboda|svoboda\.org|hromadske|pravda|suspilne|unian|tsn\.ua|liga\.net|nv\.ua/i.test(blob);
+  }
+
   const groups = await Promise.all(feeds.map(async (feed) => {
     const items = await fetchFeed(feed);
     return items.filter((item) => {
       const text = `${item.title} ${item.description}`;
-      if (!isUkrainianText(text)) return false;
+      if (!isUkrainianText(text) || !isUkrainianOutlet(item)) return false;
       if (feed.requireTopic && !topicPattern.test(text)) return false;
       return true;
     });
@@ -512,11 +527,13 @@ async function handleNews(request) {
     .sort((first, second) => new Date(second.publishedAt || 0) - new Date(first.publishedAt || 0))
     .slice(0, 60);
 
-  const response = json({ items }, 200, { 'Cache-Control': 'public, max-age=600' });
-  try {
-    await cache.put(cacheRequest, response.clone());
-  } catch (error) {
-    // Cache is optional.
+  const response = json({ items }, 200, { 'Cache-Control': wantFresh ? 'no-store' : 'public, max-age=300' });
+  if (!wantFresh) {
+    try {
+      await cache.put(cacheRequest, response.clone());
+    } catch (error) {
+      // Cache is optional.
+    }
   }
   return response;
 }
