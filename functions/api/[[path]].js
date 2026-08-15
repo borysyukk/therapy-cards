@@ -585,7 +585,7 @@ async function fetchQuiBlog() {
       if (!href || /\/blog\/(all-articles|category)\b/i.test(href)) return;
       const block = html.slice(match.index, match.index + 4500);
       const title = stripHtml((block.match(/class="prev-title">([\s\S]*?)<\/p>/i) || [])[1]
-        || (block.match(/alt="([^"]+)"/i) || [])[1]
+        || ((block.match(/alt="([^"]+)"/i) || [])[1] || '').replace(/^Ілюстрація статті$/i, '')
         || '');
       const description = stripHtml((block.match(/class="prev-text">([\s\S]*?)<\/p>/i) || [])[1] || '').slice(0, 280);
       const image = (block.match(/<img[^>]+src="([^"]+)"/i) || [])[1] || '';
