@@ -446,9 +446,26 @@ async function fetchFeed(feed) {
       },
     });
     if (!response.ok) return [];
-    const xml = await response.text();
-    if (!/<item[\s\S]*?<\/item>|<entry[\s\S]*?<\/entry>/i.test(xml)) return [];
-    return parseFeedItems(xml, feed.name);
+    const body = await response.text();
+    const trimmed = body.trim();
+    if (trimmed.startsWith('{')) {
+      try {
+        const data = JSON.parse(trimmed);
+        const rows = Array.isArray(data.items) ? data.items : [];
+        return rows.map((row) => ({
+          title: stripHtml(row.title || ''),
+          url: String(row.link || row.url || ''),
+          description: stripHtml(row.description || row.content || '').slice(0, 280),
+          image: row.thumbnail || row.enclosure?.link || '',
+          source: stripHtml(row.author || row.source || feed.name),
+          publishedAt: row.pubDate || row.published || '',
+        })).filter((item) => item.title && /^https?:\/\//i.test(item.url));
+      } catch (error) {
+        return [];
+      }
+    }
+    if (!/<item[\s\S]*?<\/item>|<entry[\s\S]*?<\/entry>/i.test(body)) return [];
+    return parseFeedItems(body, feed.name);
   } catch (error) {
     return [];
   } finally {
@@ -462,32 +479,38 @@ async function handleNews(request) {
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
   cacheUrl.searchParams.delete('fresh');
-  cacheUrl.searchParams.set('v', 'uk-5');
+  cacheUrl.searchParams.set('v', 'uk-6');
   const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
   if (!wantFresh) {
     const cached = await cache.match(cacheRequest);
     if (cached) return cached;
   }
 
+  const googleQueries = [
+    'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F&hl=uk&gl=UA&ceid=UA:uk',
+    'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F&hl=uk&gl=UA&ceid=UA:uk',
+    'https://news.google.com/rss/search?q=%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22&hl=uk&gl=UA&ceid=UA:uk',
+  ];
   const feeds = [
-    {
+    ...googleQueries.map((url) => ({ name: 'Google News', url, trustSearch: true })),
+    ...googleQueries.map((url) => ({
       name: 'Google News',
-      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F&hl=uk&gl=UA&ceid=UA:uk',
+      url: `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`,
       trustSearch: true,
-    },
+    })),
     {
-      name: 'Google News',
-      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F&hl=uk&gl=UA&ceid=UA:uk',
-      trustSearch: true,
-    },
-    {
-      name: 'Google News',
-      url: 'https://news.google.com/rss/search?q=%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22&hl=uk&gl=UA&ceid=UA:uk',
+      name: 'Bing News',
+      url: 'https://www.bing.com/news/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D0%B0&format=RSS&mkt=uk-UA',
       trustSearch: true,
     },
     {
       name: 'Bing News',
-      url: 'https://www.bing.com/news/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D0%B0&format=RSS&mkt=uk-UA',
+      url: 'https://www.bing.com/news/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F&format=RSS&mkt=uk-UA',
+      trustSearch: true,
+    },
+    {
+      name: 'Bing News',
+      url: 'https://www.bing.com/news/search?q=%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F&format=RSS&mkt=uk-UA',
       trustSearch: true,
     },
     {
