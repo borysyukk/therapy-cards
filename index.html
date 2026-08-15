@@ -661,9 +661,27 @@
       color: var(--color-on-primary);
     }
 
-    .rich-b { font-weight: 800; }
-    .rich-i { font-style: italic; font-family: Georgia, serif; font-weight: 600; }
-    .rich-u { text-decoration: underline; }
+    .rich-editor *,
+    .history-field-value.rich-content *,
+    .preview-content .rich-content * {
+      font-size: inherit;
+      font-family: inherit;
+      color: inherit;
+      background: transparent;
+      letter-spacing: inherit;
+      line-height: inherit;
+    }
+
+    .rich-editor h3,
+    .history-field-value.rich-content h3,
+    .preview-content .rich-content h3 {
+      margin: 0.25em 0;
+      font-size: 1.22em;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .rich-h { font-size: 15px; font-weight: 800; }
 
     .rich-editor {
       white-space: pre-wrap;
@@ -2586,13 +2604,13 @@
     }
 
     function looksLikeRichHtml(value) {
-      return /<(?:b|strong|i|em|u|ul|ol|li|p|div|br|span)\b/i.test(String(value || ''));
+      return /<(?:b|strong|i|em|u|ul|ol|li|p|div|br|span|h3)\b/i.test(String(value || ''));
     }
 
     function sanitizeRichHtml(html) {
       const template = document.createElement('template');
       template.innerHTML = String(html || '');
-      const allowed = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'UL', 'OL', 'LI', 'P', 'BR', 'DIV', 'SPAN']);
+      const allowed = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'UL', 'OL', 'LI', 'P', 'BR', 'DIV', 'SPAN', 'H3']);
       function clean(node) {
         [...node.childNodes].forEach((child) => {
           if (child.nodeType === Node.COMMENT_NODE) {
@@ -2719,7 +2737,11 @@
       toolbar.querySelectorAll('[data-rich]').forEach((button) => {
         let active = false;
         try {
-          active = document.queryCommandState(button.dataset.rich);
+          if (button.dataset.rich === 'heading') {
+            active = document.queryCommandValue('formatBlock').toLowerCase() === 'h3';
+          } else {
+            active = document.queryCommandState(button.dataset.rich);
+          }
         } catch (error) {
           active = false;
         }
@@ -2731,6 +2753,7 @@
       try { document.execCommand('defaultParagraphSeparator', false, 'div'); } catch (error) { /* ignore */ }
       const toolbarHtml = `
         <div class="rich-toolbar" role="toolbar" aria-label="Форматування">
+          <button type="button" data-rich="heading" title="Заголовок" aria-label="Заголовок"><span class="rich-h">H</span></button>
           <button type="button" data-rich="bold" title="Жирний" aria-label="Жирний"><span class="rich-b">B</span></button>
           <button type="button" data-rich="italic" title="Курсив" aria-label="Курсив"><span class="rich-i">I</span></button>
           <button type="button" data-rich="underline" title="Підкреслення" aria-label="Підкреслення"><span class="rich-u">U</span></button>
@@ -2766,7 +2789,12 @@
             if (!button) return;
             event.preventDefault();
             editor.focus();
-            document.execCommand(button.dataset.rich);
+            if (button.dataset.rich === 'heading') {
+              const inHeading = document.queryCommandValue('formatBlock').toLowerCase() === 'h3';
+              document.execCommand('formatBlock', false, inHeading ? 'div' : 'h3');
+            } else {
+              document.execCommand(button.dataset.rich);
+            }
             syncRichSource(editor);
             autoResize(editor);
             updateSaveButtonState();
@@ -2780,6 +2808,24 @@
               document.execCommand({ b: 'bold', i: 'italic', u: 'underline' }[key]);
               updateRichToolbarState(editor);
             }
+          });
+          editor.addEventListener('paste', (event) => {
+            event.preventDefault();
+            const text = event.clipboardData?.getData('text/plain') || '';
+            document.execCommand('insertText', false, text);
+            syncRichSource(editor);
+            autoResize(editor);
+            updateSaveButtonState();
+            updateRichToolbarState(editor);
+          });
+          editor.addEventListener('drop', (event) => {
+            const text = event.dataTransfer?.getData('text/plain');
+            if (!text) return;
+            event.preventDefault();
+            document.execCommand('insertText', false, text);
+            syncRichSource(editor);
+            autoResize(editor);
+            updateSaveButtonState();
           });
           editor.addEventListener('input', () => {
             syncRichSource(editor);
