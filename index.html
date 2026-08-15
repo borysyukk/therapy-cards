@@ -968,7 +968,7 @@
       transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
       cursor: grab;
       user-select: none;
-      touch-action: none;
+      touch-action: pan-y;
       box-shadow: 0 1px 2px rgba(24, 24, 27, 0.04);
     }
 
@@ -1689,6 +1689,10 @@
         flex-direction: column;
         min-height: 0;
         overflow: auto;
+      }
+
+      .history-item {
+        cursor: pointer;
       }
 
       .topbar {
@@ -2644,7 +2648,7 @@
         });
       });
       root.querySelectorAll('ul > li').forEach((item) => item.prepend('- '));
-      root.querySelectorAll('p, div, li').forEach((block) => {
+      root.querySelectorAll('p, div, li, h3').forEach((block) => {
         block.append('\n');
       });
       return root.textContent.replace(/\u00a0/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
@@ -5059,6 +5063,7 @@
     historyList.addEventListener('pointerdown', (event) => {
       const card = event.target.closest('.history-item');
       if (!card || event.target.closest('button, input')) return;
+      if (event.pointerType === 'touch') return;
       pointerDragState = {
         id: card.dataset.id,
         startY: event.clientY,
