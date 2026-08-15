@@ -380,6 +380,21 @@ function decodeXmlEntities(value) {
     .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
 }
 
+function unwrapNewsUrl(rawUrl) {
+  const value = String(rawUrl || '').trim();
+  if (!value) return '';
+  try {
+    const parsed = new URL(value);
+    const nested = parsed.searchParams.get('url') || parsed.searchParams.get('q');
+    if (nested && /^https?:\/\//i.test(nested) && !/bing\.com|google\.com|rss2json/i.test(nested)) {
+      return nested;
+    }
+  } catch (error) {
+    // Keep the original URL.
+  }
+  return value;
+}
+
 function stripHtml(value) {
   return decodeXmlEntities(value)
     .replace(/<script[\s\S]*?<\/script>/gi, ' ')
@@ -417,7 +432,7 @@ function parseFeedItems(xml, sourceName) {
   const chunks = xml.match(/<item[\s\S]*?<\/item>/gi) || xml.match(/<entry[\s\S]*?<\/entry>/gi) || [];
   return chunks.map((block) => {
     const title = stripHtml(firstTag(block, ['title']));
-    const url = firstTag(block, ['link']) || firstAttr(block, 'link', 'href') || firstTag(block, ['guid']);
+    const url = unwrapNewsUrl(firstTag(block, ['link']) || firstAttr(block, 'link', 'href') || firstTag(block, ['guid']));
     const description = stripHtml(firstTag(block, ['description', 'content:encoded', 'summary', 'content'])).slice(0, 280);
     const publishedAt = firstTag(block, ['pubDate', 'published', 'updated', 'dc:date']);
     const source = stripHtml(firstTag(block, ['source'])) || sourceName;
@@ -454,7 +469,7 @@ async function fetchFeed(feed) {
         const rows = Array.isArray(data.items) ? data.items : [];
         return rows.map((row) => ({
           title: stripHtml(row.title || ''),
-          url: String(row.link || row.url || ''),
+          url: unwrapNewsUrl(row.link || row.url || ''),
           description: stripHtml(row.description || row.content || '').slice(0, 280),
           image: row.thumbnail || row.enclosure?.link || '',
           source: stripHtml(row.author || row.source || feed.name),
@@ -479,7 +494,7 @@ async function handleNews(request) {
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
   cacheUrl.searchParams.delete('fresh');
-  cacheUrl.searchParams.set('v', 'uk-6');
+  cacheUrl.searchParams.set('v', 'uk-7');
   const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
   if (!wantFresh) {
     const cached = await cache.match(cacheRequest);
@@ -528,6 +543,16 @@ async function handleNews(request) {
       url: 'https://www.radiosvoboda.org/api/zrqiteuuir',
       trustSearch: false,
     },
+    {
+      name: 'Суспільне',
+      url: 'https://suspilne.media/rss/all.rss',
+      trustSearch: false,
+    },
+    {
+      name: 'Освіта.ua',
+      url: 'https://www.osvita.ua/rss/',
+      trustSearch: false,
+    },
   ];
 
   const topicPattern = /психолог|психотерап|ментальн|психічн\w*\s+здоров|нейропсихол|психосомат|психоедукац|психоаналіз/i;
@@ -548,7 +573,7 @@ async function handleNews(request) {
 
   const byUrl = new Map();
   groups.flat().forEach((item) => {
-    const key = item.url.replace(/[?#].*$/, '');
+    const key = `${item.title}::${item.url.replace(/[?#].*$/, '')}`;
     if (!byUrl.has(key)) byUrl.set(key, item);
   });
 
