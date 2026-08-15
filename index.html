@@ -1311,6 +1311,29 @@
       font-size: 13px;
     }
 
+    .news-section {
+      margin-bottom: 28px;
+    }
+
+    .news-section-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 12px;
+    }
+
+    .news-section-heading h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .news-section-count {
+      color: var(--color-foreground-soft);
+      font-size: 13px;
+    }
+
     .news-lead {
       margin: 0 0 18px;
       color: var(--color-foreground-soft);
@@ -2066,9 +2089,23 @@
             <h1>Новини з психології</h1>
             <button type="button" class="secondary" id="newsRefreshBtn">Оновити</button>
           </div>
-          <p class="news-lead">Лише матеріали українською про психологію, психотерапію та ментальне здоров’я. Загальні новини сюди не потрапляють.</p>
-          <div class="news-list" id="newsList"></div>
-          <button type="button" class="secondary news-more hidden" id="newsMoreBtn">Показати ще</button>
+          <p class="news-lead">Матеріали програми «Ти як?» та українські тексти про психологію. Загальні новини сюди не потрапляють.</p>
+          <section class="news-section" id="newsSelfHelpSection">
+            <div class="news-section-heading">
+              <h2>Самодопомога</h2>
+              <span class="news-section-count" id="newsSelfHelpCount"></span>
+            </div>
+            <div class="news-list" id="newsSelfHelpList"></div>
+            <button type="button" class="secondary news-more hidden" id="newsSelfHelpMoreBtn">Показати ще</button>
+          </section>
+          <section class="news-section" id="newsMaterialsSection">
+            <div class="news-section-heading">
+              <h2>Корисні матеріали</h2>
+              <span class="news-section-count" id="newsMaterialsCount"></span>
+            </div>
+            <div class="news-list" id="newsList"></div>
+            <button type="button" class="secondary news-more hidden" id="newsMoreBtn">Показати ще</button>
+          </section>
           <p class="news-status" id="newsStatus">Завантажуємо новини…</p>
           <section class="news-read-pane hidden" id="newsReadPane">
             <div class="news-read-heading">
@@ -2280,6 +2317,10 @@
     const newsList = document.getElementById('newsList');
     const newsStatus = document.getElementById('newsStatus');
     const newsMoreBtn = document.getElementById('newsMoreBtn');
+    const newsSelfHelpList = document.getElementById('newsSelfHelpList');
+    const newsSelfHelpMoreBtn = document.getElementById('newsSelfHelpMoreBtn');
+    const newsSelfHelpCount = document.getElementById('newsSelfHelpCount');
+    const newsMaterialsCount = document.getElementById('newsMaterialsCount');
     const newsRefreshBtn = document.getElementById('newsRefreshBtn');
     const newsReadPane = document.getElementById('newsReadPane');
     const newsReadList = document.getElementById('newsReadList');
@@ -2383,6 +2424,7 @@
     let newsItemsCache = null;
     let newsCacheAt = 0;
     let newsVisibleCount = 0;
+    let newsSelfHelpVisibleCount = 0;
     const newsPageSize = 8;
     const newsReadKey = 'therapyNewsReadItems';
     let newsReadOpen = false;
@@ -3664,8 +3706,15 @@
       renderPsychologyNews();
     }
 
-    function unreadNewsItems() {
-      return (newsItemsCache || []).filter((item) => !isNewsRead(item.url));
+    function newsSectionOf(item) {
+      if (item.section === 'selfHelp' || /howareu\.com\/(tekhnika|alhorytm|fizychne|korysne|emotsiina|efektyvna|komponenty|vplyv-tryvaloho|navychky|stiikist|rozmova-iaka)/i.test(item.url || '')) {
+        return 'selfHelp';
+      }
+      return 'materials';
+    }
+
+    function unreadNewsItems(section) {
+      return (newsItemsCache || []).filter((item) => !isNewsRead(item.url) && (!section || newsSectionOf(item) === section));
     }
 
     function createNewsCard(item, { read = false } = {}) {
@@ -3733,12 +3782,19 @@
     }
 
     function renderPsychologyNews() {
-      const unread = unreadNewsItems();
+      const unreadSelfHelp = unreadNewsItems('selfHelp');
+      const unreadMaterials = unreadNewsItems('materials');
       const readItems = loadReadNews();
-      const visible = unread.slice(0, newsVisibleCount);
+
+      newsSelfHelpList.innerHTML = '';
+      unreadSelfHelp.slice(0, newsSelfHelpVisibleCount).forEach((item) => newsSelfHelpList.appendChild(createNewsCard(item)));
+      newsSelfHelpMoreBtn.classList.toggle('hidden', newsSelfHelpVisibleCount >= unreadSelfHelp.length);
+      newsSelfHelpCount.textContent = unreadSelfHelp.length ? `${unreadSelfHelp.length}` : '';
+
       newsList.innerHTML = '';
-      visible.forEach((item) => newsList.appendChild(createNewsCard(item)));
-      newsMoreBtn.classList.toggle('hidden', newsVisibleCount >= unread.length);
+      unreadMaterials.slice(0, newsVisibleCount).forEach((item) => newsList.appendChild(createNewsCard(item)));
+      newsMoreBtn.classList.toggle('hidden', newsVisibleCount >= unreadMaterials.length);
+      newsMaterialsCount.textContent = unreadMaterials.length ? `${unreadMaterials.length}` : '';
 
       newsReadPane.classList.toggle('hidden', !readItems.length);
       newsReadTitle.textContent = readItems.length ? `Прочитано (${readItems.length})` : 'Прочитано';
@@ -3749,7 +3805,7 @@
         readItems.forEach((item) => newsReadList.appendChild(createNewsCard(item, { read: true })));
       }
 
-      if (!unread.length && (newsItemsCache || []).length) {
+      if (!unreadSelfHelp.length && !unreadMaterials.length && (newsItemsCache || []).length) {
         newsStatus.textContent = readItems.length
           ? 'Усі матеріали з цієї стрічки вже в «Прочитано».'
           : 'Зараз свіжих українських матеріалів немає. Натисніть «Оновити» трохи пізніше.';
@@ -3757,32 +3813,39 @@
     }
 
     function showMoreNews() {
-      const unread = unreadNewsItems();
+      const unread = unreadNewsItems('materials');
       if (!unread.length) return;
       newsVisibleCount = Math.min(unread.length, newsVisibleCount + newsPageSize);
       renderPsychologyNews();
-      newsStatus.textContent = newsVisibleCount >= unread.length
-        ? 'Це всі непрочитані матеріали зараз. Пізніше з’являться новіші.'
-        : 'Показано старіші матеріали. Можна відкрити ще.';
+    }
+
+    function showMoreSelfHelp() {
+      const unread = unreadNewsItems('selfHelp');
+      if (!unread.length) return;
+      newsSelfHelpVisibleCount = Math.min(unread.length, newsSelfHelpVisibleCount + newsPageSize);
+      renderPsychologyNews();
     }
 
     async function loadPsychologyNews({ reset = false } = {}) {
       newsStatus.textContent = 'Завантажуємо новини…';
       newsMoreBtn.classList.add('hidden');
+      newsSelfHelpMoreBtn.classList.add('hidden');
       newsRefreshBtn.disabled = true;
       try {
         const data = await api(`/api/news?fresh=${reset ? Date.now() : '0'}`);
         newsItemsCache = Array.isArray(data.items) ? data.items : [];
         newsCacheAt = Date.now();
-        const unread = unreadNewsItems();
-        newsVisibleCount = Math.min(newsPageSize, unread.length);
+        const unreadSelfHelp = unreadNewsItems('selfHelp');
+        const unreadMaterials = unreadNewsItems('materials');
+        newsSelfHelpVisibleCount = Math.min(newsPageSize, unreadSelfHelp.length);
+        newsVisibleCount = Math.min(newsPageSize, unreadMaterials.length);
         if (!newsItemsCache.length) {
           newsStatus.textContent = 'Зараз свіжих українських матеріалів немає. Натисніть «Оновити» трохи пізніше.';
           renderPsychologyNews();
           return;
         }
         renderPsychologyNews();
-        newsStatus.textContent = unread.length
+        newsStatus.textContent = (unreadSelfHelp.length || unreadMaterials.length)
           ? `Оновлено ${new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}. Натисніть картку, щоб читати — вона перейде в «Прочитано».`
           : 'Усі матеріали з цієї стрічки вже в «Прочитано».';
       } catch (error) {
@@ -5069,6 +5132,7 @@
     document.addEventListener('pointerup', endPointerHistoryDrag);
     document.addEventListener('pointercancel', endPointerHistoryDrag);
     newsMoreBtn.addEventListener('click', showMoreNews);
+    newsSelfHelpMoreBtn.addEventListener('click', showMoreSelfHelp);
     newsRefreshBtn.addEventListener('click', () => loadPsychologyNews({ reset: true }));
     newsReadToggleBtn.addEventListener('click', () => {
       newsReadOpen = !newsReadOpen;

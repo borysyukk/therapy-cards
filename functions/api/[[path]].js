@@ -497,7 +497,7 @@ function absoluteUrl(url, origin) {
   return `${origin}/${value}`;
 }
 
-async function fetchHowareuMaterials() {
+async function fetchHowareuSearch(type) {
   const origin = 'https://howareu.com';
   const items = [];
   let page = 1;
@@ -506,7 +506,7 @@ async function fetchHowareuMaterials() {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 10000);
     try {
-      const response = await fetch(`${origin}/api/search?type=materials&per_page=50&page=${page}`, {
+      const response = await fetch(`${origin}/api/search?type=${encodeURIComponent(type)}&per_page=50&page=${page}`, {
         signal: controller.signal,
         redirect: 'follow',
         headers: {
@@ -542,13 +542,71 @@ async function fetchHowareuMaterials() {
   return items;
 }
 
+async function fetchHowareuSelfHelp() {
+  const origin = 'https://howareu.com';
+  const items = [];
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetch(`${origin}/self-help`, {
+      signal: controller.signal,
+      redirect: 'follow',
+      headers: {
+        Accept: 'text/html',
+        'Accept-Language': 'uk-UA,uk;q=0.9',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      },
+    });
+    if (response.ok) {
+      const html = await response.text();
+      const cards = html.match(/<a href="https:\/\/howareu\.com\/[^"]+"[^>]*class="organizations-card"[\s\S]*?<\/a>/gi) || [];
+      cards.forEach((block) => {
+        const href = (block.match(/href="(https:\/\/howareu\.com\/[^"]+)"/i) || [])[1] || '';
+        const title = stripHtml((block.match(/organizations-card-title">([\s\S]*?)<\/div>/i) || [])[1] || '');
+        const description = stripHtml((block.match(/organizations-card-descr">([\s\S]*?)<\/div>/i) || [])[1] || '').slice(0, 280);
+        const imageRaw = ((block.match(/background-image:\s*url\(([^)]+)\)/i) || [])[1] || '').replace(/['"]/g, '');
+        if (!title || !href) return;
+        items.push({
+          title,
+          url: href,
+          description,
+          image: absoluteUrl(imageRaw, origin),
+          source: 'Ти як? Самодопомога',
+          publishedAt: '',
+          section: 'selfHelp',
+        });
+      });
+    }
+  } catch (error) {
+    // Hub HTML is optional if the pages API still works.
+  } finally {
+    clearTimeout(timer);
+  }
+
+  const pages = await fetchHowareuSearch('pages');
+  const selfHelpPattern = /tekhnika|alhorytm|samodopomoh|stiikist|fizychne-zdorovia|korysne-myslennia|emotsiina-rehuliatsiia|efektyvna-povedinka|komponenty-zdorovia|vplyv-tryvaloho|navychky_samodopomoha|rozmova-iaka-ne-ranyt/i;
+  const byUrl = new Map(items.map((item) => [item.url.replace(/[?#].*$/, ''), item]));
+  pages.forEach((item) => {
+    if (!selfHelpPattern.test(item.url)) return;
+    const key = item.url.replace(/[?#].*$/, '');
+    if (byUrl.has(key)) {
+      const current = byUrl.get(key);
+      if (!current.description && item.description) current.description = item.description;
+      if (!current.image && item.image) current.image = item.image;
+      return;
+    }
+    byUrl.set(key, { ...item, source: 'Ти як? Самодопомога', section: 'selfHelp' });
+  });
+  return [...byUrl.values()];
+}
+
 async function handleNews(request) {
   const requestUrl = new URL(request.url);
   const wantFresh = requestUrl.searchParams.has('fresh');
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
   cacheUrl.searchParams.delete('fresh');
-  cacheUrl.searchParams.set('v', 'uk-8');
+  cacheUrl.searchParams.set('v', 'uk-9');
   const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
   if (!wantFresh) {
     const cached = await cache.match(cacheRequest);
@@ -615,8 +673,9 @@ async function handleNews(request) {
     return (String(text).match(/[А-Яа-яІіЇїЄєҐґ]/g) || []).length >= 8;
   }
 
-  const [howareuItems, ...groups] = await Promise.all([
-    fetchHowareuMaterials(),
+  const [howareuMaterials, howareuSelfHelp, ...groups] = await Promise.all([
+    fetchHowareuSearch('materials'),
+    fetchHowareuSelfHelp(),
     ...feeds.map(async (feed) => {
       const items = await fetchFeed(feed);
       return items.filter((item) => {
@@ -628,19 +687,18 @@ async function handleNews(request) {
     }),
   ]);
 
+  const selfHelp = howareuSelfHelp.map((item) => ({ ...item, section: 'selfHelp', source: item.source || 'Ти як? Самодопомога' }));
+  const materials = howareuMaterials.map((item) => ({ ...item, section: 'materials', source: item.source || 'Ти як?' }));
+  const selfHelpUrls = new Set(selfHelp.map((item) => item.url.replace(/[?#].*$/, '')));
   const byUrl = new Map();
-  [...howareuItems, ...groups.flat()].forEach((item) => {
+  [...selfHelp, ...materials, ...groups.flat().map((item) => ({ ...item, section: 'materials' }))].forEach((item) => {
     const key = `${item.title}::${item.url.replace(/[?#].*$/, '')}`;
+    if (selfHelpUrls.has(item.url.replace(/[?#].*$/, ''))) {
+      item.section = 'selfHelp';
+    }
     if (!byUrl.has(key)) byUrl.set(key, item);
   });
-
-  const howareuUrls = new Set(howareuItems.map((item) => item.url));
-  const merged = [...byUrl.values()];
-  const fromHowareu = merged.filter((item) => howareuUrls.has(item.url) || /howareu\.com/i.test(item.url));
-  const fromNews = merged
-    .filter((item) => !howareuUrls.has(item.url) && !/howareu\.com/i.test(item.url))
-    .sort((first, second) => new Date(second.publishedAt || 0) - new Date(first.publishedAt || 0));
-  const items = [...fromHowareu, ...fromNews].slice(0, 250);
+  const items = [...byUrl.values()].slice(0, 280);
 
   const response = json({ items }, 200, { 'Cache-Control': wantFresh ? 'no-store' : 'public, max-age=300' });
   if (!wantFresh) {
