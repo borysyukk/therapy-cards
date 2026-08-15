@@ -747,10 +747,9 @@ async function fetchHowareuSelfHelp() {
           url: href,
           description,
           image: absoluteUrl(imageRaw, origin),
-          source: 'Ти як? Самодопомога',
+          source: 'Ти як?',
           publishedAt: '',
           sortId: 0,
-          section: 'selfHelp',
         });
       });
     }
@@ -774,7 +773,7 @@ async function fetchHowareuSelfHelp() {
       if (!current.sortId && item.sortId) current.sortId = item.sortId;
       return;
     }
-    byUrl.set(key, { ...item, source: 'Ти як? Самодопомога', section: 'selfHelp' });
+    byUrl.set(key, { ...item, source: 'Ти як?' });
   });
   return [...byUrl.values()];
 }
@@ -785,7 +784,7 @@ async function handleNews(request) {
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
   cacheUrl.searchParams.delete('fresh');
-  cacheUrl.searchParams.set('v', 'uk-12');
+  cacheUrl.searchParams.set('v', 'uk-13');
   const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
   if (!wantFresh) {
     const cached = await cache.match(cacheRequest);
@@ -801,18 +800,18 @@ async function handleNews(request) {
     fetchMentolyBlog(),
   ]);
 
-  const selfHelp = howareuSelfHelp.map((item) => ({ ...item, section: 'selfHelp', source: item.source || 'Ти як?' }));
-  const materials = [
-    ...howareuMaterials.map((item) => ({ ...item, section: 'materials', source: item.source || 'Ти як?' })),
+  const mixed = [
+    ...howareuSelfHelp.map((item) => ({ ...item, source: item.source || 'Ти як?' })),
+    ...howareuMaterials.map((item) => ({ ...item, source: item.source || 'Ти як?' })),
     ...upsiItems,
     ...quiItems,
     ...dosebeItems,
     ...mentolyItems,
   ];
   const byUrl = new Map();
-  [...selfHelp, ...materials].forEach((item) => {
+  mixed.forEach((item) => {
     const key = `${item.title}::${item.url.replace(/[?#].*$/, '')}`;
-    if (!byUrl.has(key)) byUrl.set(key, item);
+    if (!byUrl.has(key)) byUrl.set(key, { ...item, section: undefined });
   });
   const items = mixByDate([...byUrl.values()]).slice(0, 280);
 
