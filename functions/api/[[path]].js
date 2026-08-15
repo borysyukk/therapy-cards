@@ -417,7 +417,7 @@ function parseFeedItems(xml, sourceName) {
   const chunks = xml.match(/<item[\s\S]*?<\/item>/gi) || xml.match(/<entry[\s\S]*?<\/entry>/gi) || [];
   return chunks.map((block) => {
     const title = stripHtml(firstTag(block, ['title']));
-    const url = firstTag(block, ['link']) || firstAttr(block, 'link', 'href');
+    const url = firstTag(block, ['link']) || firstAttr(block, 'link', 'href') || firstTag(block, ['guid']);
     const description = stripHtml(firstTag(block, ['description', 'content:encoded', 'summary', 'content'])).slice(0, 280);
     const publishedAt = firstTag(block, ['pubDate', 'published', 'updated', 'dc:date']);
     const source = stripHtml(firstTag(block, ['source'])) || sourceName;
@@ -438,13 +438,16 @@ async function fetchFeed(feed) {
   try {
     const response = await fetch(feed.url, {
       signal: controller.signal,
+      redirect: 'follow',
       headers: {
         Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
-        'User-Agent': 'Mozilla/5.0 (compatible; TherapyJournal/1.0; +https://therapy-cards.pages.dev)',
+        'Accept-Language': 'uk-UA,uk;q=0.9,en;q=0.6',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
       },
     });
     if (!response.ok) return [];
     const xml = await response.text();
+    if (!/<item[\s\S]*?<\/item>|<entry[\s\S]*?<\/entry>/i.test(xml)) return [];
     return parseFeedItems(xml, feed.name);
   } catch (error) {
     return [];
@@ -459,7 +462,7 @@ async function handleNews(request) {
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
   cacheUrl.searchParams.delete('fresh');
-  cacheUrl.searchParams.set('v', 'uk-4');
+  cacheUrl.searchParams.set('v', 'uk-5');
   const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
   if (!wantFresh) {
     const cached = await cache.match(cacheRequest);
@@ -469,40 +472,54 @@ async function handleNews(request) {
   const feeds = [
     {
       name: 'Google News',
-      url: 'https://news.google.com/rss/search?q=%22%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F%22+when:30d&hl=uk&gl=UA&ceid=UA:uk',
+      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F&hl=uk&gl=UA&ceid=UA:uk',
+      trustSearch: true,
     },
     {
       name: 'Google News',
-      url: 'https://news.google.com/rss/search?q=%22%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F%22+OR+%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3+when:30d&hl=uk&gl=UA&ceid=UA:uk',
+      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F&hl=uk&gl=UA&ceid=UA:uk',
+      trustSearch: true,
     },
     {
       name: 'Google News',
-      url: 'https://news.google.com/rss/search?q=%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22+OR+%22%D0%BF%D1%81%D0%B8%D1%85%D1%96%D1%87%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22+when:30d&hl=uk&gl=UA&ceid=UA:uk',
+      url: 'https://news.google.com/rss/search?q=%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22&hl=uk&gl=UA&ceid=UA:uk',
+      trustSearch: true,
+    },
+    {
+      name: 'Bing News',
+      url: 'https://www.bing.com/news/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D0%B0&format=RSS&mkt=uk-UA',
+      trustSearch: true,
     },
     {
       name: 'Українська правда. Життя',
       url: 'https://life.pravda.com.ua/rss/',
+      trustSearch: false,
+    },
+    {
+      name: 'BBC News Україна',
+      url: 'https://feeds.bbci.co.uk/ukrainian/rss.xml',
+      trustSearch: false,
+    },
+    {
+      name: 'Радіо Свобода',
+      url: 'https://www.radiosvoboda.org/api/zrqiteuuir',
+      trustSearch: false,
     },
   ];
 
-  const topicPattern = /психолог|психотерап|ментальн\w*\s+здоров|психічн\w*\s+здоров|нейропсихол|психосомат|психоедукац|психоаналіз|когнітивн\w*\s+поведінков/i;
+  const topicPattern = /психолог|психотерап|ментальн|психічн\w*\s+здоров|нейропсихол|психосомат|психоедукац|психоаналіз/i;
 
   function isUkrainianText(text) {
-    const cyrillic = (String(text).match(/[А-Яа-яІіЇїЄєҐґ]/g) || []).length;
-    const latin = (String(text).match(/[A-Za-z]/g) || []).length;
-    return cyrillic >= 10 && cyrillic >= latin;
-  }
-
-  function isUkrainianOutlet(item) {
-    const blob = `${item.url} ${item.source} ${item.title}`;
-    return /news\.google\.com|\.ua(?:[:/?]|$)|bbc\.com\/ukrainian|ukrainian|radiosvoboda|svoboda\.org|hromadske|pravda|suspilne|unian|tsn\.ua|liga\.net|nv\.ua/i.test(blob);
+    return (String(text).match(/[А-Яа-яІіЇїЄєҐґ]/g) || []).length >= 8;
   }
 
   const groups = await Promise.all(feeds.map(async (feed) => {
     const items = await fetchFeed(feed);
     return items.filter((item) => {
       const text = `${item.title} ${item.description}`;
-      return isUkrainianText(text) && isUkrainianOutlet(item) && topicPattern.test(text);
+      if (!isUkrainianText(text)) return false;
+      if (feed.trustSearch) return /психолог|психотерап|ментальн/i.test(text);
+      return topicPattern.test(text);
     });
   }));
 
