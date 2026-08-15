@@ -3713,8 +3713,16 @@
       return 'materials';
     }
 
+    function newsTime(item) {
+      const fromDate = Date.parse(item.publishedAt || '');
+      if (!Number.isNaN(fromDate)) return fromDate;
+      return Number(item.sortId || 0);
+    }
+
     function unreadNewsItems(section) {
-      return (newsItemsCache || []).filter((item) => !isNewsRead(item.url) && (!section || newsSectionOf(item) === section));
+      return (newsItemsCache || [])
+        .filter((item) => !isNewsRead(item.url) && (!section || newsSectionOf(item) === section))
+        .sort((first, second) => newsTime(second) - newsTime(first));
     }
 
     function createNewsCard(item, { read = false } = {}) {

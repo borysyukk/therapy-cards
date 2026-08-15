@@ -526,10 +526,11 @@ async function fetchHowareuSearch(type) {
         items.push({
           title,
           url,
-          description: stripHtml(row.excerpt || '').slice(0, 280),
-          image: absoluteUrl(row.image?.url, origin),
+          description: stripHtml(row.excerpt || row.content || '').slice(0, 280),
+          image: absoluteUrl(typeof row.image === 'string' ? row.image : row.image?.url, origin),
           source: 'Ти як?',
-          publishedAt: row.published_at || row.created_at || '',
+          publishedAt: row.published_at || row.published || row.created_at || '',
+          sortId: Number(row.id || 0),
         });
       });
     } catch (error) {
@@ -573,6 +574,7 @@ async function fetchHowareuSelfHelp() {
           image: absoluteUrl(imageRaw, origin),
           source: 'Ти як? Самодопомога',
           publishedAt: '',
+          sortId: 0,
           section: 'selfHelp',
         });
       });
@@ -593,6 +595,8 @@ async function fetchHowareuSelfHelp() {
       const current = byUrl.get(key);
       if (!current.description && item.description) current.description = item.description;
       if (!current.image && item.image) current.image = item.image;
+      if (!current.publishedAt && item.publishedAt) current.publishedAt = item.publishedAt;
+      if (!current.sortId && item.sortId) current.sortId = item.sortId;
       return;
     }
     byUrl.set(key, { ...item, source: 'Ти як? Самодопомога', section: 'selfHelp' });
@@ -606,7 +610,7 @@ async function handleNews(request) {
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
   cacheUrl.searchParams.delete('fresh');
-  cacheUrl.searchParams.set('v', 'uk-9');
+  cacheUrl.searchParams.set('v', 'uk-10');
   const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
   if (!wantFresh) {
     const cached = await cache.match(cacheRequest);
@@ -673,8 +677,9 @@ async function handleNews(request) {
     return (String(text).match(/[А-Яа-яІіЇїЄєҐґ]/g) || []).length >= 8;
   }
 
-  const [howareuMaterials, howareuSelfHelp, ...groups] = await Promise.all([
+  const [howareuMaterials, howareuNews, howareuSelfHelp, ...groups] = await Promise.all([
     fetchHowareuSearch('materials'),
+    fetchHowareuSearch('news'),
     fetchHowareuSelfHelp(),
     ...feeds.map(async (feed) => {
       const items = await fetchFeed(feed);
@@ -687,18 +692,34 @@ async function handleNews(request) {
     }),
   ]);
 
-  const selfHelp = howareuSelfHelp.map((item) => ({ ...item, section: 'selfHelp', source: item.source || 'Ти як? Самодопомога' }));
-  const materials = howareuMaterials.map((item) => ({ ...item, section: 'materials', source: item.source || 'Ти як?' }));
+  function newestFirst(first, second) {
+    const firstTime = Date.parse(first.publishedAt || '') || Number(first.sortId || 0);
+    const secondTime = Date.parse(second.publishedAt || '') || Number(second.sortId || 0);
+    return secondTime - firstTime;
+  }
+
+  const selfHelp = howareuSelfHelp
+    .map((item) => ({ ...item, section: 'selfHelp', source: item.source || 'Ти як? Самодопомога' }))
+    .sort(newestFirst);
+  const materials = [
+    ...howareuNews.map((item) => ({ ...item, section: 'materials', source: item.source || 'Ти як?' })),
+    ...howareuMaterials.map((item) => ({ ...item, section: 'materials', source: item.source || 'Ти як?' })),
+    ...groups.flat().map((item) => ({ ...item, section: 'materials' })),
+  ];
   const selfHelpUrls = new Set(selfHelp.map((item) => item.url.replace(/[?#].*$/, '')));
   const byUrl = new Map();
-  [...selfHelp, ...materials, ...groups.flat().map((item) => ({ ...item, section: 'materials' }))].forEach((item) => {
+  [...selfHelp, ...materials].forEach((item) => {
     const key = `${item.title}::${item.url.replace(/[?#].*$/, '')}`;
     if (selfHelpUrls.has(item.url.replace(/[?#].*$/, ''))) {
       item.section = 'selfHelp';
     }
     if (!byUrl.has(key)) byUrl.set(key, item);
   });
-  const items = [...byUrl.values()].slice(0, 280);
+  const merged = [...byUrl.values()];
+  const items = [
+    ...merged.filter((item) => item.section === 'selfHelp').sort(newestFirst),
+    ...merged.filter((item) => item.section !== 'selfHelp').sort(newestFirst),
+  ].slice(0, 280);
 
   const response = json({ items }, 200, { 'Cache-Control': wantFresh ? 'no-store' : 'public, max-age=300' });
   if (!wantFresh) {
