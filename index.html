@@ -1921,7 +1921,7 @@
         <div class="account-menu-actions">
           <button type="button" class="news-button" id="desktopNewsBtn" aria-label="Новини">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path fill="currentColor" d="M4 5.75A1.75 1.75 0 0 1 5.75 4h12.5A1.75 1.75 0 0 1 20 5.75v12.5A1.75 1.75 0 0 1 18.25 20H5.75A1.75 1.75 0 0 1 4 18.25V5.75ZM7 8h10v2H7V8Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z"/>
+              <path fill="currentColor" d="M6.75 3.5h12.5A1.75 1.75 0 0 1 21 5.25v11.5A3.25 3.25 0 0 1 17.75 20H5.5A2.5 2.5 0 0 1 3 17.5V6.75A3.25 3.25 0 0 1 6.25 3.5h.5Zm0 1.5h-.5c-.97 0-1.75.78-1.75 1.75V17.5a1 1 0 0 0 1 1h12.25c.97 0 1.75-.78 1.75-1.75V5.25a.25.25 0 0 0-.25-.25H6.75ZM8 7.25h8.5v4.25H8V7.25Zm0 5.75h8.5v1.35H8V13Zm0 2.6h5.75v1.3H8v-1.3Z"/>
             </svg>
             <span>Новини</span>
           </button>
@@ -2096,7 +2096,7 @@
         </button>
         <button type="button" id="mobileNewsBtn">
           <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M4 5.75A1.75 1.75 0 0 1 5.75 4h12.5A1.75 1.75 0 0 1 20 5.75v12.5A1.75 1.75 0 0 1 18.25 20H5.75A1.75 1.75 0 0 1 4 18.25V5.75ZM7 8h10v2H7V8Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z"/>
+            <path fill="currentColor" d="M6.75 3.5h12.5A1.75 1.75 0 0 1 21 5.25v11.5A3.25 3.25 0 0 1 17.75 20H5.5A2.5 2.5 0 0 1 3 17.5V6.75A3.25 3.25 0 0 1 6.25 3.5h.5Zm0 1.5h-.5c-.97 0-1.75.78-1.75 1.75V17.5a1 1 0 0 0 1 1h12.25c.97 0 1.75-.78 1.75-1.75V5.25a.25.25 0 0 0-.25-.25H6.75ZM8 7.25h8.5v4.25H8V7.25Zm0 5.75h8.5v1.35H8V13Zm0 2.6h5.75v1.3H8v-1.3Z"/>
           </svg>
           Новини
         </button>
@@ -2379,6 +2379,7 @@
     let newsVisibleCount = 0;
     const newsPageSize = 8;
     const newsReadKey = 'therapyNewsReadItems';
+    const appViewKey = 'therapyAppView';
 
     const creatableTemplateIds = ['note', 'thought', 'memo'];
     const templates = {
@@ -3747,6 +3748,31 @@
       }
     }
 
+    function persistAppView(view) {
+      try {
+        localStorage.setItem(appViewKey, view);
+      } catch (error) {
+        // Storage is optional.
+      }
+      const nextHash = view === 'compose' ? '' : view;
+      const currentHash = location.hash.replace(/^#/, '');
+      if (currentHash === nextHash) return;
+      const url = `${location.pathname}${location.search}${nextHash ? `#${nextHash}` : ''}`;
+      history.replaceState(null, '', url);
+    }
+
+    function readSavedAppView() {
+      const fromHash = location.hash.replace(/^#/, '');
+      if (fromHash === 'history' || fromHash === 'news' || fromHash === 'compose') return fromHash;
+      try {
+        const saved = localStorage.getItem(appViewKey);
+        if (saved === 'history' || saved === 'news' || saved === 'compose') return saved;
+      } catch (error) {
+        // Ignore storage errors.
+      }
+      return 'compose';
+    }
+
     function setAppView(view) {
       const nextView = view === 'history' || view === 'news' ? view : 'compose';
       if (nextView === 'compose') {
@@ -3754,6 +3780,7 @@
         blurComposerFields();
       }
       document.body.dataset.view = nextView;
+      persistAppView(nextView);
       updateMobileNav();
       if (nextView === 'news') {
         blurComposerFields();
@@ -5153,7 +5180,7 @@
     });
     ensureMemoTabMigrated();
     if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
-    setAppView('compose');
+    setAppView(readSavedAppView());
     setActiveTemplate(activeTemplateId, { skipHistoryRefresh: true });
     keepComposerFromAutofocus();
     initializeAuth();
