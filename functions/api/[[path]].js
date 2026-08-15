@@ -456,7 +456,7 @@ async function fetchFeed(feed) {
 async function handleNews(request) {
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
-  cacheUrl.searchParams.set('v', 'uk-1');
+  cacheUrl.searchParams.set('v', 'uk-2');
   const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
   const cached = await cache.match(cacheRequest);
   if (cached) return cached;
@@ -470,6 +470,11 @@ async function handleNews(request) {
     {
       name: 'Google News',
       url: 'https://news.google.com/rss/search?q=%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22+OR+%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F+when:7d&hl=uk&gl=UA&ceid=UA:uk',
+      requireTopic: false,
+    },
+    {
+      name: 'Google News',
+      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+when:1y&hl=uk&gl=UA&ceid=UA:uk',
       requireTopic: false,
     },
     {
@@ -505,7 +510,7 @@ async function handleNews(request) {
 
   const items = [...byUrl.values()]
     .sort((first, second) => new Date(second.publishedAt || 0) - new Date(first.publishedAt || 0))
-    .slice(0, 24);
+    .slice(0, 60);
 
   const response = json({ items }, 200, { 'Cache-Control': 'public, max-age=600' });
   try {

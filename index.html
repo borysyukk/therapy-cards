@@ -948,9 +948,9 @@
       gap: 10px;
       align-items: start;
       transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
-      cursor: pointer;
+      cursor: grab;
       user-select: none;
-      touch-action: pan-y;
+      touch-action: none;
       box-shadow: 0 1px 2px rgba(24, 24, 27, 0.04);
     }
 
@@ -1002,10 +1002,10 @@
     }
 
     .history-item.is-dragging {
-      opacity: 0.55;
+      opacity: 0.92;
       cursor: grabbing;
       box-shadow: var(--shadow-soft);
-      transform: scale(0.99);
+      z-index: 5;
       touch-action: none;
     }
 
@@ -1374,9 +1374,19 @@
     }
 
     .news-status {
-      margin: 24px 0 0;
+      margin: 24px 0 12px;
       color: var(--color-foreground-soft);
       font-size: 14px;
+    }
+
+    .news-more {
+      width: 100%;
+      min-height: 42px;
+      margin-top: 4px;
+    }
+
+    .news-more.hidden {
+      display: none;
     }
 
     .modal-overlay {
@@ -1997,6 +2007,7 @@
           <h1>Новини з психології</h1>
           <p class="news-lead">Українські матеріали про психологію та ментальне здоров’я. Стрічка оновлюється сама, коли з’являються нові статті.</p>
           <div class="news-list" id="newsList"></div>
+          <button type="button" class="secondary news-more hidden" id="newsMoreBtn">Показати ще</button>
           <p class="news-status" id="newsStatus">Завантажуємо новини…</p>
         </div>
       </section>
@@ -2200,6 +2211,7 @@
     const desktopNewsBtn = document.getElementById('desktopNewsBtn');
     const newsList = document.getElementById('newsList');
     const newsStatus = document.getElementById('newsStatus');
+    const newsMoreBtn = document.getElementById('newsMoreBtn');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
     const historyPagination = document.getElementById('historyPagination');
@@ -2297,7 +2309,9 @@
     let historyCountsByTemplate = {};
     let newsItemsCache = null;
     let newsCacheAt = 0;
+    let newsVisibleCount = 0;
     let newsLoadPromise = null;
+    const newsPageSize = 8;
 
     const creatableTemplateIds = ['note', 'thought', 'memo'];
     const templates = {
@@ -3534,8 +3548,9 @@
     }
 
     function renderNewsItems(items) {
+      const visible = items.slice(0, newsVisibleCount);
       newsList.innerHTML = '';
-      items.forEach((item) => {
+      visible.forEach((item) => {
         const card = document.createElement('a');
         card.className = 'news-card';
         card.href = item.url;
@@ -3581,11 +3596,22 @@
         card.appendChild(copy);
         newsList.appendChild(card);
       });
+      newsMoreBtn.classList.toggle('hidden', newsVisibleCount >= items.length);
     }
 
-    async function loadPsychologyNews() {
-      const cacheFresh = newsItemsCache && Date.now() - newsCacheAt < 10 * 60 * 1000;
+    function showMoreNews() {
+      if (!newsItemsCache?.length) return;
+      newsVisibleCount = Math.min(newsItemsCache.length, newsVisibleCount + newsPageSize);
+      renderNewsItems(newsItemsCache);
+      newsStatus.textContent = newsVisibleCount >= newsItemsCache.length
+        ? 'Це всі доступні матеріали зараз. Пізніше з’являться новіші.'
+        : 'Показано старіші матеріали. Можна відкрити ще.';
+    }
+
+    async function loadPsychologyNews({ reset = false } = {}) {
+      const cacheFresh = !reset && newsItemsCache && Date.now() - newsCacheAt < 10 * 60 * 1000;
       if (cacheFresh) {
+        if (!newsVisibleCount) newsVisibleCount = newsPageSize;
         renderNewsItems(newsItemsCache);
         newsStatus.textContent = 'Стрічка оновлюється автоматично. Натисніть картку, щоб читати на сайті видання.';
         return;
@@ -3595,11 +3621,13 @@
         return newsLoadPromise;
       }
       newsStatus.textContent = 'Завантажуємо новини…';
+      newsMoreBtn.classList.add('hidden');
       newsLoadPromise = (async () => {
         try {
           const data = await api('/api/news');
           newsItemsCache = Array.isArray(data.items) ? data.items : [];
           newsCacheAt = Date.now();
+          newsVisibleCount = Math.min(newsPageSize, newsItemsCache.length);
           if (!newsItemsCache.length) {
             newsStatus.textContent = 'Зараз українських матеріалів немає. Спробуйте пізніше — стрічка оновлюється сама.';
             return;
@@ -3970,7 +3998,7 @@
       const previousRects = new Map(
         Array.from(historyList.children).map((element) => [element.dataset.id, element.getBoundingClientRect()]),
       );
-      renderHistory(history);
+      renderHistory(history, { preserveOrder: true });
       requestAnimationFrame(() => animateHistoryReorder(previousRects));
     }
 
@@ -3998,21 +4026,20 @@
       const draggingElement = historyList.querySelector('.history-item.is-dragging');
       if (!draggingElement) return;
       const priorityValue = draggingElement.dataset.priority;
-
-      const previousRects = new Map(
-        Array.from(historyList.children).map((element) => [element.dataset.id, element.getBoundingClientRect()]),
-      );
       const afterElement = getDragAfterElement(yPosition, priorityValue);
+      const currentNext = draggingElement.nextElementSibling;
       if (afterElement) {
-        historyList.insertBefore(draggingElement, afterElement);
-      } else if (priorityValue === 'true') {
-        const firstRegularElement = historyList.querySelector('.history-item[data-priority="false"]');
-        if (firstRegularElement) historyList.insertBefore(draggingElement, firstRegularElement);
-        else historyList.appendChild(draggingElement);
-      } else {
-        historyList.appendChild(draggingElement);
+        if (afterElement !== currentNext) historyList.insertBefore(draggingElement, afterElement);
+        return;
       }
-      requestAnimationFrame(() => animateHistoryReorder(previousRects));
+      if (priorityValue === 'true') {
+        const firstRegularElement = historyList.querySelector('.history-item[data-priority="false"]');
+        if (firstRegularElement && firstRegularElement !== draggingElement) {
+          historyList.insertBefore(draggingElement, firstRegularElement);
+        }
+        return;
+      }
+      if (historyList.lastElementChild !== draggingElement) historyList.appendChild(draggingElement);
     }
 
     async function getCloudHistory() {
@@ -4362,10 +4389,10 @@
       return templates[item.templateId]?.name || item.templateName || 'Запис';
     }
 
-    function renderHistory(history = getActiveTemplateHistory(getLocalHistory())) {
+    function renderHistory(history = getActiveTemplateHistory(getLocalHistory()), options = {}) {
       activeHistoryMenu = null;
       activeHistoryMenuToggle = null;
-      renderedHistory = sortHistory(history);
+      renderedHistory = options.preserveOrder ? [...history] : sortHistory(history);
       historyList.innerHTML = '';
       historyEmpty.style.display = renderedHistory.length ? 'none' : 'block';
       renderedHistory.forEach((item, index) => {
@@ -4376,26 +4403,9 @@
         card.dataset.id = item.id;
         card.dataset.template = item.templateId || '';
         card.dataset.priority = String(getItemPriority(item));
-        card.draggable = true;
         card.classList.toggle('is-read', item.isRead);
         card.classList.toggle('is-priority', getItemPriority(item));
         card.classList.toggle('is-export-selectable', isExportSelectionMode && isExportable);
-
-        card.addEventListener('dragstart', (event) => {
-          if (event.target.closest('button') || event.target.closest('input')) {
-            event.preventDefault();
-            return;
-          }
-          draggedHistoryItemId = item.id;
-          event.dataTransfer.effectAllowed = 'move';
-          event.dataTransfer.setData('text/plain', item.id);
-          requestAnimationFrame(() => card.classList.add('is-dragging'));
-        });
-
-        card.addEventListener('dragend', () => {
-          card.classList.remove('is-dragging');
-          draggedHistoryItemId = null;
-        });
         card.addEventListener('click', (event) => {
           if (event.target.closest('button') || event.target.closest('input') || draggedHistoryItemId || Date.now() < suppressHistoryClickUntil) return;
           const willExpand = !card.classList.contains('is-expanded');
@@ -4869,20 +4879,7 @@
         syncEmotionChipsState();
       });
     });
-    historyList.addEventListener('dragover', (event) => {
-      if (!draggedHistoryItemId) return;
-      event.preventDefault();
-      moveDraggedElement(event.clientY);
-    });
-    historyList.addEventListener('drop', (event) => {
-      if (!draggedHistoryItemId) return;
-      event.preventDefault();
-      const previousHistory = [...renderedHistory];
-      draggedHistoryItemId = null;
-      persistDraggedHistoryOrder(previousHistory);
-    });
     historyList.addEventListener('pointerdown', (event) => {
-      if (event.pointerType === 'mouse') return;
       const card = event.target.closest('.history-item');
       if (!card || event.target.closest('button, input')) return;
       pointerDragState = {
@@ -4892,10 +4889,10 @@
         started: false,
       };
     });
-    historyList.addEventListener('pointermove', (event) => {
+    document.addEventListener('pointermove', (event) => {
       if (!pointerDragState || event.pointerId !== pointerDragState.pointerId) return;
       const distance = Math.abs(event.clientY - pointerDragState.startY);
-      if (!pointerDragState.started && distance < 14) return;
+      if (!pointerDragState.started && distance < 12) return;
       const card = historyList.querySelector(`[data-id="${CSS.escape(pointerDragState.id)}"]`);
       if (!card) return;
       if (!pointerDragState.started) {
@@ -4920,8 +4917,9 @@
       }
       draggedHistoryItemId = null;
     }
-    historyList.addEventListener('pointerup', endPointerHistoryDrag);
-    historyList.addEventListener('pointercancel', endPointerHistoryDrag);
+    document.addEventListener('pointerup', endPointerHistoryDrag);
+    document.addEventListener('pointercancel', endPointerHistoryDrag);
+    newsMoreBtn.addEventListener('click', showMoreNews);
     authMenuBtn.addEventListener('click', (event) => {
       event.stopPropagation();
       toggleAuthDropdown();
