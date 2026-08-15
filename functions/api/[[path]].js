@@ -366,12 +366,140 @@ async function handleGetShare(env, slug) {
   return json({ item: parseCardRow({ ...row, id: row.slug || row.id }) });
 }
 
+function decodeXmlEntities(value) {
+  return String(value || '')
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
+}
+
+function stripHtml(value) {
+  return decodeXmlEntities(value)
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function firstTag(block, names) {
+  for (const name of names) {
+    const match = block.match(new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`, 'i'));
+    if (match) return decodeXmlEntities(match[1]).trim();
+  }
+  return '';
+}
+
+function firstAttr(block, tagName, attrName) {
+  const match = block.match(new RegExp(`<${tagName}[^>]*\\s${attrName}=["']([^"']+)["']`, 'i'));
+  return match ? decodeXmlEntities(match[1]).trim() : '';
+}
+
+function extractImage(block) {
+  const fromMedia = firstAttr(block, 'media:content', 'url')
+    || firstAttr(block, 'media:thumbnail', 'url')
+    || firstAttr(block, 'enclosure', 'url');
+  if (fromMedia && /^https?:\/\//i.test(fromMedia)) return fromMedia;
+  const html = firstTag(block, ['description', 'content:encoded', 'summary', 'content']);
+  const img = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (img && /^https?:\/\//i.test(img[1])) return img[1];
+  return '';
+}
+
+function parseFeedItems(xml, sourceName) {
+  const chunks = xml.match(/<item[\s\S]*?<\/item>/gi) || xml.match(/<entry[\s\S]*?<\/entry>/gi) || [];
+  return chunks.map((block) => {
+    const title = stripHtml(firstTag(block, ['title']));
+    const url = firstTag(block, ['link']) || firstAttr(block, 'link', 'href');
+    const description = stripHtml(firstTag(block, ['description', 'content:encoded', 'summary', 'content'])).slice(0, 280);
+    const publishedAt = firstTag(block, ['pubDate', 'published', 'updated', 'dc:date']);
+    const source = stripHtml(firstTag(block, ['source'])) || sourceName;
+    return {
+      title,
+      url,
+      description,
+      image: extractImage(block),
+      source,
+      publishedAt,
+    };
+  }).filter((item) => item.title && /^https?:\/\//i.test(item.url));
+}
+
+async function fetchFeed(feed) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch(feed.url, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
+        'User-Agent': 'TherapyJournalNews/1.0',
+      },
+    });
+    if (!response.ok) return [];
+    const xml = await response.text();
+    return parseFeedItems(xml, feed.name);
+  } catch (error) {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function handleNews(request) {
+  const cache = caches.default;
+  const cached = await cache.match(request);
+  if (cached) return cached;
+
+  const feeds = [
+    {
+      name: 'Google News',
+      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+OR+%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22+OR+%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F&hl=uk&gl=UA&ceid=UA:uk',
+    },
+    {
+      name: 'Psychology Today',
+      url: 'https://www.psychologytoday.com/us/front/feed',
+    },
+    {
+      name: 'APA',
+      url: 'https://www.apa.org/news/press/releases/rss.xml',
+    },
+  ];
+
+  const groups = await Promise.all(feeds.map(fetchFeed));
+  const byUrl = new Map();
+  groups.flat().forEach((item) => {
+    const key = item.url.replace(/[?#].*$/, '');
+    if (!byUrl.has(key)) byUrl.set(key, item);
+  });
+
+  const items = [...byUrl.values()]
+    .sort((first, second) => new Date(second.publishedAt || 0) - new Date(first.publishedAt || 0))
+    .slice(0, 24);
+
+  const response = json({ items }, 200, { 'Cache-Control': 'public, max-age=900' });
+  try {
+    await cache.put(request, response.clone());
+  } catch (error) {
+    // Cache is optional.
+  }
+  return response;
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const parts = getPathParts(context);
   const method = request.method.toUpperCase();
 
   try {
+    if (parts[0] === 'news' && method === 'GET') return handleNews(request);
     if (!env.DB) return json({ error: 'Хмарну базу ще не підключено.' }, 500);
 
     if (parts[0] === 'auth' && parts[1] === 'signup' && method === 'POST') return handleSignup(env, request);

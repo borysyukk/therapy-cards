@@ -179,7 +179,8 @@
     }
 
     .account-button,
-    .settings-button {
+    .settings-button,
+    .news-button {
       min-height: 44px;
       border-radius: 999px;
       padding: 8px 14px;
@@ -193,25 +194,29 @@
     }
 
     .account-button.is-open,
-    .settings-button.is-open {
+    .settings-button.is-open,
+    .news-button.is-open {
       background: var(--color-primary);
       color: var(--color-on-primary);
     }
 
     .account-button:hover:not(:disabled):not(.is-open),
-    .settings-button:hover:not(:disabled):not(.is-open) {
+    .settings-button:hover:not(:disabled):not(.is-open),
+    .news-button:hover:not(:disabled):not(.is-open) {
       background: var(--color-primary-muted);
     }
 
     .account-button svg,
-    .settings-button svg {
+    .settings-button svg,
+    .news-button svg {
       width: 20px;
       height: 20px;
       display: block;
     }
 
     .account-button span,
-    .settings-button span {
+    .settings-button span,
+    .news-button span {
       font-size: 14px;
       line-height: 1;
       font-weight: 600;
@@ -1264,6 +1269,116 @@
       font-size: 14px;
     }
 
+    .news-pane {
+      display: none;
+      min-width: 0;
+      padding: 20px 16px 32px;
+    }
+
+    body[data-view="news"] .news-pane {
+      display: block;
+    }
+
+    body[data-view="news"] .sidebar,
+    body[data-view="news"] .composer {
+      display: none !important;
+    }
+
+    .news-inner {
+      width: min(100%, 760px);
+      margin: 0 auto;
+    }
+
+    .news-inner h1 {
+      margin: 0 0 8px;
+      font-family: var(--font-display);
+      font-size: clamp(26px, 3vw, 36px);
+      font-weight: 600;
+    }
+
+    .news-lead {
+      margin: 0 0 18px;
+      color: var(--color-foreground-soft);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .news-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .news-card {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr);
+      gap: 12px;
+      padding: 10px;
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      background: var(--color-surface-strong);
+      color: inherit;
+      text-decoration: none;
+      box-shadow: none;
+      min-height: 0;
+      text-align: left;
+    }
+
+    .news-card:hover {
+      border-color: var(--color-primary-muted);
+      background: var(--color-primary-soft);
+    }
+
+    .news-card-image,
+    .news-card-image-fallback {
+      width: 112px;
+      height: 84px;
+      border-radius: 12px;
+      object-fit: cover;
+      background: var(--color-muted);
+    }
+
+    .news-card-image-fallback {
+      display: grid;
+      place-items: center;
+      color: var(--color-primary);
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .news-card-copy {
+      min-width: 0;
+    }
+
+    .news-card-source {
+      margin: 0 0 4px;
+      color: var(--color-primary);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .news-card-title {
+      margin: 0 0 6px;
+      color: var(--color-foreground);
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .news-card-excerpt {
+      margin: 0;
+      color: var(--color-foreground-soft);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .news-status {
+      margin: 24px 0 0;
+      color: var(--color-foreground-soft);
+      font-size: 14px;
+    }
+
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -1492,7 +1607,8 @@
 
       .brand-meta,
       .account-button span,
-      .settings-button span {
+      .settings-button span,
+      .news-button {
         display: none;
       }
 
@@ -1641,7 +1757,7 @@
 
       .mobile-nav-dock {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 4px;
         padding: 4px;
         border-radius: 20px;
@@ -1690,6 +1806,16 @@
       body[data-view] .composer {
         display: flex;
       }
+
+      body[data-view="news"] .sidebar,
+      body[data-view="news"] .composer {
+        display: none !important;
+      }
+
+      body[data-view="news"] .workspace {
+        grid-template-columns: minmax(0, 1fr);
+        overflow: auto;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1720,6 +1846,12 @@
       </div>
       <div class="account-menu">
         <div class="account-menu-actions">
+          <button type="button" class="news-button" id="desktopNewsBtn" aria-label="Новини">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path fill="currentColor" d="M4 5.75A1.75 1.75 0 0 1 5.75 4h12.5A1.75 1.75 0 0 1 20 5.75v12.5A1.75 1.75 0 0 1 18.25 20H5.75A1.75 1.75 0 0 1 4 18.25V5.75ZM7 8h10v2H7V8Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z"/>
+            </svg>
+            <span>Новини</span>
+          </button>
           <button type="button" class="settings-button" id="tabSettingsMenuBtn" aria-label="Налаштування" aria-expanded="false">
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
               <path fill="currentColor" fill-rule="evenodd" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58C4.84 11.36 4.8 11.69 4.8 12s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58ZM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2Z"/>
@@ -1860,6 +1992,14 @@
           <p class="saved-state" id="savedState"></p>
         </div>
       </main>
+      <section class="news-pane" id="newsPane">
+        <div class="news-inner">
+          <h1>Новини з психології</h1>
+          <p class="news-lead">Останні матеріали з відкритих джерел. Натисніть картку — відкриється стаття на сайті видання.</p>
+          <div class="news-list" id="newsList"></div>
+          <p class="news-status" id="newsStatus">Завантажуємо новини…</p>
+        </div>
+      </section>
     </div>
     </div>
 
@@ -1876,6 +2016,12 @@
             <path fill="currentColor" fill-rule="evenodd" d="M6.5 3A2.5 2.5 0 0 0 4 5.5v13A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V8.4L16.6 3H6.5Zm2.2 2h6.2v3.6H8.7V5Zm3.3 12.4a2.15 2.15 0 1 0 0-4.3 2.15 2.15 0 0 0 0 4.3Z"/>
           </svg>
           Збережені
+        </button>
+        <button type="button" id="mobileNewsBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M4 5.75A1.75 1.75 0 0 1 5.75 4h12.5A1.75 1.75 0 0 1 20 5.75v12.5A1.75 1.75 0 0 1 18.25 20H5.75A1.75 1.75 0 0 1 4 18.25V5.75ZM7 8h10v2H7V8Zm0 4h10v2H7v-2Zm0 4h6v2H7v-2Z"/>
+          </svg>
+          Новини
         </button>
       </div>
     </nav>
@@ -2050,6 +2196,10 @@
     const composer = document.getElementById('composer');
     const mobileComposeBtn = document.getElementById('mobileComposeBtn');
     const mobileHistoryBtn = document.getElementById('mobileHistoryBtn');
+    const mobileNewsBtn = document.getElementById('mobileNewsBtn');
+    const desktopNewsBtn = document.getElementById('desktopNewsBtn');
+    const newsList = document.getElementById('newsList');
+    const newsStatus = document.getElementById('newsStatus');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
     const historyPagination = document.getElementById('historyPagination');
@@ -2145,6 +2295,8 @@
     const selectedExportIds = new Set();
     const expandedHistoryIds = new Set();
     let historyCountsByTemplate = {};
+    let newsItemsCache = null;
+    let newsLoadPromise = null;
 
     const creatableTemplateIds = ['note', 'thought', 'memo'];
     const templates = {
@@ -2706,11 +2858,14 @@
     }
 
     function updateMobileNav() {
-      const isHistory = document.body.dataset.view === 'history';
-      mobileComposeBtn.classList.toggle('is-active', !isHistory);
-      mobileHistoryBtn.classList.toggle('is-active', isHistory);
-      mobileComposeBtn.setAttribute('aria-current', isHistory ? 'false' : 'page');
-      mobileHistoryBtn.setAttribute('aria-current', isHistory ? 'page' : 'false');
+      const view = document.body.dataset.view;
+      mobileComposeBtn.classList.toggle('is-active', view === 'compose');
+      mobileHistoryBtn.classList.toggle('is-active', view === 'history');
+      mobileNewsBtn.classList.toggle('is-active', view === 'news');
+      desktopNewsBtn.classList.toggle('is-open', view === 'news');
+      mobileComposeBtn.setAttribute('aria-current', view === 'compose' ? 'page' : 'false');
+      mobileHistoryBtn.setAttribute('aria-current', view === 'history' ? 'page' : 'false');
+      mobileNewsBtn.setAttribute('aria-current', view === 'news' ? 'page' : 'false');
     }
 
     function updateTabSettingsButtons() {
@@ -3371,14 +3526,105 @@
       updateSaveButtonState();
     }
 
+    function formatNewsDate(value) {
+      const date = new Date(value);
+      if (!value || Number.isNaN(date.getTime())) return '';
+      return date.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' });
+    }
+
+    function renderNewsItems(items) {
+      newsList.innerHTML = '';
+      items.forEach((item) => {
+        const card = document.createElement('a');
+        card.className = 'news-card';
+        card.href = item.url;
+        card.target = '_blank';
+        card.rel = 'noopener noreferrer';
+
+        if (item.image) {
+          const image = document.createElement('img');
+          image.className = 'news-card-image';
+          image.src = item.image;
+          image.alt = '';
+          image.referrerPolicy = 'no-referrer';
+          image.addEventListener('error', () => {
+            image.replaceWith(Object.assign(document.createElement('div'), {
+              className: 'news-card-image-fallback',
+              textContent: (item.source || 'N').slice(0, 1).toUpperCase(),
+            }));
+          });
+          card.appendChild(image);
+        } else {
+          const fallback = document.createElement('div');
+          fallback.className = 'news-card-image-fallback';
+          fallback.textContent = (item.source || 'N').slice(0, 1).toUpperCase();
+          card.appendChild(fallback);
+        }
+
+        const copy = document.createElement('div');
+        copy.className = 'news-card-copy';
+        const source = document.createElement('p');
+        source.className = 'news-card-source';
+        source.textContent = [item.source, formatNewsDate(item.publishedAt)].filter(Boolean).join(' · ');
+        const title = document.createElement('p');
+        title.className = 'news-card-title';
+        title.textContent = item.title;
+        copy.appendChild(source);
+        copy.appendChild(title);
+        if (item.description) {
+          const excerpt = document.createElement('p');
+          excerpt.className = 'news-card-excerpt';
+          excerpt.textContent = item.description;
+          copy.appendChild(excerpt);
+        }
+        card.appendChild(copy);
+        newsList.appendChild(card);
+      });
+    }
+
+    async function loadPsychologyNews() {
+      if (newsItemsCache) {
+        renderNewsItems(newsItemsCache);
+        newsStatus.textContent = 'Натисніть картку, щоб читати статтю на сайті видання.';
+        return;
+      }
+      if (newsLoadPromise) {
+        newsStatus.textContent = 'Завантажуємо новини…';
+        return newsLoadPromise;
+      }
+      newsStatus.textContent = 'Завантажуємо новини…';
+      newsLoadPromise = (async () => {
+        try {
+          const data = await api('/api/news');
+          newsItemsCache = Array.isArray(data.items) ? data.items : [];
+          if (!newsItemsCache.length) {
+            newsStatus.textContent = 'Зараз стрічка порожня. Спробуйте пізніше.';
+            return;
+          }
+          renderNewsItems(newsItemsCache);
+          newsStatus.textContent = 'Натисніть картку, щоб читати статтю на сайті видання.';
+        } catch (error) {
+          newsStatus.textContent = `Не вдалося завантажити новини: ${error.message}`;
+        } finally {
+          newsLoadPromise = null;
+        }
+      })();
+      return newsLoadPromise;
+    }
+
     function setAppView(view) {
-      const nextView = view === 'history' ? 'history' : 'compose';
+      const nextView = view === 'history' || view === 'news' ? view : 'compose';
       if (nextView === 'compose') {
         suppressComposerAutofocus = true;
         blurComposerFields();
       }
       document.body.dataset.view = nextView;
       updateMobileNav();
+      if (nextView === 'news') {
+        blurComposerFields();
+        loadPsychologyNews();
+        return;
+      }
       if (nextView === 'history') {
         blurComposerFields();
         updateTemplateTabs();
@@ -4597,6 +4843,8 @@
     });
     mobileComposeBtn.addEventListener('click', () => setAppView('compose'));
     mobileHistoryBtn.addEventListener('click', () => setAppView('history'));
+    mobileNewsBtn.addEventListener('click', () => setAppView('news'));
+    desktopNewsBtn.addEventListener('click', () => setAppView(document.body.dataset.view === 'news' ? 'compose' : 'news'));
     openEmotionListBtn.addEventListener('click', () => openEmotionModal(thoughtForm.elements.emotion));
     closeEmotionModalBtn.addEventListener('click', closeEmotionModal);
     emotionModalOverlay.addEventListener('click', (event) => {
