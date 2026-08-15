@@ -1404,6 +1404,49 @@
       display: none;
     }
 
+    .news-read-pane {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .news-read-pane.hidden {
+      display: none;
+    }
+
+    .news-read-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .news-read-heading h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .news-read-heading .secondary {
+      width: auto;
+      min-height: 34px;
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    .news-card.is-read {
+      opacity: 0.72;
+    }
+
+    .news-restore-btn {
+      margin-top: 8px;
+      width: auto;
+      min-height: 32px;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -2027,6 +2070,13 @@
           <div class="news-list" id="newsList"></div>
           <button type="button" class="secondary news-more hidden" id="newsMoreBtn">Показати ще</button>
           <p class="news-status" id="newsStatus">Завантажуємо новини…</p>
+          <section class="news-read-pane hidden" id="newsReadPane">
+            <div class="news-read-heading">
+              <h2 id="newsReadTitle">Прочитано</h2>
+              <button type="button" class="secondary" id="newsReadToggleBtn">Показати</button>
+            </div>
+            <div class="news-list hidden" id="newsReadList"></div>
+          </section>
         </div>
       </section>
     </div>
@@ -2231,6 +2281,10 @@
     const newsStatus = document.getElementById('newsStatus');
     const newsMoreBtn = document.getElementById('newsMoreBtn');
     const newsRefreshBtn = document.getElementById('newsRefreshBtn');
+    const newsReadPane = document.getElementById('newsReadPane');
+    const newsReadList = document.getElementById('newsReadList');
+    const newsReadTitle = document.getElementById('newsReadTitle');
+    const newsReadToggleBtn = document.getElementById('newsReadToggleBtn');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
     const historyPagination = document.getElementById('historyPagination');
@@ -2330,6 +2384,8 @@
     let newsCacheAt = 0;
     let newsVisibleCount = 0;
     const newsPageSize = 8;
+    const newsReadKey = 'therapyNewsReadItems';
+    let newsReadOpen = false;
 
     const creatableTemplateIds = ['note', 'thought', 'memo'];
     const templates = {
@@ -3565,64 +3621,148 @@
       return date.toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' });
     }
 
-    function renderNewsItems(items) {
-      const visible = items.slice(0, newsVisibleCount);
-      newsList.innerHTML = '';
-      visible.forEach((item) => {
-        const card = document.createElement('a');
-        card.className = 'news-card';
-        card.href = item.url;
-        card.target = '_blank';
-        card.rel = 'noopener noreferrer';
+    function newsItemKey(url) {
+      return String(url || '').replace(/[?#].*$/, '');
+    }
 
-        if (item.image) {
-          const image = document.createElement('img');
-          image.className = 'news-card-image';
-          image.src = item.image;
-          image.alt = '';
-          image.referrerPolicy = 'no-referrer';
-          image.addEventListener('error', () => {
-            image.replaceWith(Object.assign(document.createElement('div'), {
-              className: 'news-card-image-fallback',
-              textContent: (item.source || 'N').slice(0, 1).toUpperCase(),
-            }));
-          });
-          card.appendChild(image);
-        } else {
-          const fallback = document.createElement('div');
-          fallback.className = 'news-card-image-fallback';
-          fallback.textContent = (item.source || 'N').slice(0, 1).toUpperCase();
-          card.appendChild(fallback);
-        }
+    function loadReadNews() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(newsReadKey) || '[]');
+        return Array.isArray(parsed) ? parsed.filter((item) => item && item.url) : [];
+      } catch (error) {
+        return [];
+      }
+    }
 
-        const copy = document.createElement('div');
-        copy.className = 'news-card-copy';
-        const source = document.createElement('p');
-        source.className = 'news-card-source';
-        source.textContent = [item.source, formatNewsDate(item.publishedAt)].filter(Boolean).join(' · ');
-        const title = document.createElement('p');
-        title.className = 'news-card-title';
-        title.textContent = item.title;
-        copy.appendChild(source);
-        copy.appendChild(title);
-        if (item.description) {
-          const excerpt = document.createElement('p');
-          excerpt.className = 'news-card-excerpt';
-          excerpt.textContent = item.description;
-          copy.appendChild(excerpt);
-        }
-        card.appendChild(copy);
-        newsList.appendChild(card);
+    function saveReadNews(items) {
+      localStorage.setItem(newsReadKey, JSON.stringify(items.slice(0, 300)));
+    }
+
+    function isNewsRead(url) {
+      const key = newsItemKey(url);
+      return loadReadNews().some((item) => newsItemKey(item.url) === key);
+    }
+
+    function markNewsRead(item) {
+      const key = newsItemKey(item.url);
+      const next = loadReadNews().filter((entry) => newsItemKey(entry.url) !== key);
+      next.unshift({
+        title: item.title,
+        url: item.url,
+        description: item.description || '',
+        image: item.image || '',
+        source: item.source || '',
+        publishedAt: item.publishedAt || '',
+        readAt: new Date().toISOString(),
       });
-      newsMoreBtn.classList.toggle('hidden', newsVisibleCount >= items.length);
+      saveReadNews(next);
+    }
+
+    function unmarkNewsRead(url) {
+      const key = newsItemKey(url);
+      saveReadNews(loadReadNews().filter((item) => newsItemKey(item.url) !== key));
+      renderPsychologyNews();
+    }
+
+    function unreadNewsItems() {
+      return (newsItemsCache || []).filter((item) => !isNewsRead(item.url));
+    }
+
+    function createNewsCard(item, { read = false } = {}) {
+      const card = document.createElement('a');
+      card.className = read ? 'news-card is-read' : 'news-card';
+      card.href = item.url;
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+
+      if (item.image) {
+        const image = document.createElement('img');
+        image.className = 'news-card-image';
+        image.src = item.image;
+        image.alt = '';
+        image.referrerPolicy = 'no-referrer';
+        image.addEventListener('error', () => {
+          image.replaceWith(Object.assign(document.createElement('div'), {
+            className: 'news-card-image-fallback',
+            textContent: (item.source || 'N').slice(0, 1).toUpperCase(),
+          }));
+        });
+        card.appendChild(image);
+      } else {
+        const fallback = document.createElement('div');
+        fallback.className = 'news-card-image-fallback';
+        fallback.textContent = (item.source || 'N').slice(0, 1).toUpperCase();
+        card.appendChild(fallback);
+      }
+
+      const copy = document.createElement('div');
+      copy.className = 'news-card-copy';
+      const source = document.createElement('p');
+      source.className = 'news-card-source';
+      source.textContent = [item.source, formatNewsDate(item.publishedAt)].filter(Boolean).join(' · ');
+      const title = document.createElement('p');
+      title.className = 'news-card-title';
+      title.textContent = item.title;
+      copy.appendChild(source);
+      copy.appendChild(title);
+      if (item.description) {
+        const excerpt = document.createElement('p');
+        excerpt.className = 'news-card-excerpt';
+        excerpt.textContent = item.description;
+        copy.appendChild(excerpt);
+      }
+      if (read) {
+        const restore = document.createElement('button');
+        restore.type = 'button';
+        restore.className = 'secondary news-restore-btn';
+        restore.textContent = 'Повернути в стрічку';
+        restore.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          unmarkNewsRead(item.url);
+        });
+        copy.appendChild(restore);
+      } else {
+        card.addEventListener('click', () => {
+          markNewsRead(item);
+          window.setTimeout(renderPsychologyNews, 50);
+        });
+      }
+      card.appendChild(copy);
+      return card;
+    }
+
+    function renderPsychologyNews() {
+      const unread = unreadNewsItems();
+      const readItems = loadReadNews();
+      const visible = unread.slice(0, newsVisibleCount);
+      newsList.innerHTML = '';
+      visible.forEach((item) => newsList.appendChild(createNewsCard(item)));
+      newsMoreBtn.classList.toggle('hidden', newsVisibleCount >= unread.length);
+
+      newsReadPane.classList.toggle('hidden', !readItems.length);
+      newsReadTitle.textContent = readItems.length ? `Прочитано (${readItems.length})` : 'Прочитано';
+      newsReadToggleBtn.textContent = newsReadOpen ? 'Сховати' : 'Показати';
+      newsReadList.classList.toggle('hidden', !newsReadOpen);
+      newsReadList.innerHTML = '';
+      if (newsReadOpen) {
+        readItems.forEach((item) => newsReadList.appendChild(createNewsCard(item, { read: true })));
+      }
+
+      if (!unread.length && (newsItemsCache || []).length) {
+        newsStatus.textContent = readItems.length
+          ? 'Усі матеріали з цієї стрічки вже в «Прочитано».'
+          : 'Зараз свіжих українських матеріалів немає. Натисніть «Оновити» трохи пізніше.';
+      }
     }
 
     function showMoreNews() {
-      if (!newsItemsCache?.length) return;
-      newsVisibleCount = Math.min(newsItemsCache.length, newsVisibleCount + newsPageSize);
-      renderNewsItems(newsItemsCache);
-      newsStatus.textContent = newsVisibleCount >= newsItemsCache.length
-        ? 'Це всі доступні матеріали зараз. Пізніше з’являться новіші.'
+      const unread = unreadNewsItems();
+      if (!unread.length) return;
+      newsVisibleCount = Math.min(unread.length, newsVisibleCount + newsPageSize);
+      renderPsychologyNews();
+      newsStatus.textContent = newsVisibleCount >= unread.length
+        ? 'Це всі непрочитані матеріали зараз. Пізніше з’являться новіші.'
         : 'Показано старіші матеріали. Можна відкрити ще.';
     }
 
@@ -3634,13 +3774,17 @@
         const data = await api(`/api/news?fresh=${reset ? Date.now() : '0'}`);
         newsItemsCache = Array.isArray(data.items) ? data.items : [];
         newsCacheAt = Date.now();
-        newsVisibleCount = Math.min(newsPageSize, newsItemsCache.length);
+        const unread = unreadNewsItems();
+        newsVisibleCount = Math.min(newsPageSize, unread.length);
         if (!newsItemsCache.length) {
           newsStatus.textContent = 'Зараз свіжих українських матеріалів немає. Натисніть «Оновити» трохи пізніше.';
+          renderPsychologyNews();
           return;
         }
-        renderNewsItems(newsItemsCache);
-        newsStatus.textContent = `Оновлено ${new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}. Натисніть картку, щоб читати на сайті видання.`;
+        renderPsychologyNews();
+        newsStatus.textContent = unread.length
+          ? `Оновлено ${new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}. Натисніть картку, щоб читати — вона перейде в «Прочитано».`
+          : 'Усі матеріали з цієї стрічки вже в «Прочитано».';
       } catch (error) {
         newsStatus.textContent = `Не вдалося завантажити новини: ${error.message}`;
       } finally {
@@ -4926,6 +5070,10 @@
     document.addEventListener('pointercancel', endPointerHistoryDrag);
     newsMoreBtn.addEventListener('click', showMoreNews);
     newsRefreshBtn.addEventListener('click', () => loadPsychologyNews({ reset: true }));
+    newsReadToggleBtn.addEventListener('click', () => {
+      newsReadOpen = !newsReadOpen;
+      renderPsychologyNews();
+    });
     authMenuBtn.addEventListener('click', (event) => {
       event.stopPropagation();
       toggleAuthDropdown();
