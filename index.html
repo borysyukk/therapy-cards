@@ -3720,9 +3720,11 @@
     }
 
     function unreadNewsItems(section) {
-      return (newsItemsCache || [])
-        .filter((item) => !isNewsRead(item.url) && (!section || newsSectionOf(item) === section))
-        .sort((first, second) => newsTime(second) - newsTime(first));
+      const items = (newsItemsCache || []).filter((item) => !isNewsRead(item.url) && (!section || newsSectionOf(item) === section));
+      if (section === 'selfHelp') {
+        return items.sort((first, second) => newsTime(second) - newsTime(first));
+      }
+      return items;
     }
 
     function createNewsCard(item, { read = false } = {}) {

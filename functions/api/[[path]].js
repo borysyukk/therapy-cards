@@ -488,6 +488,171 @@ async function fetchFeed(feed) {
   }
 }
 
+function parseFlexibleDate(text) {
+  const value = String(text || '');
+  let match = value.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if (match) return `${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}T12:00:00`;
+  match = value.match(/(\d{4})[/.](\d{2})[/.](\d{2})/);
+  if (match) return `${match[1]}-${match[2]}-${match[3]}T12:00:00`;
+  match = value.match(/(\d{1,2})\.(\d{1,2})\.(\d{2})(?!\d)/);
+  if (match) return `20${match[3]}-${match[2].padStart(2, '0')}-${match[1].padStart(2, '0')}T12:00:00`;
+  return '';
+}
+
+async function fetchPageText(url) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      redirect: 'follow',
+      headers: {
+        Accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'uk-UA,uk;q=0.9,en;q=0.6',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      },
+    });
+    if (!response.ok) return '';
+    return await response.text();
+  } catch (error) {
+    return '';
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function dedupeItems(items) {
+  const byUrl = new Map();
+  items.forEach((item) => {
+    const key = item.url.replace(/[?#].*$/, '');
+    if (!byUrl.has(key)) byUrl.set(key, item);
+  });
+  return [...byUrl.values()];
+}
+
+function interleaveBySource(groups) {
+  const queues = groups
+    .map((group) => [...group])
+    .filter((group) => group.length);
+  const items = [];
+  let added = true;
+  while (added) {
+    added = false;
+    queues.forEach((queue) => {
+      if (!queue.length) return;
+      items.push(queue.shift());
+      added = true;
+    });
+  }
+  return items;
+}
+
+async function fetchUpsiholoha() {
+  const origin = 'https://upsihologa.com.ua';
+  const html = await fetchPageText(`${origin}/`);
+  const articles = html.match(/<article[\s\S]*?<\/article>/gi) || [];
+  return dedupeItems(articles.map((block) => {
+    const href = (block.match(/href="(\/article\/[^"]+)"/i) || [])[1] || '';
+    const title = stripHtml((block.match(/aria-label="Читати статтю:\s*([^"]+)"/i) || [])[1]
+      || (block.match(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/i) || [])[1]
+      || '');
+    const description = stripHtml((block.match(/<p[^>]*>([\s\S]*?)<\/p>/i) || [])[1] || '').slice(0, 280);
+    const image = absoluteUrl((block.match(/<img[^>]+src="([^"]+)"/i) || [])[1] || '', origin);
+    if (!href || !title) return null;
+    return {
+      title,
+      url: absoluteUrl(href, origin),
+      description,
+      image,
+      source: 'У Психолога',
+      publishedAt: parseFlexibleDate(block),
+      section: 'materials',
+    };
+  }).filter(Boolean));
+}
+
+async function fetchQuiBlog() {
+  const origin = 'https://www.qui.help';
+  const pages = await Promise.all([
+    fetchPageText(`${origin}/blog`),
+    fetchPageText(`${origin}/blog/all-articles/`),
+  ]);
+  const items = [];
+  pages.forEach((html) => {
+    const starts = [...html.matchAll(/href="(\/blog\/[^"]+)" class="preview-block/gi)];
+    starts.forEach((match) => {
+      const href = match[1] || '';
+      if (!href || /\/blog\/(all-articles|category)\b/i.test(href)) return;
+      const block = html.slice(match.index, match.index + 4500);
+      const title = stripHtml((block.match(/class="prev-title">([\s\S]*?)<\/p>/i) || [])[1]
+        || (block.match(/alt="([^"]+)"/i) || [])[1]
+        || '');
+      const description = stripHtml((block.match(/class="prev-text">([\s\S]*?)<\/p>/i) || [])[1] || '').slice(0, 280);
+      const image = (block.match(/<img[^>]+src="([^"]+)"/i) || [])[1] || '';
+      if (!title) return;
+      items.push({
+        title,
+        url: absoluteUrl(href, origin),
+        description,
+        image,
+        source: 'qui.help',
+        publishedAt: parseFlexibleDate(block),
+        section: 'materials',
+      });
+    });
+  });
+  return dedupeItems(items);
+}
+
+async function fetchDosebeBlog() {
+  const origin = 'https://www.dosebe.com.ua';
+  const html = await fetchPageText(`${origin}/blog`);
+  const cards = html.split(/class="blog-article-card"/i).slice(1);
+  return dedupeItems(cards.map((block) => {
+    const href = (block.match(/href="(\/blog\/[^"]+)"/i) || [])[1] || '';
+    const title = stripHtml((block.match(/blog-articles-heading">([\s\S]*?)<\/div>/i) || [])[1] || '');
+    const description = stripHtml((block.match(/blog-article-descr">([\s\S]*?)<\/div>/i) || [])[1] || '').slice(0, 280);
+    const image = (block.match(/<img[^>]+src="([^"]+)"/i) || [])[1] || '';
+    if (!href || !title) return null;
+    return {
+      title,
+      url: absoluteUrl(href, origin),
+      description,
+      image,
+      source: 'До себе',
+      publishedAt: parseFlexibleDate(block),
+      section: 'materials',
+    };
+  }).filter(Boolean));
+}
+
+async function fetchMentolyBlog() {
+  const origin = 'https://mentoly.com.ua';
+  const html = await fetchPageText(`${origin}/blog`);
+  const cards = html.split(/ArticleCard__root/i).slice(1);
+  return dedupeItems(cards.map((block) => {
+    const href = (block.match(/href="(\/blog\/[^"]+)"/i) || [])[1] || '';
+    const title = stripHtml((block.match(/<h3[^>]*>([\s\S]*?)<\/h3>/i) || [])[1] || '');
+    const image = absoluteUrl((block.match(/<img[^>]+src="([^"]+)"/i) || [])[1] || '', origin);
+    if (!href || !title || /search=/i.test(href)) return null;
+    return {
+      title,
+      url: absoluteUrl(href, origin),
+      description: '',
+      image,
+      source: 'Mentoly',
+      publishedAt: parseFlexibleDate(block),
+      section: 'materials',
+    };
+  }).filter(Boolean));
+}
+
+function newestFirst(first, second) {
+  const firstTime = Date.parse(first.publishedAt || '') || Number(first.sortId || 0);
+  const secondTime = Date.parse(second.publishedAt || '') || Number(second.sortId || 0);
+  return secondTime - firstTime;
+}
+
 function absoluteUrl(url, origin) {
   const value = String(url || '').trim();
   if (!value) return '';
@@ -610,7 +775,7 @@ async function handleNews(request) {
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
   cacheUrl.searchParams.delete('fresh');
-  cacheUrl.searchParams.set('v', 'uk-10');
+  cacheUrl.searchParams.set('v', 'uk-11');
   const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
   if (!wantFresh) {
     const cached = await cache.match(cacheRequest);
@@ -677,10 +842,14 @@ async function handleNews(request) {
     return (String(text).match(/[А-Яа-яІіЇїЄєҐґ]/g) || []).length >= 8;
   }
 
-  const [howareuMaterials, howareuNews, howareuSelfHelp, ...groups] = await Promise.all([
+  const [howareuMaterials, howareuNews, howareuSelfHelp, upsiItems, quiItems, dosebeItems, mentolyItems, ...groups] = await Promise.all([
     fetchHowareuSearch('materials'),
     fetchHowareuSearch('news'),
     fetchHowareuSelfHelp(),
+    fetchUpsiholoha(),
+    fetchQuiBlog(),
+    fetchDosebeBlog(),
+    fetchMentolyBlog(),
     ...feeds.map(async (feed) => {
       const items = await fetchFeed(feed);
       return items.filter((item) => {
@@ -692,20 +861,15 @@ async function handleNews(request) {
     }),
   ]);
 
-  function newestFirst(first, second) {
-    const firstTime = Date.parse(first.publishedAt || '') || Number(first.sortId || 0);
-    const secondTime = Date.parse(second.publishedAt || '') || Number(second.sortId || 0);
-    return secondTime - firstTime;
-  }
-
   const selfHelp = howareuSelfHelp
     .map((item) => ({ ...item, section: 'selfHelp', source: item.source || 'Ти як? Самодопомога' }))
     .sort(newestFirst);
-  const materials = [
-    ...howareuNews.map((item) => ({ ...item, section: 'materials', source: item.source || 'Ти як?' })),
-    ...howareuMaterials.map((item) => ({ ...item, section: 'materials', source: item.source || 'Ти як?' })),
-    ...groups.flat().map((item) => ({ ...item, section: 'materials' })),
-  ];
+  const howareuGroup = [...howareuNews, ...howareuMaterials]
+    .map((item) => ({ ...item, section: 'materials', source: item.source || 'Ти як?' }))
+    .sort(newestFirst);
+  const rssGroup = groups.flat().map((item) => ({ ...item, section: 'materials' })).sort(newestFirst);
+  const blogGroups = [upsiItems, quiItems, dosebeItems, mentolyItems].map((group) => [...group].sort(newestFirst));
+  const materials = interleaveBySource([howareuGroup, ...blogGroups, rssGroup]);
   const selfHelpUrls = new Set(selfHelp.map((item) => item.url.replace(/[?#].*$/, '')));
   const byUrl = new Map();
   [...selfHelp, ...materials].forEach((item) => {
@@ -718,8 +882,8 @@ async function handleNews(request) {
   const merged = [...byUrl.values()];
   const items = [
     ...merged.filter((item) => item.section === 'selfHelp').sort(newestFirst),
-    ...merged.filter((item) => item.section !== 'selfHelp').sort(newestFirst),
-  ].slice(0, 280);
+    ...merged.filter((item) => item.section !== 'selfHelp'),
+  ].slice(0, 320);
 
   const response = json({ items }, 200, { 'Cache-Control': wantFresh ? 'no-store' : 'public, max-age=300' });
   if (!wantFresh) {
