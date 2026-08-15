@@ -455,25 +455,48 @@ async function fetchFeed(feed) {
 
 async function handleNews(request) {
   const cache = caches.default;
-  const cached = await cache.match(request);
+  const cacheUrl = new URL(request.url);
+  cacheUrl.searchParams.set('v', 'uk-1');
+  const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
+  const cached = await cache.match(cacheRequest);
   if (cached) return cached;
 
   const feeds = [
     {
       name: 'Google News',
-      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+OR+%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22+OR+%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F&hl=uk&gl=UA&ceid=UA:uk',
+      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+when:7d&hl=uk&gl=UA&ceid=UA:uk',
+      requireTopic: false,
     },
     {
-      name: 'Psychology Today',
-      url: 'https://www.psychologytoday.com/us/front/feed',
+      name: 'Google News',
+      url: 'https://news.google.com/rss/search?q=%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22+OR+%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F+when:7d&hl=uk&gl=UA&ceid=UA:uk',
+      requireTopic: false,
     },
     {
-      name: 'APA',
-      url: 'https://www.apa.org/news/press/releases/rss.xml',
+      name: 'BBC News Україна',
+      url: 'https://feeds.bbci.co.uk/ukrainian/rss.xml',
+      requireTopic: true,
     },
   ];
 
-  const groups = await Promise.all(feeds.map(fetchFeed));
+  const topicPattern = /психолог|психотерап|ментальн|психічн|тривог|депрес|стрес|емоці|травм|вигоран|нейропсихол|самопочутт/i;
+
+  function isUkrainianText(text) {
+    const cyrillic = (String(text).match(/[А-Яа-яІіЇїЄєҐґ]/g) || []).length;
+    const latin = (String(text).match(/[A-Za-z]/g) || []).length;
+    return cyrillic >= 10 && cyrillic >= latin;
+  }
+
+  const groups = await Promise.all(feeds.map(async (feed) => {
+    const items = await fetchFeed(feed);
+    return items.filter((item) => {
+      const text = `${item.title} ${item.description}`;
+      if (!isUkrainianText(text)) return false;
+      if (feed.requireTopic && !topicPattern.test(text)) return false;
+      return true;
+    });
+  }));
+
   const byUrl = new Map();
   groups.flat().forEach((item) => {
     const key = item.url.replace(/[?#].*$/, '');
@@ -484,9 +507,9 @@ async function handleNews(request) {
     .sort((first, second) => new Date(second.publishedAt || 0) - new Date(first.publishedAt || 0))
     .slice(0, 24);
 
-  const response = json({ items }, 200, { 'Cache-Control': 'public, max-age=900' });
+  const response = json({ items }, 200, { 'Cache-Control': 'public, max-age=600' });
   try {
-    await cache.put(request, response.clone());
+    await cache.put(cacheRequest, response.clone());
   } catch (error) {
     // Cache is optional.
   }

@@ -1995,7 +1995,7 @@
       <section class="news-pane" id="newsPane">
         <div class="news-inner">
           <h1>Новини з психології</h1>
-          <p class="news-lead">Останні матеріали з відкритих джерел. Натисніть картку — відкриється стаття на сайті видання.</p>
+          <p class="news-lead">Українські матеріали про психологію та ментальне здоров’я. Стрічка оновлюється сама, коли з’являються нові статті.</p>
           <div class="news-list" id="newsList"></div>
           <p class="news-status" id="newsStatus">Завантажуємо новини…</p>
         </div>
@@ -2296,6 +2296,7 @@
     const expandedHistoryIds = new Set();
     let historyCountsByTemplate = {};
     let newsItemsCache = null;
+    let newsCacheAt = 0;
     let newsLoadPromise = null;
 
     const creatableTemplateIds = ['note', 'thought', 'memo'];
@@ -3583,9 +3584,10 @@
     }
 
     async function loadPsychologyNews() {
-      if (newsItemsCache) {
+      const cacheFresh = newsItemsCache && Date.now() - newsCacheAt < 10 * 60 * 1000;
+      if (cacheFresh) {
         renderNewsItems(newsItemsCache);
-        newsStatus.textContent = 'Натисніть картку, щоб читати статтю на сайті видання.';
+        newsStatus.textContent = 'Стрічка оновлюється автоматично. Натисніть картку, щоб читати на сайті видання.';
         return;
       }
       if (newsLoadPromise) {
@@ -3597,12 +3599,13 @@
         try {
           const data = await api('/api/news');
           newsItemsCache = Array.isArray(data.items) ? data.items : [];
+          newsCacheAt = Date.now();
           if (!newsItemsCache.length) {
-            newsStatus.textContent = 'Зараз стрічка порожня. Спробуйте пізніше.';
+            newsStatus.textContent = 'Зараз українських матеріалів немає. Спробуйте пізніше — стрічка оновлюється сама.';
             return;
           }
           renderNewsItems(newsItemsCache);
-          newsStatus.textContent = 'Натисніть картку, щоб читати статтю на сайті видання.';
+          newsStatus.textContent = 'Стрічка оновлюється автоматично. Натисніть картку, щоб читати на сайті видання.';
         } catch (error) {
           newsStatus.textContent = `Не вдалося завантажити новини: ${error.message}`;
         } finally {
