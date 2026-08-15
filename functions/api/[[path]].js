@@ -488,13 +488,67 @@ async function fetchFeed(feed) {
   }
 }
 
+function absoluteUrl(url, origin) {
+  const value = String(url || '').trim();
+  if (!value) return '';
+  if (/^https?:\/\//i.test(value)) return value;
+  if (value.startsWith('//')) return `https:${value}`;
+  if (value.startsWith('/')) return `${origin}${value}`;
+  return `${origin}/${value}`;
+}
+
+async function fetchHowareuMaterials() {
+  const origin = 'https://howareu.com';
+  const items = [];
+  let page = 1;
+  let lastPage = 1;
+  while (page <= lastPage && page <= 20) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch(`${origin}/api/search?type=materials&per_page=50&page=${page}`, {
+        signal: controller.signal,
+        redirect: 'follow',
+        headers: {
+          Accept: 'application/json',
+          'Accept-Language': 'uk-UA,uk;q=0.9',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        },
+      });
+      if (!response.ok) break;
+      const data = await response.json();
+      lastPage = Number(data.last_page || page);
+      const rows = Array.isArray(data.data) ? data.data : [];
+      rows.forEach((row) => {
+        const title = stripHtml(row.title || '');
+        const url = absoluteUrl(row.url, origin);
+        if (!title || !/^https?:\/\//i.test(url)) return;
+        items.push({
+          title,
+          url,
+          description: stripHtml(row.excerpt || '').slice(0, 280),
+          image: absoluteUrl(row.image?.url, origin),
+          source: 'Ти як?',
+          publishedAt: row.published_at || row.created_at || '',
+        });
+      });
+    } catch (error) {
+      break;
+    } finally {
+      clearTimeout(timer);
+    }
+    page += 1;
+  }
+  return items;
+}
+
 async function handleNews(request) {
   const requestUrl = new URL(request.url);
   const wantFresh = requestUrl.searchParams.has('fresh');
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
   cacheUrl.searchParams.delete('fresh');
-  cacheUrl.searchParams.set('v', 'uk-7');
+  cacheUrl.searchParams.set('v', 'uk-8');
   const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
   if (!wantFresh) {
     const cached = await cache.match(cacheRequest);
@@ -561,25 +615,32 @@ async function handleNews(request) {
     return (String(text).match(/[А-Яа-яІіЇїЄєҐґ]/g) || []).length >= 8;
   }
 
-  const groups = await Promise.all(feeds.map(async (feed) => {
-    const items = await fetchFeed(feed);
-    return items.filter((item) => {
-      const text = `${item.title} ${item.description}`;
-      if (!isUkrainianText(text)) return false;
-      if (feed.trustSearch) return /психолог|психотерап|ментальн/i.test(text);
-      return topicPattern.test(text);
-    });
-  }));
+  const [howareuItems, ...groups] = await Promise.all([
+    fetchHowareuMaterials(),
+    ...feeds.map(async (feed) => {
+      const items = await fetchFeed(feed);
+      return items.filter((item) => {
+        const text = `${item.title} ${item.description}`;
+        if (!isUkrainianText(text)) return false;
+        if (feed.trustSearch) return /психолог|психотерап|ментальн/i.test(text);
+        return topicPattern.test(text);
+      });
+    }),
+  ]);
 
   const byUrl = new Map();
-  groups.flat().forEach((item) => {
+  [...howareuItems, ...groups.flat()].forEach((item) => {
     const key = `${item.title}::${item.url.replace(/[?#].*$/, '')}`;
     if (!byUrl.has(key)) byUrl.set(key, item);
   });
 
-  const items = [...byUrl.values()]
-    .sort((first, second) => new Date(second.publishedAt || 0) - new Date(first.publishedAt || 0))
-    .slice(0, 60);
+  const howareuUrls = new Set(howareuItems.map((item) => item.url));
+  const merged = [...byUrl.values()];
+  const fromHowareu = merged.filter((item) => howareuUrls.has(item.url) || /howareu\.com/i.test(item.url));
+  const fromNews = merged
+    .filter((item) => !howareuUrls.has(item.url) && !/howareu\.com/i.test(item.url))
+    .sort((first, second) => new Date(second.publishedAt || 0) - new Date(first.publishedAt || 0));
+  const items = [...fromHowareu, ...fromNews].slice(0, 250);
 
   const response = json({ items }, 200, { 'Cache-Control': wantFresh ? 'no-store' : 'public, max-age=300' });
   if (!wantFresh) {
