@@ -530,21 +530,31 @@ function dedupeItems(items) {
   return [...byUrl.values()];
 }
 
-function interleaveBySource(groups) {
-  const queues = groups
-    .map((group) => [...group])
-    .filter((group) => group.length);
-  const items = [];
-  let added = true;
-  while (added) {
-    added = false;
-    queues.forEach((queue) => {
-      if (!queue.length) return;
-      items.push(queue.shift());
-      added = true;
+function mixByDate(items) {
+  const buckets = new Map();
+  items.forEach((item) => {
+    const time = Date.parse(item.publishedAt || '');
+    const key = Number.isNaN(time) ? `id:${Number(item.sortId || 0)}` : new Date(time).toISOString().slice(0, 10);
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(item);
+  });
+  return [...buckets.entries()]
+    .sort((first, second) => {
+      const firstUndated = first[0].startsWith('id:');
+      const secondUndated = second[0].startsWith('id:');
+      if (firstUndated && secondUndated) return Number(second[0].slice(3)) - Number(first[0].slice(3));
+      if (firstUndated) return 1;
+      if (secondUndated) return -1;
+      return second[0].localeCompare(first[0]);
+    })
+    .flatMap(([, group]) => {
+      const mixed = [...group];
+      for (let index = mixed.length - 1; index > 0; index -= 1) {
+        const swap = Math.floor(Math.random() * (index + 1));
+        [mixed[index], mixed[swap]] = [mixed[swap], mixed[index]];
+      }
+      return mixed;
     });
-  }
-  return items;
 }
 
 async function fetchUpsiholoha() {
@@ -775,115 +785,36 @@ async function handleNews(request) {
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
   cacheUrl.searchParams.delete('fresh');
-  cacheUrl.searchParams.set('v', 'uk-11');
+  cacheUrl.searchParams.set('v', 'uk-12');
   const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
   if (!wantFresh) {
     const cached = await cache.match(cacheRequest);
     if (cached) return cached;
   }
 
-  const googleQueries = [
-    'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F&hl=uk&gl=UA&ceid=UA:uk',
-    'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F&hl=uk&gl=UA&ceid=UA:uk',
-    'https://news.google.com/rss/search?q=%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22&hl=uk&gl=UA&ceid=UA:uk',
-  ];
-  const feeds = [
-    ...googleQueries.map((url) => ({ name: 'Google News', url, trustSearch: true })),
-    ...googleQueries.map((url) => ({
-      name: 'Google News',
-      url: `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`,
-      trustSearch: true,
-    })),
-    {
-      name: 'Bing News',
-      url: 'https://www.bing.com/news/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D0%B0&format=RSS&mkt=uk-UA',
-      trustSearch: true,
-    },
-    {
-      name: 'Bing News',
-      url: 'https://www.bing.com/news/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F&format=RSS&mkt=uk-UA',
-      trustSearch: true,
-    },
-    {
-      name: 'Bing News',
-      url: 'https://www.bing.com/news/search?q=%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F&format=RSS&mkt=uk-UA',
-      trustSearch: true,
-    },
-    {
-      name: 'Українська правда. Життя',
-      url: 'https://life.pravda.com.ua/rss/',
-      trustSearch: false,
-    },
-    {
-      name: 'BBC News Україна',
-      url: 'https://feeds.bbci.co.uk/ukrainian/rss.xml',
-      trustSearch: false,
-    },
-    {
-      name: 'Радіо Свобода',
-      url: 'https://www.radiosvoboda.org/api/zrqiteuuir',
-      trustSearch: false,
-    },
-    {
-      name: 'Суспільне',
-      url: 'https://suspilne.media/rss/all.rss',
-      trustSearch: false,
-    },
-    {
-      name: 'Освіта.ua',
-      url: 'https://www.osvita.ua/rss/',
-      trustSearch: false,
-    },
-  ];
-
-  const topicPattern = /психолог|психотерап|ментальн|психічн\w*\s+здоров|нейропсихол|психосомат|психоедукац|психоаналіз/i;
-
-  function isUkrainianText(text) {
-    return (String(text).match(/[А-Яа-яІіЇїЄєҐґ]/g) || []).length >= 8;
-  }
-
-  const [howareuMaterials, howareuNews, howareuSelfHelp, upsiItems, quiItems, dosebeItems, mentolyItems, ...groups] = await Promise.all([
+  const [howareuMaterials, howareuSelfHelp, upsiItems, quiItems, dosebeItems, mentolyItems] = await Promise.all([
     fetchHowareuSearch('materials'),
-    fetchHowareuSearch('news'),
     fetchHowareuSelfHelp(),
     fetchUpsiholoha(),
     fetchQuiBlog(),
     fetchDosebeBlog(),
     fetchMentolyBlog(),
-    ...feeds.map(async (feed) => {
-      const items = await fetchFeed(feed);
-      return items.filter((item) => {
-        const text = `${item.title} ${item.description}`;
-        if (!isUkrainianText(text)) return false;
-        if (feed.trustSearch) return /психолог|психотерап|ментальн/i.test(text);
-        return topicPattern.test(text);
-      });
-    }),
   ]);
 
-  const selfHelp = howareuSelfHelp
-    .map((item) => ({ ...item, section: 'selfHelp', source: item.source || 'Ти як? Самодопомога' }))
-    .sort(newestFirst);
-  const howareuGroup = [...howareuNews, ...howareuMaterials]
-    .map((item) => ({ ...item, section: 'materials', source: item.source || 'Ти як?' }))
-    .sort(newestFirst);
-  const rssGroup = groups.flat().map((item) => ({ ...item, section: 'materials' })).sort(newestFirst);
-  const blogGroups = [upsiItems, quiItems, dosebeItems, mentolyItems].map((group) => [...group].sort(newestFirst));
-  const materials = interleaveBySource([howareuGroup, ...blogGroups, rssGroup]);
-  const selfHelpUrls = new Set(selfHelp.map((item) => item.url.replace(/[?#].*$/, '')));
+  const selfHelp = howareuSelfHelp.map((item) => ({ ...item, section: 'selfHelp', source: item.source || 'Ти як?' }));
+  const materials = [
+    ...howareuMaterials.map((item) => ({ ...item, section: 'materials', source: item.source || 'Ти як?' })),
+    ...upsiItems,
+    ...quiItems,
+    ...dosebeItems,
+    ...mentolyItems,
+  ];
   const byUrl = new Map();
   [...selfHelp, ...materials].forEach((item) => {
     const key = `${item.title}::${item.url.replace(/[?#].*$/, '')}`;
-    if (selfHelpUrls.has(item.url.replace(/[?#].*$/, ''))) {
-      item.section = 'selfHelp';
-    }
     if (!byUrl.has(key)) byUrl.set(key, item);
   });
-  const merged = [...byUrl.values()];
-  const items = [
-    ...merged.filter((item) => item.section === 'selfHelp').sort(newestFirst),
-    ...merged.filter((item) => item.section !== 'selfHelp'),
-  ].slice(0, 320);
+  const items = mixByDate([...byUrl.values()]).slice(0, 280);
 
   const response = json({ items }, 200, { 'Cache-Control': wantFresh ? 'no-store' : 'public, max-age=300' });
   if (!wantFresh) {
