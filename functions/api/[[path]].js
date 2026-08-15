@@ -459,7 +459,7 @@ async function handleNews(request) {
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
   cacheUrl.searchParams.delete('fresh');
-  cacheUrl.searchParams.set('v', 'uk-3');
+  cacheUrl.searchParams.set('v', 'uk-4');
   const cacheRequest = new Request(cacheUrl.toString(), { method: 'GET' });
   if (!wantFresh) {
     const cached = await cache.match(cacheRequest);
@@ -469,32 +469,23 @@ async function handleNews(request) {
   const feeds = [
     {
       name: 'Google News',
-      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+when:1d&hl=uk&gl=UA&ceid=UA:uk',
-      requireTopic: false,
+      url: 'https://news.google.com/rss/search?q=%22%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F%22+when:30d&hl=uk&gl=UA&ceid=UA:uk',
     },
     {
       name: 'Google News',
-      url: 'https://news.google.com/rss/search?q=%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3%D1%96%D1%8F+OR+%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22+when:7d&hl=uk&gl=UA&ceid=UA:uk',
-      requireTopic: false,
+      url: 'https://news.google.com/rss/search?q=%22%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D1%96%D1%8F%22+OR+%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3+when:30d&hl=uk&gl=UA&ceid=UA:uk',
+    },
+    {
+      name: 'Google News',
+      url: 'https://news.google.com/rss/search?q=%22%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D0%BB%D1%8C%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22+OR+%22%D0%BF%D1%81%D0%B8%D1%85%D1%96%D1%87%D0%BD%D0%B5+%D0%B7%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%27%D1%8F%22+when:30d&hl=uk&gl=UA&ceid=UA:uk',
     },
     {
       name: 'Українська правда. Життя',
       url: 'https://life.pravda.com.ua/rss/',
-      requireTopic: true,
-    },
-    {
-      name: 'NV',
-      url: 'https://nv.ua/ukr/rss/all.xml',
-      requireTopic: true,
-    },
-    {
-      name: 'Суспільне',
-      url: 'https://suspilne.media/rss/all.rss',
-      requireTopic: true,
     },
   ];
 
-  const topicPattern = /психолог|психотерап|ментальн|психічн|тривог|депрес|стрес|емоці|травм|вигоран|нейропсихол|самопочутт|птср|панічн|самооцін|медитац|психосомат/i;
+  const topicPattern = /психолог|психотерап|ментальн\w*\s+здоров|психічн\w*\s+здоров|нейропсихол|психосомат|психоедукац|психоаналіз|когнітивн\w*\s+поведінков/i;
 
   function isUkrainianText(text) {
     const cyrillic = (String(text).match(/[А-Яа-яІіЇїЄєҐґ]/g) || []).length;
@@ -511,9 +502,7 @@ async function handleNews(request) {
     const items = await fetchFeed(feed);
     return items.filter((item) => {
       const text = `${item.title} ${item.description}`;
-      if (!isUkrainianText(text) || !isUkrainianOutlet(item)) return false;
-      if (feed.requireTopic && !topicPattern.test(text)) return false;
-      return true;
+      return isUkrainianText(text) && isUkrainianOutlet(item) && topicPattern.test(text);
     });
   }));
 
