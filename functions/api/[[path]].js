@@ -811,7 +811,7 @@ async function handleNews(request) {
   const byUrl = new Map();
   mixed.forEach((item) => {
     const key = `${item.title}::${item.url.replace(/[?#].*$/, '')}`;
-    if (!byUrl.has(key)) byUrl.set(key, { ...item, section: undefined });
+    if (!byUrl.has(key)) byUrl.set(key, item);
   });
   const items = mixByDate([...byUrl.values()]).slice(0, 280);
 
