@@ -2089,7 +2089,7 @@
             <h1>Новини з психології</h1>
             <button type="button" class="secondary" id="newsRefreshBtn">Оновити</button>
           </div>
-          <p class="news-lead">Матеріали «Ти як?», У Психолога, qui.help, «До себе» та Mentoly. Прочитане лишається в стрічці й відкривається знову.</p>
+          <p class="news-lead">Матеріали «Ти як?», У Психолога, qui.help, «До себе» та Mentoly. Прочитане ховається вниз у «Прочитано».</p>
           <div class="news-list" id="newsList"></div>
           <button type="button" class="secondary news-more hidden" id="newsMoreBtn">Показати ще</button>
           <p class="news-status" id="newsStatus">Завантажуємо новини…</p>
@@ -3824,7 +3824,7 @@
           return;
         }
         renderPsychologyNews();
-        newsStatus.textContent = `Оновлено ${new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}. Прочитане лишається в списку — можна відкрити знову.`;
+        newsStatus.textContent = `Оновлено ${new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}. Прочитане ховається вниз у «Прочитано».`;
       } catch (error) {
         newsStatus.textContent = `Не вдалося завантажити новини: ${error.message}`;
       } finally {
