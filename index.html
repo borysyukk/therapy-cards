@@ -3352,8 +3352,9 @@
             imageData: imageData || currentEditingItem.imageData,
             textValues: withPriorityMetadata(values, getItemPriority(currentEditingItem)),
             isPriority: getItemPriority(currentEditingItem),
+            sortOrder: -Date.now(),
           };
-          const isUpdated = await updateHistoryItem(updatedItem);
+          const isUpdated = await updateHistoryItem(updatedItem, { resetPage: true });
           if (!isUpdated) return;
           expandedHistoryIds.add(currentEditingItem.id);
           lastOpenedHistoryId = currentEditingItem.id;
@@ -4362,7 +4363,7 @@
       return true;
     }
 
-    async function updateHistoryItem(item) {
+    async function updateHistoryItem(item, { resetPage = false } = {}) {
       if (currentUser) {
         try {
           await api(`/api/cards/${encodeURIComponent(item.id)}`, {
@@ -4374,7 +4375,7 @@
               sort_order: item.sortOrder,
             },
           });
-          await refreshHistory();
+          await refreshHistory({ resetPage });
           upsertDurableItems([item]);
           return true;
         } catch (error) {
@@ -4387,7 +4388,7 @@
         historyItem.id === item.id ? item : historyItem
       ));
       saveLocalHistory(history);
-      await refreshHistory();
+      await refreshHistory({ resetPage });
       return true;
     }
 
