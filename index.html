@@ -829,6 +829,14 @@
       line-height: 1.45;
     }
 
+    .actions-hint {
+      margin: 8px 0 0;
+      color: var(--color-foreground-soft);
+      font-size: 12px;
+      line-height: 1.4;
+      text-align: right;
+    }
+
     .toast {
       position: fixed;
       left: 50%;
@@ -2081,6 +2089,7 @@
             <button type="button" class="secondary" id="resetBtn">Очистити</button>
             <button type="button" id="saveBtn">Зберегти запис</button>
           </div>
+          <p class="actions-hint" id="saveShortcutHint">Зберегти також можна через Ctrl+Enter (на Mac — ⌘Enter)</p>
           <p class="saved-state" id="savedState"></p>
         </div>
       </main>
@@ -2815,6 +2824,11 @@
             updateRichToolbarState(editor);
           });
           editor.addEventListener('keydown', (event) => {
+            if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+              event.preventDefault();
+              downloadAsImage();
+              return;
+            }
             if (tryConvertListShortcut(event, editor)) return;
             const key = event.key.toLowerCase();
             if ((event.metaKey || event.ctrlKey) && ['b', 'i', 'u'].includes(key)) {
@@ -5247,6 +5261,21 @@
       if (event.target === previewModalOverlay) closeImagePreview();
     });
     document.addEventListener('keydown', (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+        const inCompose = document.body.dataset.view === 'compose';
+        const modalOpen = [
+          deleteModalOverlay,
+          unreadModalOverlay,
+          previewModalOverlay,
+          authModalOverlay,
+          emotionModalOverlay,
+        ].some((overlay) => !overlay.classList.contains('hidden'));
+        if (inCompose && !modalOpen && !saveBtn.disabled && !isSaving) {
+          event.preventDefault();
+          downloadAsImage();
+          return;
+        }
+      }
       if (event.key === 'Escape' && !deleteModalOverlay.classList.contains('hidden')) closeDeleteModal();
       if (event.key === 'Escape' && !unreadModalOverlay.classList.contains('hidden')) closeUnreadModal();
       if (event.key === 'Escape' && !previewModalOverlay.classList.contains('hidden')) closeImagePreview();
