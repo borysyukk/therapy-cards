@@ -2093,6 +2093,13 @@
           <div class="news-list" id="newsList"></div>
           <button type="button" class="secondary news-more hidden" id="newsMoreBtn">Показати ще</button>
           <p class="news-status" id="newsStatus">Завантажуємо новини…</p>
+          <section class="news-read-pane hidden" id="newsReadPane">
+            <div class="news-read-heading">
+              <h2 id="newsReadTitle">Прочитано</h2>
+              <button type="button" class="secondary" id="newsReadToggleBtn">Показати</button>
+            </div>
+            <div class="news-list hidden" id="newsReadList"></div>
+          </section>
         </div>
       </section>
     </div>
@@ -2298,6 +2305,10 @@
     const newsStatus = document.getElementById('newsStatus');
     const newsMoreBtn = document.getElementById('newsMoreBtn');
     const newsRefreshBtn = document.getElementById('newsRefreshBtn');
+    const newsReadPane = document.getElementById('newsReadPane');
+    const newsReadList = document.getElementById('newsReadList');
+    const newsReadTitle = document.getElementById('newsReadTitle');
+    const newsReadToggleBtn = document.getElementById('newsReadToggleBtn');
     const historyList = document.getElementById('historyList');
     const historyEmpty = document.getElementById('historyEmpty');
     const historyPagination = document.getElementById('historyPagination');
@@ -2399,6 +2410,7 @@
     const newsPageSize = 8;
     const newsReadKey = 'therapyNewsReadItems';
     const appViewKey = 'therapyAppView';
+    let newsReadOpen = false;
 
     const creatableTemplateIds = ['note', 'thought', 'memo'];
     const templates = {
@@ -3774,13 +3786,24 @@
 
     function renderPsychologyNews() {
       const items = newsItemsCache || [];
+      const visibleItems = items.filter((item) => !isNewsRead(item.url));
+      const readItems = items.filter((item) => isNewsRead(item.url));
       newsList.innerHTML = '';
-      items.slice(0, newsVisibleCount).forEach((item) => newsList.appendChild(createNewsCard(item)));
-      newsMoreBtn.classList.toggle('hidden', newsVisibleCount >= items.length);
+      visibleItems.slice(0, newsVisibleCount).forEach((item) => newsList.appendChild(createNewsCard(item)));
+      newsMoreBtn.classList.toggle('hidden', newsVisibleCount >= visibleItems.length);
+
+      newsReadPane.classList.toggle('hidden', !readItems.length);
+      newsReadTitle.textContent = readItems.length ? `Прочитано (${readItems.length})` : 'Прочитано';
+      newsReadToggleBtn.textContent = newsReadOpen ? 'Сховати' : 'Показати';
+      newsReadList.classList.toggle('hidden', !newsReadOpen);
+      newsReadList.innerHTML = '';
+      if (newsReadOpen) {
+        readItems.forEach((item) => newsReadList.appendChild(createNewsCard(item)));
+      }
     }
 
     function showMoreNews() {
-      const items = newsItemsCache || [];
+      const items = (newsItemsCache || []).filter((item) => !isNewsRead(item.url));
       if (!items.length) return;
       newsVisibleCount = Math.min(items.length, newsVisibleCount + newsPageSize);
       renderPsychologyNews();
@@ -3794,7 +3817,7 @@
         const data = await api(`/api/news?fresh=${reset ? Date.now() : '0'}`);
         newsItemsCache = Array.isArray(data.items) ? data.items : [];
         newsCacheAt = Date.now();
-        newsVisibleCount = Math.min(newsPageSize, newsItemsCache.length);
+        newsVisibleCount = Math.min(newsPageSize, newsItemsCache.filter((item) => !isNewsRead(item.url)).length);
         if (!newsItemsCache.length) {
           newsStatus.textContent = 'Зараз свіжих матеріалів немає. Натисніть «Оновити» трохи пізніше.';
           renderPsychologyNews();
@@ -5114,6 +5137,10 @@
     document.addEventListener('pointercancel', endPointerHistoryDrag);
     newsMoreBtn.addEventListener('click', showMoreNews);
     newsRefreshBtn.addEventListener('click', () => loadPsychologyNews({ reset: true }));
+    newsReadToggleBtn.addEventListener('click', () => {
+      newsReadOpen = !newsReadOpen;
+      renderPsychologyNews();
+    });
     authMenuBtn.addEventListener('click', (event) => {
       event.stopPropagation();
       toggleAuthDropdown();
