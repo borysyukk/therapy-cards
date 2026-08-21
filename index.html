@@ -1679,13 +1679,149 @@
       display: none;
     }
 
+    .mobile-nav-shell {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      border-radius: 24px;
+      min-height: 66px;
+      background:
+        linear-gradient(155deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.28) 42%, rgba(255, 255, 255, 0.42) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.58);
+      box-shadow:
+        0 10px 28px rgba(24, 24, 27, 0.12),
+        0 1px 0 rgba(255, 255, 255, 0.65) inset,
+        0 -1px 0 rgba(255, 255, 255, 0.18) inset,
+        1px 0 0 rgba(255, 255, 255, 0.2) inset,
+        -1px 0 0 rgba(255, 255, 255, 0.2) inset;
+      backdrop-filter: blur(28px) saturate(185%) brightness(1.06);
+      -webkit-backdrop-filter: blur(28px) saturate(185%) brightness(1.06);
+    }
+
+    .mobile-nav-shell::before {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.45) 0%,
+        rgba(255, 255, 255, 0.08) 28%,
+        rgba(255, 255, 255, 0) 55%
+      );
+      opacity: 0.9;
+      z-index: 0;
+    }
+
+    .mobile-nav-shell::after {
+      content: "";
+      position: absolute;
+      left: 12%;
+      right: 12%;
+      top: 0;
+      height: 1px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .mobile-nav-layer {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 4px;
+      padding: 4px;
+      min-height: 66px;
+      transition:
+        opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        filter 0.28s ease;
+      will-change: opacity, transform;
+    }
+
+    .mobile-nav-dock {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .mobile-nav-actions {
+      position: absolute;
+      inset: 0;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      opacity: 0;
+      transform: translateY(10px) scale(0.96);
+      filter: blur(2px);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .mobile-nav[data-mode="actions"] .mobile-nav-dock {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.96);
+      filter: blur(2px);
+      pointer-events: none;
+    }
+
+    .mobile-nav[data-mode="actions"] .mobile-nav-actions {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+      pointer-events: auto;
+    }
+
+    .mobile-nav-actions button {
+      border-radius: 18px;
+      min-height: 58px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: none;
+    }
+
+    .mobile-nav-actions button.secondary {
+      background: rgba(255, 255, 255, 0.42);
+      color: var(--color-primary-strong);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+    }
+
+    .mobile-nav-actions button.secondary:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.62);
+    }
+
+    .mobile-nav-actions #mobileSaveBtn {
+      background: rgba(37, 99, 235, 0.92);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    }
+
+    .mobile-nav-actions #mobileSaveBtn:hover:not(:disabled) {
+      background: rgba(29, 78, 216, 0.96);
+    }
+
+    .mobile-nav-actions .hidden {
+      display: none;
+    }
+
+    .mobile-nav-actions svg {
+      width: 20px;
+      height: 20px;
+    }
+
     @media (max-width: 860px) {
       body {
         overflow: hidden;
       }
 
       .app {
-        grid-template-rows: minmax(0, 1fr) auto;
+        position: relative;
+        grid-template-rows: minmax(0, 1fr);
       }
 
       .app-scroll {
@@ -1693,6 +1829,7 @@
         flex-direction: column;
         min-height: 0;
         overflow: auto;
+        padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom));
       }
 
       .history-item {
@@ -1848,23 +1985,23 @@
 
       .mobile-nav {
         display: block;
-        padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-        background: rgba(255, 255, 255, 0.94);
-        border-top: 1px solid var(--color-border);
-        backdrop-filter: blur(16px);
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+        background: linear-gradient(180deg, rgba(247, 245, 241, 0) 0%, rgba(247, 245, 241, 0.55) 45%, rgba(247, 245, 241, 0.72) 100%);
+        border-top: 0;
+        pointer-events: none;
       }
 
-      .mobile-nav-dock {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 4px;
-        padding: 4px;
-        border-radius: 20px;
-        background: var(--color-muted);
+      .mobile-nav-shell {
+        pointer-events: auto;
       }
 
-      .mobile-nav button {
-        border-radius: 16px;
+      .mobile-nav-dock button {
+        border-radius: 18px;
         background: transparent;
         color: var(--color-primary);
         min-height: 58px;
@@ -1879,22 +2016,23 @@
         box-shadow: none;
       }
 
-      .mobile-nav button:hover:not(:disabled) {
-        background: var(--color-primary-muted);
+      .mobile-nav-dock button:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.42);
         color: var(--color-primary-strong);
       }
 
-      .mobile-nav button.is-active {
-        background: var(--color-primary);
+      .mobile-nav-dock button.is-active {
+        background: rgba(24, 24, 27, 0.88);
+        color: var(--color-on-primary);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      }
+
+      .mobile-nav-dock button.is-active:hover:not(:disabled) {
+        background: rgba(24, 24, 27, 0.94);
         color: var(--color-on-primary);
       }
 
-      .mobile-nav button.is-active:hover:not(:disabled) {
-        background: var(--color-primary-strong);
-        color: var(--color-on-primary);
-      }
-
-      .mobile-nav svg {
+      .mobile-nav-dock svg {
         width: 22px;
         height: 22px;
       }
@@ -2115,26 +2253,48 @@
     </div>
     </div>
 
-    <nav class="mobile-nav" aria-label="Основна навігація">
-      <div class="mobile-nav-dock">
-        <button type="button" id="mobileComposeBtn" class="is-active">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M21.7 2.3a2.6 2.6 0 0 0-3.7 0l-1.2 1.2 3.7 3.7 1.2-1.2a2.6 2.6 0 0 0 0-3.7ZM19.5 8.2 15.8 4.5 3.7 16.6a5.2 5.2 0 0 0-1.3 2.2l-.8 2.7a.75.75 0 0 0 .9.9l2.7-.8a5.2 5.2 0 0 0 2.2-1.3L19.5 8.2Z"/>
-          </svg>
-          Запис
-        </button>
-        <button type="button" id="mobileHistoryBtn">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" fill-rule="evenodd" d="M6.5 3A2.5 2.5 0 0 0 4 5.5v13A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V8.4L16.6 3H6.5Zm2.2 2h6.2v3.6H8.7V5Zm3.3 12.4a2.15 2.15 0 1 0 0-4.3 2.15 2.15 0 0 0 0 4.3Z"/>
-          </svg>
-          Збережені
-        </button>
-        <button type="button" id="mobileNewsBtn">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="currentColor" d="M6.75 3.5h12.5A1.75 1.75 0 0 1 21 5.25v11.5A3.25 3.25 0 0 1 17.75 20H5.5A2.5 2.5 0 0 1 3 17.5V6.75A3.25 3.25 0 0 1 6.25 3.5h.5Zm0 1.5h-.5c-.97 0-1.75.78-1.75 1.75V17.5a1 1 0 0 0 1 1h12.25c.97 0 1.75-.78 1.75-1.75V5.25a.25.25 0 0 0-.25-.25H6.75ZM8 7.25h8.5v4.25H8V7.25Zm0 5.75h8.5v1.35H8V13Zm0 2.6h5.75v1.3H8v-1.3Z"/>
-          </svg>
-          Новини
-        </button>
+    <nav class="mobile-nav" id="mobileNav" aria-label="Основна навігація" data-mode="nav">
+      <div class="mobile-nav-shell">
+        <div class="mobile-nav-layer mobile-nav-dock" id="mobileNavDock">
+          <button type="button" id="mobileComposeBtn" class="is-active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M21.7 2.3a2.6 2.6 0 0 0-3.7 0l-1.2 1.2 3.7 3.7 1.2-1.2a2.6 2.6 0 0 0 0-3.7ZM19.5 8.2 15.8 4.5 3.7 16.6a5.2 5.2 0 0 0-1.3 2.2l-.8 2.7a.75.75 0 0 0 .9.9l2.7-.8a5.2 5.2 0 0 0 2.2-1.3L19.5 8.2Z"/>
+            </svg>
+            Запис
+          </button>
+          <button type="button" id="mobileHistoryBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" fill-rule="evenodd" d="M6.5 3A2.5 2.5 0 0 0 4 5.5v13A2.5 2.5 0 0 0 6.5 21h11a2.5 2.5 0 0 0 2.5-2.5V8.4L16.6 3H6.5Zm2.2 2h6.2v3.6H8.7V5Zm3.3 12.4a2.15 2.15 0 1 0 0-4.3 2.15 2.15 0 0 0 0 4.3Z"/>
+            </svg>
+            Збережені
+          </button>
+          <button type="button" id="mobileNewsBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M6.75 3.5h12.5A1.75 1.75 0 0 1 21 5.25v11.5A3.25 3.25 0 0 1 17.75 20H5.5A2.5 2.5 0 0 1 3 17.5V6.75A3.25 3.25 0 0 1 6.25 3.5h.5Zm0 1.5h-.5c-.97 0-1.75.78-1.75 1.75V17.5a1 1 0 0 0 1 1h12.25c.97 0 1.75-.78 1.75-1.75V5.25a.25.25 0 0 0-.25-.25H6.75ZM8 7.25h8.5v4.25H8V7.25Zm0 5.75h8.5v1.35H8V13Zm0 2.6h5.75v1.3H8v-1.3Z"/>
+            </svg>
+            Новини
+          </button>
+        </div>
+        <div class="mobile-nav-layer mobile-nav-actions" id="mobileNavActions" aria-hidden="true">
+          <button type="button" class="secondary" id="mobileResetBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M12 5V2.2L8.6 5.6 12 9V6.5A5.5 5.5 0 1 1 6.5 12H5a7 7 0 1 0 7-7Z"/>
+            </svg>
+            Очистити
+          </button>
+          <button type="button" class="secondary hidden" id="mobileCancelEditBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M6.7 6.7a1 1 0 0 1 1.4 0L12 10.6l3.9-3.9a1 1 0 1 1 1.4 1.4L13.4 12l3.9 3.9a1 1 0 0 1-1.4 1.4L12 13.4l-3.9 3.9a1 1 0 0 1-1.4-1.4L10.6 12 6.7 8.1a1 1 0 0 1 0-1.4Z"/>
+            </svg>
+            Скасувати
+          </button>
+          <button type="button" id="mobileSaveBtn" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M17 3H7a2 2 0 0 0-2 2v14l7-3 7 3V5a2 2 0 0 0-2-2Zm0 13.2-5-2.15-5 2.15V5h10v11.2Z"/>
+            </svg>
+            <span class="mobile-save-label">Зберегти</span>
+          </button>
+        </div>
       </div>
     </nav>
   </div>
@@ -2307,9 +2467,15 @@
     const savedState = document.getElementById('savedState');
     const toast = document.getElementById('toast');
     const composer = document.getElementById('composer');
+    const mobileNav = document.getElementById('mobileNav');
+    const mobileNavDock = document.getElementById('mobileNavDock');
+    const mobileNavActions = document.getElementById('mobileNavActions');
     const mobileComposeBtn = document.getElementById('mobileComposeBtn');
     const mobileHistoryBtn = document.getElementById('mobileHistoryBtn');
     const mobileNewsBtn = document.getElementById('mobileNewsBtn');
+    const mobileSaveBtn = document.getElementById('mobileSaveBtn');
+    const mobileResetBtn = document.getElementById('mobileResetBtn');
+    const mobileCancelEditBtn = document.getElementById('mobileCancelEditBtn');
     const desktopNewsBtn = document.getElementById('desktopNewsBtn');
     const newsList = document.getElementById('newsList');
     const newsStatus = document.getElementById('newsStatus');
@@ -2407,6 +2573,7 @@
     let historyRefreshToken = 0;
     let isSaving = false;
     let toastTimeoutId = null;
+    let mobileNavBlurTimeoutId = null;
     let activeHistoryMenu = null;
     let activeHistoryMenuToggle = null;
     let isExportSelectionMode = false;
@@ -2613,6 +2780,66 @@
       if (active && composer.contains(active) && active !== composer && typeof active.blur === 'function') {
         active.blur();
       }
+      setMobileNavMode('nav');
+    }
+
+    function isComposerEditable(target) {
+      return Boolean(
+        target
+        && composer.contains(target)
+        && target.matches('textarea, input, [contenteditable="true"]')
+      );
+    }
+
+    function isMobileNavActionsTarget(target) {
+      return Boolean(target && mobileNavActions && mobileNavActions.contains(target));
+    }
+
+    function getMobileSaveLabel() {
+      return editingItem ? 'Оновити' : 'Зберегти';
+    }
+
+    function syncMobileActionButtons() {
+      if (!mobileSaveBtn || !mobileResetBtn || !mobileCancelEditBtn) return;
+      const editing = Boolean(editingItem);
+      mobileResetBtn.classList.toggle('hidden', editing);
+      mobileCancelEditBtn.classList.toggle('hidden', !editing);
+      mobileSaveBtn.disabled = saveBtn.disabled;
+      mobileSaveBtn.classList.toggle('is-loading', saveBtn.classList.contains('is-loading'));
+      if (saveBtn.classList.contains('is-loading')) {
+        mobileSaveBtn.innerHTML = '<span class="button-spinner" aria-hidden="true"></span><span>Збереження...</span>';
+      } else {
+        mobileSaveBtn.innerHTML = `
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M17 3H7a2 2 0 0 0-2 2v14l7-3 7 3V5a2 2 0 0 0-2-2Zm0 13.2-5-2.15-5 2.15V5h10v11.2Z"/>
+          </svg>
+          <span class="mobile-save-label">${getMobileSaveLabel()}</span>
+        `;
+      }
+    }
+
+    function setMobileNavMode(mode) {
+      if (!mobileNav) return;
+      const nextMode = mode === 'actions' ? 'actions' : 'nav';
+      window.clearTimeout(mobileNavBlurTimeoutId);
+      mobileNavBlurTimeoutId = null;
+      if (mobileNav.dataset.mode === nextMode) {
+        if (nextMode === 'actions') syncMobileActionButtons();
+        return;
+      }
+      mobileNav.dataset.mode = nextMode;
+      mobileNavActions.setAttribute('aria-hidden', nextMode === 'actions' ? 'false' : 'true');
+      mobileNavDock.setAttribute('aria-hidden', nextMode === 'actions' ? 'true' : 'false');
+      if (nextMode === 'actions') syncMobileActionButtons();
+    }
+
+    function scheduleMobileNavRestore() {
+      window.clearTimeout(mobileNavBlurTimeoutId);
+      mobileNavBlurTimeoutId = window.setTimeout(() => {
+        const active = document.activeElement;
+        if (isComposerEditable(active) || isMobileNavActionsTarget(active)) return;
+        setMobileNavMode('nav');
+      }, 160);
     }
 
     function keepComposerFromAutofocus(callback) {
@@ -2888,6 +3115,7 @@
 
     function updateSaveButtonState() {
       saveBtn.disabled = isSaving || !hasAnyFilledField();
+      syncMobileActionButtons();
     }
 
     function getSaveButtonLabel() {
@@ -2918,6 +3146,7 @@
       resetBtn.classList.toggle('hidden', Boolean(item));
       if (!isSaving) saveBtn.textContent = getSaveButtonLabel();
       updateSaveButtonState();
+      syncMobileActionButtons();
     }
 
     function cancelCardEdit() {
@@ -5088,6 +5317,14 @@
     mobileComposeBtn.addEventListener('click', () => setAppView('compose'));
     mobileHistoryBtn.addEventListener('click', () => setAppView('history'));
     mobileNewsBtn.addEventListener('click', () => setAppView('news'));
+    mobileSaveBtn.addEventListener('pointerdown', (event) => event.preventDefault());
+    mobileResetBtn.addEventListener('pointerdown', (event) => event.preventDefault());
+    mobileCancelEditBtn.addEventListener('pointerdown', (event) => event.preventDefault());
+    mobileSaveBtn.addEventListener('click', () => {
+      if (!mobileSaveBtn.disabled) downloadAsImage();
+    });
+    mobileResetBtn.addEventListener('click', clearDraft);
+    mobileCancelEditBtn.addEventListener('click', cancelCardEdit);
     desktopNewsBtn.addEventListener('click', () => setAppView(document.body.dataset.view === 'news' ? 'compose' : 'news'));
     openEmotionListBtn.addEventListener('click', () => openEmotionModal(thoughtForm.elements.emotion));
     closeEmotionModalBtn.addEventListener('click', closeEmotionModal);
@@ -5296,8 +5533,23 @@
 
     bindAutoResize();
     composer.addEventListener('focusin', (event) => {
-      if (!suppressComposerAutofocus) return;
-      if (event.target.matches('textarea, input, [contenteditable="true"]')) event.target.blur();
+      if (suppressComposerAutofocus) {
+        if (event.target.matches('textarea, input, [contenteditable="true"]')) event.target.blur();
+        return;
+      }
+      if (!isComposerEditable(event.target)) return;
+      if (document.body.dataset.view !== 'compose') return;
+      setMobileNavMode('actions');
+    });
+    composer.addEventListener('focusout', () => {
+      scheduleMobileNavRestore();
+    });
+    mobileNavActions.addEventListener('focusin', () => {
+      window.clearTimeout(mobileNavBlurTimeoutId);
+      setMobileNavMode('actions');
+    });
+    mobileNavActions.addEventListener('focusout', () => {
+      scheduleMobileNavRestore();
     });
     ensureMemoTabMigrated();
     if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
